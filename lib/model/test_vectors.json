@@ -1,0 +1,617 @@
+[
+  {
+    "input": {
+      "unitid": 166683,
+      "school_name": "Massachusetts Institute of Technology",
+      "selectivity_tier": "elite",
+      "sat_score": 1540,
+      "act_score": 35,
+      "gpa": 3.95,
+      "application_round": "regular"
+    },
+    "features": {
+      "sat_gap": -0.22483333,
+      "sat_missing": 0.0,
+      "act_gap": 0.0,
+      "act_missing": 0.0,
+      "gpa_gap": 0.0,
+      "gpa_missing": 1.0,
+      "applying_early": 0.0,
+      "log_school_size": 8.41980085,
+      "tier_accessible": 0.0,
+      "tier_selective": 0.0,
+      "tier_highly_selective": 0.0,
+      "tier_elite": 1.0,
+      "test_policy_required": 1.0,
+      "test_policy_optional": 0.0,
+      "test_policy_blind": 0.0,
+      "test_policy_unknown": 0.0,
+      "setting_city": 1.0,
+      "setting_suburb": 0.0,
+      "setting_town": 0.0,
+      "setting_rural": 0.0,
+      "setting_unknown": 0.0
+    },
+    "output": {
+      "point_probability": 0.040326,
+      "calibrated_probability": 0.032967,
+      "interval_low": 0.0,
+      "interval_high": 0.492967,
+      "interval_width": 0.492967
+    }
+  },
+  {
+    "input": {
+      "unitid": 243744,
+      "school_name": "Stanford University",
+      "selectivity_tier": "elite",
+      "sat_score": 1560,
+      "act_score": 35,
+      "gpa": 3.98,
+      "application_round": "early"
+    },
+    "features": {
+      "sat_gap": 0.28907143,
+      "sat_missing": 0.0,
+      "act_gap": 0.5,
+      "act_missing": 0.0,
+      "gpa_gap": 0.0,
+      "gpa_missing": 1.0,
+      "applying_early": 1.0,
+      "log_school_size": 8.92996487,
+      "tier_accessible": 0.0,
+      "tier_selective": 0.0,
+      "tier_highly_selective": 0.0,
+      "tier_elite": 1.0,
+      "test_policy_required": 0.0,
+      "test_policy_optional": 1.0,
+      "test_policy_blind": 0.0,
+      "test_policy_unknown": 0.0,
+      "setting_city": 0.0,
+      "setting_suburb": 1.0,
+      "setting_town": 0.0,
+      "setting_rural": 0.0,
+      "setting_unknown": 0.0
+    },
+    "output": {
+      "point_probability": 0.05408,
+      "calibrated_probability": 0.048433,
+      "interval_low": 0.0,
+      "interval_high": 0.508433,
+      "interval_width": 0.508433
+    }
+  },
+  {
+    "input": {
+      "unitid": 110662,
+      "school_name": "University of California-Los Angeles",
+      "selectivity_tier": "elite",
+      "sat_score": null,
+      "act_score": null,
+      "gpa": 3.85,
+      "application_round": "regular"
+    },
+    "features": {
+      "sat_gap": 0.0,
+      "sat_missing": 1.0,
+      "act_gap": 0.0,
+      "act_missing": 1.0,
+      "gpa_gap": 0.0,
+      "gpa_missing": 1.0,
+      "applying_early": 0.0,
+      "log_school_size": 10.41858404,
+      "tier_accessible": 0.0,
+      "tier_selective": 0.0,
+      "tier_highly_selective": 0.0,
+      "tier_elite": 1.0,
+      "test_policy_required": 0.0,
+      "test_policy_optional": 0.0,
+      "test_policy_blind": 1.0,
+      "test_policy_unknown": 0.0,
+      "setting_city": 1.0,
+      "setting_suburb": 0.0,
+      "setting_town": 0.0,
+      "setting_rural": 0.0,
+      "setting_unknown": 0.0
+    },
+    "output": {
+      "point_probability": 0.047924,
+      "calibrated_probability": 0.048433,
+      "interval_low": 0.0,
+      "interval_high": 0.508433,
+      "interval_width": 0.508433
+    }
+  },
+  {
+    "input": {
+      "unitid": 167358,
+      "school_name": "Northeastern University",
+      "selectivity_tier": "elite",
+      "sat_score": 1490,
+      "act_score": 34,
+      "gpa": 3.9,
+      "application_round": "early"
+    },
+    "features": {
+      "sat_gap": 0.0,
+      "sat_missing": 0.0,
+      "act_gap": 0.0,
+      "act_missing": 0.0,
+      "gpa_gap": 0.0,
+      "gpa_missing": 1.0,
+      "applying_early": 1.0,
+      "log_school_size": 9.76002126,
+      "tier_accessible": 0.0,
+      "tier_selective": 0.0,
+      "tier_highly_selective": 0.0,
+      "tier_elite": 1.0,
+      "test_policy_required": 0.0,
+      "test_policy_optional": 1.0,
+      "test_policy_blind": 0.0,
+      "test_policy_unknown": 0.0,
+      "setting_city": 1.0,
+      "setting_suburb": 0.0,
+      "setting_town": 0.0,
+      "setting_rural": 0.0,
+      "setting_unknown": 0.0
+    },
+    "output": {
+      "point_probability": 0.045472,
+      "calibrated_probability": 0.043478,
+      "interval_low": 0.0,
+      "interval_high": 0.503478,
+      "interval_width": 0.503478
+    }
+  },
+  {
+    "input": {
+      "unitid": 139755,
+      "school_name": "Georgia Institute of Technology-Main Campus",
+      "selectivity_tier": "highly_selective",
+      "sat_score": 1510,
+      "act_score": 34,
+      "gpa": 3.88,
+      "application_round": "regular"
+    },
+    "features": {
+      "sat_gap": 0.43644118,
+      "sat_missing": 0.0,
+      "act_gap": 0.6745,
+      "act_missing": 0.0,
+      "gpa_gap": 0.0,
+      "gpa_missing": 1.0,
+      "applying_early": 0.0,
+      "log_school_size": 9.84086719,
+      "tier_accessible": 0.0,
+      "tier_selective": 0.0,
+      "tier_highly_selective": 1.0,
+      "tier_elite": 0.0,
+      "test_policy_required": 1.0,
+      "test_policy_optional": 0.0,
+      "test_policy_blind": 0.0,
+      "test_policy_unknown": 0.0,
+      "setting_city": 1.0,
+      "setting_suburb": 0.0,
+      "setting_town": 0.0,
+      "setting_rural": 0.0,
+      "setting_unknown": 0.0
+    },
+    "output": {
+      "point_probability": 0.188832,
+      "calibrated_probability": 0.181287,
+      "interval_low": 0.0,
+      "interval_high": 0.451287,
+      "interval_width": 0.451287
+    }
+  },
+  {
+    "input": {
+      "unitid": 199120,
+      "school_name": "University of North Carolina at Chapel Hill",
+      "selectivity_tier": "highly_selective",
+      "sat_score": 1440,
+      "act_score": 32,
+      "gpa": 3.8,
+      "application_round": "early"
+    },
+    "features": {
+      "sat_gap": -0.19271429,
+      "sat_missing": 0.0,
+      "act_gap": 0.22483333,
+      "act_missing": 0.0,
+      "gpa_gap": 0.0,
+      "gpa_missing": 1.0,
+      "applying_early": 1.0,
+      "log_school_size": 9.94044609,
+      "tier_accessible": 0.0,
+      "tier_selective": 0.0,
+      "tier_highly_selective": 1.0,
+      "tier_elite": 0.0,
+      "test_policy_required": 0.0,
+      "test_policy_optional": 1.0,
+      "test_policy_blind": 0.0,
+      "test_policy_unknown": 0.0,
+      "setting_city": 1.0,
+      "setting_suburb": 0.0,
+      "setting_town": 0.0,
+      "setting_rural": 0.0,
+      "setting_unknown": 0.0
+    },
+    "output": {
+      "point_probability": 0.119706,
+      "calibrated_probability": 0.098624,
+      "interval_low": 0.0,
+      "interval_high": 0.368624,
+      "interval_width": 0.368624
+    }
+  },
+  {
+    "input": {
+      "unitid": 170976,
+      "school_name": "University of Michigan-Ann Arbor",
+      "selectivity_tier": "highly_selective",
+      "sat_score": 1380,
+      "act_score": 31,
+      "gpa": 3.75,
+      "application_round": "regular"
+    },
+    "features": {
+      "sat_gap": -0.51579412,
+      "sat_missing": 0.0,
+      "act_gap": -0.6745,
+      "act_missing": 0.0,
+      "gpa_gap": 0.0,
+      "gpa_missing": 1.0,
+      "applying_early": 0.0,
+      "log_school_size": 10.43933744,
+      "tier_accessible": 0.0,
+      "tier_selective": 0.0,
+      "tier_highly_selective": 1.0,
+      "tier_elite": 0.0,
+      "test_policy_required": 0.0,
+      "test_policy_optional": 1.0,
+      "test_policy_blind": 0.0,
+      "test_policy_unknown": 0.0,
+      "setting_city": 1.0,
+      "setting_suburb": 0.0,
+      "setting_town": 0.0,
+      "setting_rural": 0.0,
+      "setting_unknown": 0.0
+    },
+    "output": {
+      "point_probability": 0.0907,
+      "calibrated_probability": 0.094213,
+      "interval_low": 0.0,
+      "interval_high": 0.364213,
+      "interval_width": 0.364213
+    }
+  },
+  {
+    "input": {
+      "unitid": 134130,
+      "school_name": "University of Florida",
+      "selectivity_tier": "highly_selective",
+      "sat_score": 1360,
+      "act_score": 30,
+      "gpa": 3.72,
+      "application_round": "regular"
+    },
+    "features": {
+      "sat_gap": -0.33725,
+      "sat_missing": 0.0,
+      "act_gap": -0.33725,
+      "act_missing": 0.0,
+      "gpa_gap": 0.0,
+      "gpa_missing": 1.0,
+      "applying_early": 0.0,
+      "log_school_size": 10.48094326,
+      "tier_accessible": 0.0,
+      "tier_selective": 0.0,
+      "tier_highly_selective": 1.0,
+      "tier_elite": 0.0,
+      "test_policy_required": 1.0,
+      "test_policy_optional": 0.0,
+      "test_policy_blind": 0.0,
+      "test_policy_unknown": 0.0,
+      "setting_city": 1.0,
+      "setting_suburb": 0.0,
+      "setting_town": 0.0,
+      "setting_rural": 0.0,
+      "setting_unknown": 0.0
+    },
+    "output": {
+      "point_probability": 0.100792,
+      "calibrated_probability": 0.094213,
+      "interval_low": 0.0,
+      "interval_high": 0.364213,
+      "interval_width": 0.364213
+    }
+  },
+  {
+    "input": {
+      "unitid": 228778,
+      "school_name": "The University of Texas at Austin",
+      "selectivity_tier": "selective",
+      "sat_score": 1470,
+      "act_score": 33,
+      "gpa": 3.86,
+      "application_round": "regular"
+    },
+    "features": {
+      "sat_gap": 0.46696154,
+      "sat_missing": 0.0,
+      "act_gap": 0.6745,
+      "act_missing": 0.0,
+      "gpa_gap": 0.0,
+      "gpa_missing": 1.0,
+      "applying_early": 0.0,
+      "log_school_size": 10.66560094,
+      "tier_accessible": 0.0,
+      "tier_selective": 1.0,
+      "tier_highly_selective": 0.0,
+      "tier_elite": 0.0,
+      "test_policy_required": 1.0,
+      "test_policy_optional": 0.0,
+      "test_policy_blind": 0.0,
+      "test_policy_unknown": 0.0,
+      "setting_city": 1.0,
+      "setting_suburb": 0.0,
+      "setting_town": 0.0,
+      "setting_rural": 0.0,
+      "setting_unknown": 0.0
+    },
+    "output": {
+      "point_probability": 0.465617,
+      "calibrated_probability": 0.461883,
+      "interval_low": 0.281883,
+      "interval_high": 0.641883,
+      "interval_width": 0.36
+    }
+  },
+  {
+    "input": {
+      "unitid": 243780,
+      "school_name": "Purdue University-Main Campus",
+      "selectivity_tier": "selective",
+      "sat_score": 1360,
+      "act_score": 30,
+      "gpa": 3.7,
+      "application_round": "regular"
+    },
+    "features": {
+      "sat_gap": 0.09635714,
+      "sat_missing": 0.0,
+      "act_gap": -0.09635714,
+      "act_missing": 0.0,
+      "gpa_gap": 0.0,
+      "gpa_missing": 1.0,
+      "applying_early": 0.0,
+      "log_school_size": 10.70333435,
+      "tier_accessible": 0.0,
+      "tier_selective": 1.0,
+      "tier_highly_selective": 0.0,
+      "tier_elite": 0.0,
+      "test_policy_required": 1.0,
+      "test_policy_optional": 0.0,
+      "test_policy_blind": 0.0,
+      "test_policy_unknown": 0.0,
+      "setting_city": 1.0,
+      "setting_suburb": 0.0,
+      "setting_town": 0.0,
+      "setting_rural": 0.0,
+      "setting_unknown": 0.0
+    },
+    "output": {
+      "point_probability": 0.360332,
+      "calibrated_probability": 0.351852,
+      "interval_low": 0.171852,
+      "interval_high": 0.531852,
+      "interval_width": 0.36
+    }
+  },
+  {
+    "input": {
+      "unitid": 240444,
+      "school_name": "University of Wisconsin-Madison",
+      "selectivity_tier": "selective",
+      "sat_score": 1280,
+      "act_score": 28,
+      "gpa": 3.55,
+      "application_round": "regular"
+    },
+    "features": {
+      "sat_gap": -1.63807143,
+      "sat_missing": 0.0,
+      "act_gap": -1.01175,
+      "act_missing": 0.0,
+      "gpa_gap": 0.0,
+      "gpa_missing": 1.0,
+      "applying_early": 0.0,
+      "log_school_size": 10.51604813,
+      "tier_accessible": 0.0,
+      "tier_selective": 1.0,
+      "tier_highly_selective": 0.0,
+      "tier_elite": 0.0,
+      "test_policy_required": 0.0,
+      "test_policy_optional": 1.0,
+      "test_policy_blind": 0.0,
+      "test_policy_unknown": 0.0,
+      "setting_city": 1.0,
+      "setting_suburb": 0.0,
+      "setting_town": 0.0,
+      "setting_rural": 0.0,
+      "setting_unknown": 0.0
+    },
+    "output": {
+      "point_probability": 0.143775,
+      "calibrated_probability": 0.16309,
+      "interval_low": 0.0,
+      "interval_high": 0.34309,
+      "interval_width": 0.34309
+    }
+  },
+  {
+    "input": {
+      "unitid": 163286,
+      "school_name": "University of Maryland-College Park",
+      "selectivity_tier": "selective",
+      "sat_score": 1420,
+      "act_score": 32,
+      "gpa": 3.8,
+      "application_round": "early"
+    },
+    "features": {
+      "sat_gap": -0.46696154,
+      "sat_missing": 0.0,
+      "act_gap": -0.6745,
+      "act_missing": 0.0,
+      "gpa_gap": 0.0,
+      "gpa_missing": 1.0,
+      "applying_early": 1.0,
+      "log_school_size": 10.33400293,
+      "tier_accessible": 0.0,
+      "tier_selective": 1.0,
+      "tier_highly_selective": 0.0,
+      "tier_elite": 0.0,
+      "test_policy_required": 0.0,
+      "test_policy_optional": 1.0,
+      "test_policy_blind": 0.0,
+      "test_policy_unknown": 0.0,
+      "setting_city": 0.0,
+      "setting_suburb": 1.0,
+      "setting_town": 0.0,
+      "setting_rural": 0.0,
+      "setting_unknown": 0.0
+    },
+    "output": {
+      "point_probability": 0.226129,
+      "calibrated_probability": 0.23753,
+      "interval_low": 0.05753,
+      "interval_high": 0.41753,
+      "interval_width": 0.36
+    }
+  },
+  {
+    "input": {
+      "unitid": 104151,
+      "school_name": "Arizona State University Campus Immersion",
+      "selectivity_tier": "accessible",
+      "sat_score": 1240,
+      "act_score": 25,
+      "gpa": 3.4,
+      "application_round": "regular"
+    },
+    "features": {
+      "sat_gap": 0.0,
+      "sat_missing": 1.0,
+      "act_gap": 0.0,
+      "act_missing": 1.0,
+      "gpa_gap": 0.0,
+      "gpa_missing": 1.0,
+      "applying_early": 0.0,
+      "log_school_size": 11.07713001,
+      "tier_accessible": 1.0,
+      "tier_selective": 0.0,
+      "tier_highly_selective": 0.0,
+      "tier_elite": 0.0,
+      "test_policy_required": 0.0,
+      "test_policy_optional": 1.0,
+      "test_policy_blind": 0.0,
+      "test_policy_unknown": 0.0,
+      "setting_city": 1.0,
+      "setting_suburb": 0.0,
+      "setting_town": 0.0,
+      "setting_rural": 0.0,
+      "setting_unknown": 0.0
+    },
+    "output": {
+      "point_probability": 0.824585,
+      "calibrated_probability": 0.858108,
+      "interval_low": 0.700926,
+      "interval_high": 1.0,
+      "interval_width": 0.299074
+    }
+  },
+  {
+    "input": {
+      "unitid": 100751,
+      "school_name": "The University of Alabama",
+      "selectivity_tier": "accessible",
+      "sat_score": 1340,
+      "act_score": 30,
+      "gpa": 3.72,
+      "application_round": "early"
+    },
+    "features": {
+      "sat_gap": 0.32258696,
+      "sat_missing": 0.0,
+      "act_gap": 0.48178571,
+      "act_missing": 0.0,
+      "gpa_gap": 0.0,
+      "gpa_missing": 1.0,
+      "applying_early": 1.0,
+      "log_school_size": 10.41114817,
+      "tier_accessible": 1.0,
+      "tier_selective": 0.0,
+      "tier_highly_selective": 0.0,
+      "tier_elite": 0.0,
+      "test_policy_required": 0.0,
+      "test_policy_optional": 1.0,
+      "test_policy_blind": 0.0,
+      "test_policy_unknown": 0.0,
+      "setting_city": 1.0,
+      "setting_suburb": 0.0,
+      "setting_town": 0.0,
+      "setting_rural": 0.0,
+      "setting_unknown": 0.0
+    },
+    "output": {
+      "point_probability": 0.814777,
+      "calibrated_probability": 0.792857,
+      "interval_low": 0.635675,
+      "interval_high": 0.950039,
+      "interval_width": 0.314364
+    }
+  },
+  {
+    "input": {
+      "unitid": 204796,
+      "school_name": "Ohio State University-Main Campus",
+      "selectivity_tier": "accessible",
+      "sat_score": 1260,
+      "act_score": 28,
+      "gpa": 3.58,
+      "application_round": "regular"
+    },
+    "features": {
+      "sat_gap": -1.07126471,
+      "sat_missing": 0.0,
+      "act_gap": -0.6745,
+      "act_missing": 0.0,
+      "gpa_gap": 0.0,
+      "gpa_missing": 1.0,
+      "applying_early": 0.0,
+      "log_school_size": 10.72851789,
+      "tier_accessible": 1.0,
+      "tier_selective": 0.0,
+      "tier_highly_selective": 0.0,
+      "tier_elite": 0.0,
+      "test_policy_required": 0.0,
+      "test_policy_optional": 1.0,
+      "test_policy_blind": 0.0,
+      "test_policy_unknown": 0.0,
+      "setting_city": 1.0,
+      "setting_suburb": 0.0,
+      "setting_town": 0.0,
+      "setting_rural": 0.0,
+      "setting_unknown": 0.0
+    },
+    "output": {
+      "point_probability": 0.612166,
+      "calibrated_probability": 0.592233,
+      "interval_low": 0.435051,
+      "interval_high": 0.749415,
+      "interval_width": 0.314364
+    }
+  }
+]

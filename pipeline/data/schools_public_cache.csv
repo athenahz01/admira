@@ -1,0 +1,151 @@
+unitid,name,state,setting,size,admit_rate,sat_25,sat_75,act_25,act_75,gpa_avg,test_policy,ed_admit_rate,rd_admit_rate,c7_factors,selectivity_tier
+110662,University of California-Los Angeles,CA,city,33475,0.0897,,,,,,blind,,,"{""demonstrated_interest"": ""Not Considered"", ""essay"": ""Very Important"", ""extracurriculars"": ""Very Important"", ""first_generation"": ""Considered"", ""gpa"": ""Very Important"", ""recommendations"": ""Not Considered"", ""rigor"": ""Very Important"", ""state_residency"": ""Important"", ""talent"": ""Important"", ""test_scores"": ""Not Considered""}",elite
+193900,New York University,NY,city,28663,0.0923,1480,1560,34,35,,unknown,,,{},elite
+123961,University of Southern California,CA,city,20443,0.0981,1450,1550,32,35,,unknown,,,{},elite
+167358,Northeastern University,MA,city,17326,0.0522,1440,1540,33,35,,optional,,,"{""demonstrated_interest"": ""Important"", ""essay"": ""Important"", ""extracurriculars"": ""Important"", ""first_generation"": ""Considered"", ""gpa"": ""Very Important"", ""recommendations"": ""Important"", ""rigor"": ""Very Important"", ""state_residency"": ""Not Considered"", ""talent"": ""Considered"", ""test_scores"": ""Considered""}",elite
+190415,Cornell University,NY,city,15995,0.0876,1500,1570,33,35,,unknown,,,{},elite
+215062,University of Pennsylvania,PA,city,10650,0.054,1510,1570,34,36,,optional,,,"{""demonstrated_interest"": ""Not Considered"", ""essay"": ""Very Important"", ""extracurriculars"": ""Very Important"", ""first_generation"": ""Considered"", ""gpa"": ""Very Important"", ""recommendations"": ""Important"", ""rigor"": ""Very Important"", ""state_residency"": ""Not Considered"", ""talent"": ""Important"", ""test_scores"": ""Considered""}",elite
+147767,Northwestern University,IL,city,9201,0.0769,1510,1570,33,35,,unknown,,,{},elite
+190150,Columbia University in the City of New York,NY,city,8973,0.0399,1510,1580,34,35,,unknown,,,{},elite
+166027,Harvard University,MA,city,7601,0.0365,1510,1580,34,36,,optional,,,"{""demonstrated_interest"": ""Not Considered"", ""essay"": ""Very Important"", ""extracurriculars"": ""Very Important"", ""first_generation"": ""Considered"", ""gpa"": ""Very Important"", ""recommendations"": ""Very Important"", ""rigor"": ""Very Important"", ""state_residency"": ""Not Considered"", ""talent"": ""Very Important"", ""test_scores"": ""Considered""}",elite
+144050,University of Chicago,IL,city,7569,0.0448,1510,1580,34,35,,unknown,,,{},elite
+243744,Stanford University,CA,suburb,7554,0.0361,1510,1580,34,35,,optional,,,"{""demonstrated_interest"": ""Not Considered"", ""essay"": ""Very Important"", ""extracurriculars"": ""Very Important"", ""first_generation"": ""Considered"", ""gpa"": ""Very Important"", ""recommendations"": ""Very Important"", ""rigor"": ""Very Important"", ""state_residency"": ""Not Considered"", ""talent"": ""Very Important"", ""test_scores"": ""Considered""}",elite
+217156,Brown University,RI,city,7226,0.0539,1510,1580,34,35,,unknown,,,{},elite
+221999,Vanderbilt University,TN,city,7208,0.0586,1500,1570,34,35,,unknown,,,{},elite
+130794,Yale University,CT,city,6758,0.0387,1470,1570,33,35,,unknown,,,{},elite
+198419,Duke University,NC,city,6442,0.0571,1500,1570,34,35,,unknown,,,{},elite
+186131,Princeton University,NJ,city,5709,0.0462,1510,1580,34,35,,unknown,,,{},elite
+162928,Johns Hopkins University,MD,city,5693,0.0644,1520,1570,34,36,,unknown,,,{},elite
+227757,Rice University,TX,city,4776,0.08,1510,1570,34,35,,unknown,,,{},elite
+182670,Dartmouth College,NH,town,4541,0.054,1500,1570,33,35,,unknown,,,{},elite
+166683,Massachusetts Institute of Technology,MA,city,4535,0.0455,1520,1580,34,36,,required,,,"{""demonstrated_interest"": ""Not Considered"", ""essay"": ""Important"", ""extracurriculars"": ""Important"", ""first_generation"": ""Considered"", ""gpa"": ""Very Important"", ""recommendations"": ""Important"", ""rigor"": ""Very Important"", ""state_residency"": ""Not Considered"", ""talent"": ""Important"", ""test_scores"": ""Very Important""}",elite
+164155,United States Naval Academy,MD,suburb,4474,0.0927,1210,1410,25,31,,unknown,,,{},elite
+189097,Barnard College,NY,city,3264,0.0884,1470,1560,32,34,,unknown,,,{},elite
+161086,Colby College,ME,town,2407,0.0709,1460,1550,32,34,,unknown,,,{},elite
+168342,Williams College,MA,town,2076,0.0825,1490,1570,34,35,,unknown,,,{},elite
+164465,Amherst College,MA,city,1911,0.0901,1490,1580,33,35,,unknown,,,{},elite
+161004,Bowdoin College,ME,town,1873,0.0713,1470,1550,33,35,,unknown,,,{},elite
+121345,Pomona College,CA,suburb,1666,0.0709,1490,1560,33,35,,unknown,,,{},elite
+216287,Swarthmore College,PA,suburb,1613,0.0746,1490,1560,33,35,,unknown,,,{},elite
+112260,Claremont McKenna College,CA,suburb,1388,0.0959,1470,1560,33,35,,unknown,,,{},elite
+110404,California Institute of Technology,CA,city,987,0.0257,,,,,,unknown,,,{},elite
+192110,The Juilliard School,NY,city,468,0.0915,,,,,,unknown,,,{},elite
+483780,Washington University of Science and Technology,VA,city,400,0.0726,,,,,,unknown,,,{},elite
+211893,Curtis Institute of Music,PA,city,109,0.0458,,,,,,unknown,,,{},elite
+134130,University of Florida,FL,city,35629,0.242,1320,1480,29,33,,required,,,"{""demonstrated_interest"": ""Not Considered"", ""essay"": ""Important"", ""extracurriculars"": ""Important"", ""first_generation"": ""Considered"", ""gpa"": ""Very Important"", ""recommendations"": ""Not Considered"", ""rigor"": ""Very Important"", ""state_residency"": ""Important"", ""talent"": ""Considered"", ""test_scores"": ""Important""}",highly_selective
+170976,University of Michigan-Ann Arbor,MI,city,34177,0.1564,1360,1530,31,34,,optional,,,"{""demonstrated_interest"": ""Considered"", ""essay"": ""Very Important"", ""extracurriculars"": ""Important"", ""first_generation"": ""Considered"", ""gpa"": ""Very Important"", ""recommendations"": ""Important"", ""rigor"": ""Very Important"", ""state_residency"": ""Important"", ""talent"": ""Considered"", ""test_scores"": ""Considered""}",highly_selective
+110635,University of California-Berkeley,CA,city,33068,0.1098,,,,,,blind,,,"{""demonstrated_interest"": ""Not Considered"", ""essay"": ""Very Important"", ""extracurriculars"": ""Very Important"", ""first_generation"": ""Considered"", ""gpa"": ""Very Important"", ""recommendations"": ""Not Considered"", ""rigor"": ""Very Important"", ""state_residency"": ""Important"", ""talent"": ""Important"", ""test_scores"": ""Not Considered""}",highly_selective
+134097,Florida State University,FL,city,32212,0.2422,1270,1410,29,32,,unknown,,,{},highly_selective
+199120,University of North Carolina at Chapel Hill,NC,city,20752,0.1534,1390,1530,28,34,,optional,,,"{""demonstrated_interest"": ""Not Considered"", ""essay"": ""Important"", ""extracurriculars"": ""Important"", ""first_generation"": ""Considered"", ""gpa"": ""Very Important"", ""recommendations"": ""Important"", ""rigor"": ""Very Important"", ""state_residency"": ""Very Important"", ""talent"": ""Considered"", ""test_scores"": ""Considered""}",highly_selective
+139755,Georgia Institute of Technology-Main Campus,GA,city,18785,0.1407,1370,1540,30,34,,required,,,"{""demonstrated_interest"": ""Not Considered"", ""essay"": ""Important"", ""extracurriculars"": ""Important"", ""first_generation"": ""Considered"", ""gpa"": ""Very Important"", ""recommendations"": ""Considered"", ""rigor"": ""Very Important"", ""state_residency"": ""Important"", ""talent"": ""Considered"", ""test_scores"": ""Important""}",highly_selective
+164988,Boston University,MA,city,18248,0.1111,1420,1530,32,34,,optional,,,"{""demonstrated_interest"": ""Considered"", ""essay"": ""Important"", ""extracurriculars"": ""Important"", ""first_generation"": ""Considered"", ""gpa"": ""Very Important"", ""recommendations"": ""Important"", ""rigor"": ""Very Important"", ""state_residency"": ""Not Considered"", ""talent"": ""Considered"", ""test_scores"": ""Considered""}",highly_selective
+234076,University of Virginia-Main Campus,VA,suburb,17597,0.1681,1410,1540,32,35,,optional,,,"{""demonstrated_interest"": ""Not Considered"", ""essay"": ""Very Important"", ""extracurriculars"": ""Important"", ""first_generation"": ""Considered"", ""gpa"": ""Very Important"", ""recommendations"": ""Important"", ""rigor"": ""Very Important"", ""state_residency"": ""Very Important"", ""talent"": ""Considered"", ""test_scores"": ""Considered""}",highly_selective
+135726,University of Miami,FL,suburb,12913,0.189,1320,1480,30,33,,unknown,,,{},highly_selective
+164924,Boston College,MA,city,10085,0.1643,1440,1540,33,35,,unknown,,,{},highly_selective
+152080,University of Notre Dame,IN,suburb,8818,0.1127,1455,1560,33,35,,unknown,,,{},highly_selective
+179867,Washington University in St Louis,MO,suburb,7857,0.1206,1500,1570,33,35,,unknown,,,{},highly_selective
+160755,Tulane University of Louisiana,LA,city,7767,0.1398,1400,1520,31,34,,unknown,,,{},highly_selective
+133650,Florida Agricultural and Mechanical University,FL,city,7582,0.2056,1030,1180,20,24,,unknown,,,{},highly_selective
+131496,Georgetown University,DC,city,7569,0.1291,1390,1550,31,35,,unknown,,,{},highly_selective
+211440,Carnegie Mellon University,PA,city,7304,0.1166,1500,1570,34,35,,unknown,,,{},highly_selective
+139658,Emory University,GA,city,7298,0.1065,1470,1550,32,35,,unknown,,,{},highly_selective
+168148,Tufts University,MA,suburb,7061,0.1149,1470,1560,33,35,,unknown,,,{},highly_selective
+199847,Wake Forest University,NC,city,5485,0.2167,1410,1520,32,34,,unknown,,,{},highly_selective
+197036,United States Military Academy,NY,town,4408,0.1245,1200,1430,27,33,,unknown,,,{},highly_selective
+128328,United States Air Force Academy,CO,rural,4114,0.1409,1230,1440,26,33,,unknown,,,{},highly_selective
+141060,Spelman College,GA,city,3414,0.2487,1108,1320,22,29,,unknown,,,{},highly_selective
+190099,Colgate University,NY,rural,3180,0.1388,1430,1540,33,34,,unknown,,,{},highly_selective
+166124,College of the Holy Cross,MA,city,3106,0.1761,1240,1410,27,32,,unknown,,,{},highly_selective
+130697,Wesleyan University,CT,city,3067,0.1649,1415,1540,33,35,,unknown,,,{},highly_selective
+233374,University of Richmond,VA,city,2980,0.222,1410,1530,33,35,,unknown,,,{},highly_selective
+230959,Middlebury College,VT,town,2738,0.1075,1445,1550,33,35,,unknown,,,{},highly_selective
+164580,Babson College,MA,suburb,2728,0.1709,1390,1530,31,34,,unknown,,,{},highly_selective
+217864,Citadel Military College of South Carolina,SC,city,2705,0.2272,1085,1285,22,27,,unknown,,,{},highly_selective
+195526,Skidmore College,NY,suburb,2694,0.2105,1340,1480,31,33,,unknown,,,{},highly_selective
+446561,Stanbridge University,CA,city,2643,0.1,,,,,,unknown,,,{},highly_selective
+167835,Smith College,MA,city,2544,0.21,1420,1540,32,35,,unknown,,,{},highly_selective
+197133,Vassar College,NY,suburb,2444,0.1857,1450,1550,33,35,,unknown,,,{},highly_selective
+202523,Denison University,OH,suburb,2380,0.1739,1320,1490,30,33,,unknown,,,{},highly_selective
+168218,Wellesley College,MA,suburb,2300,0.1405,1460,1560,33,35,,unknown,,,{},highly_selective
+173258,Carleton College,MN,town,2086,0.2041,1450,1560,32,34,,unknown,,,{},highly_selective
+217493,Rhode Island School of Design,RI,city,2084,0.1866,1396,1530,31,34,,unknown,,,{},highly_selective
+191515,Hamilton College,NY,suburb,2030,0.1362,1450,1550,33,35,,unknown,,,{},highly_selective
+126678,Colorado College,CO,city,2014,0.1847,1230,1460,29,33,,unknown,,,{},highly_selective
+132903,University of Central Florida,FL,suburb,59146,0.4011,1200,1350,25,29,,unknown,,,{},selective
+243780,Purdue University-Main Campus,IN,city,44503,0.4987,1200,1480,27,34,,required,,,"{""demonstrated_interest"": ""Not Considered"", ""essay"": ""Considered"", ""extracurriculars"": ""Important"", ""first_generation"": ""Considered"", ""gpa"": ""Very Important"", ""recommendations"": ""Considered"", ""rigor"": ""Very Important"", ""state_residency"": ""Important"", ""talent"": ""Considered"", ""test_scores"": ""Important""}",selective
+228778,The University of Texas at Austin,TX,city,42855,0.2664,1250,1510,27,33,,required,,,"{""demonstrated_interest"": ""Not Considered"", ""essay"": ""Very Important"", ""extracurriculars"": ""Important"", ""first_generation"": ""Considered"", ""gpa"": ""Very Important"", ""recommendations"": ""Considered"", ""rigor"": ""Very Important"", ""state_residency"": ""Very Important"", ""talent"": ""Considered"", ""test_scores"": ""Important""}",selective
+137351,University of South Florida,FL,city,37207,0.4319,1130,1320,24,29,,unknown,,,{},selective
+240444,University of Wisconsin-Madison,WI,city,36902,0.452,1380,1520,29,33,,optional,,,"{""demonstrated_interest"": ""Not Considered"", ""essay"": ""Important"", ""extracurriculars"": ""Important"", ""first_generation"": ""Considered"", ""gpa"": ""Very Important"", ""recommendations"": ""Considered"", ""rigor"": ""Very Important"", ""state_residency"": ""Very Important"", ""talent"": ""Considered"", ""test_scores"": ""Considered""}",selective
+145637,University of Illinois Urbana-Champaign,IL,city,36258,0.4237,1310,1520,30,34,,required,,,"{""demonstrated_interest"": ""Not Considered"", ""essay"": ""Important"", ""extracurriculars"": ""Important"", ""first_generation"": ""Considered"", ""gpa"": ""Very Important"", ""recommendations"": ""Considered"", ""rigor"": ""Very Important"", ""state_residency"": ""Important"", ""talent"": ""Considered"", ""test_scores"": ""Important""}",selective
+110583,California State University-Long Beach,CA,city,35924,0.4627,,,,,,unknown,,,{},selective
+122409,San Diego State University,CA,city,35377,0.3619,,,,,,unknown,,,{},selective
+110680,University of California-San Diego,CA,city,34948,0.2671,,,,,,blind,,,"{""demonstrated_interest"": ""Not Considered"", ""essay"": ""Important"", ""extracurriculars"": ""Very Important"", ""first_generation"": ""Considered"", ""gpa"": ""Very Important"", ""recommendations"": ""Not Considered"", ""rigor"": ""Very Important"", ""state_residency"": ""Important"", ""talent"": ""Important"", ""test_scores"": ""Not Considered""}",selective
+110644,University of California-Davis,CA,suburb,32253,0.4183,,,,,,unknown,,,{},selective
+139959,University of Georgia,GA,city,32137,0.377,1270,1480,29,34,,unknown,,,{},selective
+236948,University of Washington-Seattle Campus,WA,city,31942,0.3915,,,,,,unknown,,,{},selective
+163286,University of Maryland-College Park,MD,suburb,30760,0.4479,1400,1530,32,35,,optional,,,"{""demonstrated_interest"": ""Considered"", ""essay"": ""Important"", ""extracurriculars"": ""Important"", ""first_generation"": ""Considered"", ""gpa"": ""Very Important"", ""recommendations"": ""Considered"", ""rigor"": ""Very Important"", ""state_residency"": ""Important"", ""talent"": ""Considered"", ""test_scores"": ""Considered""}",selective
+221759,The University of Tennessee-Knoxville,TN,city,30418,0.416,1200,1370,25,31,,unknown,,,{},selective
+110653,University of California-Irvine,CA,city,30197,0.2857,,,,,,unknown,,,{},selective
+199193,North Carolina State University at Raleigh,NC,city,27371,0.4174,1300,1470,28,32,,unknown,,,{},selective
+100858,Auburn University,AL,city,26816,0.4592,1260,1390,26,31,,unknown,,,{},selective
+217882,Clemson University,SC,suburb,23300,0.3834,1240,1410,28,32,,unknown,,,{},selective
+110705,University of California-Santa Barbara,CA,suburb,23113,0.3297,,,,,,unknown,,,{},selective
+110422,California Polytechnic State University-San Luis Obispo,CA,suburb,21996,0.3132,,,,,,unknown,,,{},selective
+196097,Stony Brook University,NY,suburb,18101,0.4904,1330,1500,29,33,,unknown,,,{},selective
+190512,CUNY Bernard M Baruch College,NY,city,16154,0.4752,1100,1400,,,,unknown,,,{},selective
+196413,Syracuse University,NY,city,15477,0.4592,1270,1440,29,32,,unknown,,,{},selective
+196079,Binghamton University,NY,suburb,14655,0.3861,1340,1500,30,32,,unknown,,,{},selective
+199102,North Carolina A & T State University,NC,city,12182,0.499,1020,1190,17,23,,unknown,,,{},selective
+131469,George Washington University,DC,city,11182,0.4709,1350,1500,31,34,,unknown,,,{},selective
+228875,Texas Christian University,TX,city,11026,0.4449,1140,1350,26,31,,unknown,,,{},selective
+137847,The University of Tampa,FL,city,10572,0.4034,,,,,,unknown,,,{},selective
+131520,Howard University,DC,city,10108,0.4134,1090,1320,22,28,,unknown,,,{},selective
+164748,Berklee College of Music,MA,city,7468,0.4353,,,,,,unknown,,,{},selective
+117946,Loyola Marymount University,CA,city,7094,0.4508,1260,1430,28,32,,unknown,,,{},selective
+231624,William & Mary,VA,suburb,7055,0.3407,1400,1530,32,34,,unknown,,,{},selective
+216597,Villanova University,PA,suburb,6938,0.2698,1395,1510,32,34,,unknown,,,{},selective
+226152,Texas A & M International University,TX,city,6667,0.4437,890,1090,16,22,,unknown,,,{},selective
+122931,Santa Clara University,CA,city,6552,0.48,1350,1490,31,33,,unknown,,,{},selective
+201645,Case Western Reserve University,OH,city,6437,0.3654,1430,1540,32,34,,unknown,,,{},selective
+195030,University of Rochester,NY,city,6331,0.4008,1410,1540,31,34,,unknown,,,{},selective
+213543,Lehigh University,PA,city,5898,0.2593,1370,1500,31,34,,unknown,,,{},selective
+160621,Southern University and A & M College,LA,city,5519,0.3512,790,1020,15,19,,unknown,,,{},selective
+183026,Southern New Hampshire University,NH,suburb,163164,0.9951,,,,,,unknown,,,{},accessible
+104717,Grand Canyon University,AZ,city,73371,0.7891,1006,1113,20,22,,unknown,,,{},accessible
+104151,Arizona State University Campus Immersion,AZ,city,64674,0.8989,,,,,,optional,,,"{""demonstrated_interest"": ""Not Considered"", ""essay"": ""Not Considered"", ""extracurriculars"": ""Considered"", ""first_generation"": ""Considered"", ""gpa"": ""Very Important"", ""recommendations"": ""Not Considered"", ""rigor"": ""Important"", ""state_residency"": ""Considered"", ""talent"": ""Considered"", ""test_scores"": ""Considered""}",accessible
+228723,Texas A&M University-College Station,TX,city,59615,0.5743,1150,1400,25,31,,required,,,"{""demonstrated_interest"": ""Not Considered"", ""essay"": ""Important"", ""extracurriculars"": ""Important"", ""first_generation"": ""Considered"", ""gpa"": ""Very Important"", ""recommendations"": ""Considered"", ""rigor"": ""Very Important"", ""state_residency"": ""Very Important"", ""talent"": ""Considered"", ""test_scores"": ""Important""}",accessible
+232557,Liberty University,VA,city,50012,0.9898,,,,,,unknown,,,{},accessible
+204796,Ohio State University-Main Campus,OH,city,45638,0.6057,1310,1480,28,32,,optional,,,"{""demonstrated_interest"": ""Not Considered"", ""essay"": ""Important"", ""extracurriculars"": ""Important"", ""first_generation"": ""Considered"", ""gpa"": ""Very Important"", ""recommendations"": ""Considered"", ""rigor"": ""Very Important"", ""state_residency"": ""Important"", ""talent"": ""Considered"", ""test_scores"": ""Considered""}",accessible
+104179,University of Arizona,AZ,city,42537,0.8614,1150,1420,21,29,,optional,,,"{""demonstrated_interest"": ""Considered"", ""essay"": ""Considered"", ""extracurriculars"": ""Important"", ""first_generation"": ""Considered"", ""gpa"": ""Very Important"", ""recommendations"": ""Considered"", ""rigor"": ""Important"", ""state_residency"": ""Considered"", ""talent"": ""Considered"", ""test_scores"": ""Considered""}",accessible
+214777,Pennsylvania State University-Main Campus,PA,city,42284,0.6056,1240,1420,27,32,,unknown,,,{},accessible
+486840,Kennesaw State University,GA,suburb,41254,0.6919,1000,1220,19,26,,unknown,,,{},accessible
+171100,Michigan State University,MI,city,40922,0.848,1180,1360,25,31,,optional,,,"{""demonstrated_interest"": ""Considered"", ""essay"": ""Important"", ""extracurriculars"": ""Important"", ""first_generation"": ""Considered"", ""gpa"": ""Very Important"", ""recommendations"": ""Considered"", ""rigor"": ""Very Important"", ""state_residency"": ""Important"", ""talent"": ""Considered"", ""test_scores"": ""Considered""}",accessible
+133951,Florida International University,FL,suburb,39508,0.5466,1070,1260,21,27,,unknown,,,{},accessible
+110565,California State University-Fullerton,CA,suburb,38546,0.9052,,,,,,unknown,,,{},accessible
+225511,University of Houston,TX,city,38380,0.7392,1160,1340,23,29,,unknown,,,{},accessible
+151351,Indiana University-Bloomington,IN,city,37806,0.7821,1170,1400,27,33,,unknown,,,{},accessible
+186380,Rutgers University-New Brunswick,NJ,city,37751,0.5815,1310,1500,28,33,,unknown,,,{},accessible
+228459,Texas State University,TX,city,36177,0.8932,980,1200,19,25,,unknown,,,{},accessible
+227216,University of North Texas,TX,city,34341,0.7223,980,1230,19,27,,unknown,,,{},accessible
+100751,The University of Alabama,AL,city,33227,0.7665,1170,1400,24,31,,optional,,,"{""demonstrated_interest"": ""Considered"", ""essay"": ""Considered"", ""extracurriculars"": ""Important"", ""first_generation"": ""Considered"", ""gpa"": ""Very Important"", ""recommendations"": ""Considered"", ""rigor"": ""Very Important"", ""state_residency"": ""Considered"", ""talent"": ""Considered"", ""test_scores"": ""Considered""}",accessible
+230038,Brigham Young University,UT,city,32952,0.6778,1270,1460,28,32,,unknown,,,{},accessible
+110608,California State University-Northridge,CA,city,32691,0.9345,,,,,,unknown,,,{},accessible
+229115,Texas Tech University,TX,city,32394,0.7265,1090,1280,23,28,,unknown,,,{},accessible
+228769,The University of Texas at Arlington,TX,city,32294,0.799,1010,1240,19,27,,unknown,,,{},accessible
+126614,University of Colorado Boulder,CO,city,31939,0.7808,1240,1430,29,33,,unknown,,,{},accessible
+174066,University of Minnesota-Twin Cities,MN,city,31855,0.7975,1300,1500,26,31,,unknown,,,{},accessible
+233921,Virginia Polytechnic Institute and State University,VA,city,30923,0.5478,1280,1450,28,32,,unknown,,,{},accessible
+209542,Oregon State University,OR,city,30743,0.773,1140,1400,24,31,,unknown,,,{},accessible
+159391,Louisiana State University and Agricultural & Mechanical College,LA,city,30594,0.7333,1180,1340,24,30,,unknown,,,{},accessible
+229027,The University of Texas at San Antonio,TX,city,30580,0.8679,1000,1220,19,25,,unknown,,,{},accessible
+201885,University of Cincinnati-Main Campus,OH,city,29882,0.8529,1160,1370,24,29,,unknown,,,{},accessible
+218663,University of South Carolina-Columbia,SC,city,29820,0.6015,1180,1360,26,32,,unknown,,,{},accessible
+106397,University of Arkansas,AR,city,28677,0.743,1030,1220,21,28,,unknown,,,{},accessible
+227368,The University of Texas Rio Grande Valley,TX,city,28666,0.9419,880,1090,15,21,,unknown,,,{},accessible
+110617,California State University-Sacramento,CA,city,28350,0.9399,,,,,,unknown,,,{},accessible
+232186,George Mason University,VA,suburb,27752,0.8748,1160,1360,25,30,,unknown,,,{},accessible
+122755,San Jose State University,CA,city,27601,0.8461,,,,,,unknown,,,{},accessible
+230764,University of Utah,UT,city,27264,0.8598,1190,1380,22,29,,unknown,,,{},accessible
+139940,Georgia State University,GA,city,26623,0.5544,940,1180,19,26,,unknown,,,{},accessible
+126818,Colorado State University-Fort Collins,CO,city,25538,0.8854,,,,,,unknown,,,{},accessible
+153603,Iowa State University,IA,city,25367,0.8866,1120,1360,21,28,,unknown,,,{},accessible

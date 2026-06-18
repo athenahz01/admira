@@ -1,0 +1,752 @@
+[
+  {
+    "unitid": 110662,
+    "expected_tier": "elite",
+    "name": "University of California-Los Angeles"
+  },
+  {
+    "unitid": 193900,
+    "expected_tier": "elite",
+    "name": "New York University"
+  },
+  {
+    "unitid": 123961,
+    "expected_tier": "elite",
+    "name": "University of Southern California"
+  },
+  {
+    "unitid": 167358,
+    "expected_tier": "elite",
+    "name": "Northeastern University"
+  },
+  {
+    "unitid": 190415,
+    "expected_tier": "elite",
+    "name": "Cornell University"
+  },
+  {
+    "unitid": 215062,
+    "expected_tier": "elite",
+    "name": "University of Pennsylvania"
+  },
+  {
+    "unitid": 147767,
+    "expected_tier": "elite",
+    "name": "Northwestern University"
+  },
+  {
+    "unitid": 190150,
+    "expected_tier": "elite",
+    "name": "Columbia University in the City of New York"
+  },
+  {
+    "unitid": 166027,
+    "expected_tier": "elite",
+    "name": "Harvard University"
+  },
+  {
+    "unitid": 144050,
+    "expected_tier": "elite",
+    "name": "University of Chicago"
+  },
+  {
+    "unitid": 243744,
+    "expected_tier": "elite",
+    "name": "Stanford University"
+  },
+  {
+    "unitid": 217156,
+    "expected_tier": "elite",
+    "name": "Brown University"
+  },
+  {
+    "unitid": 221999,
+    "expected_tier": "elite",
+    "name": "Vanderbilt University"
+  },
+  {
+    "unitid": 130794,
+    "expected_tier": "elite",
+    "name": "Yale University"
+  },
+  {
+    "unitid": 198419,
+    "expected_tier": "elite",
+    "name": "Duke University"
+  },
+  {
+    "unitid": 186131,
+    "expected_tier": "elite",
+    "name": "Princeton University"
+  },
+  {
+    "unitid": 162928,
+    "expected_tier": "elite",
+    "name": "Johns Hopkins University"
+  },
+  {
+    "unitid": 227757,
+    "expected_tier": "elite",
+    "name": "Rice University"
+  },
+  {
+    "unitid": 182670,
+    "expected_tier": "elite",
+    "name": "Dartmouth College"
+  },
+  {
+    "unitid": 166683,
+    "expected_tier": "elite",
+    "name": "Massachusetts Institute of Technology"
+  },
+  {
+    "unitid": 164155,
+    "expected_tier": "elite",
+    "name": "United States Naval Academy"
+  },
+  {
+    "unitid": 189097,
+    "expected_tier": "elite",
+    "name": "Barnard College"
+  },
+  {
+    "unitid": 161086,
+    "expected_tier": "elite",
+    "name": "Colby College"
+  },
+  {
+    "unitid": 168342,
+    "expected_tier": "elite",
+    "name": "Williams College"
+  },
+  {
+    "unitid": 164465,
+    "expected_tier": "elite",
+    "name": "Amherst College"
+  },
+  {
+    "unitid": 161004,
+    "expected_tier": "elite",
+    "name": "Bowdoin College"
+  },
+  {
+    "unitid": 121345,
+    "expected_tier": "elite",
+    "name": "Pomona College"
+  },
+  {
+    "unitid": 216287,
+    "expected_tier": "elite",
+    "name": "Swarthmore College"
+  },
+  {
+    "unitid": 112260,
+    "expected_tier": "elite",
+    "name": "Claremont McKenna College"
+  },
+  {
+    "unitid": 110404,
+    "expected_tier": "elite",
+    "name": "California Institute of Technology"
+  },
+  {
+    "unitid": 192110,
+    "expected_tier": "elite",
+    "name": "The Juilliard School"
+  },
+  {
+    "unitid": 483780,
+    "expected_tier": "elite",
+    "name": "Washington University of Science and Technology"
+  },
+  {
+    "unitid": 211893,
+    "expected_tier": "elite",
+    "name": "Curtis Institute of Music"
+  },
+  {
+    "unitid": 134130,
+    "expected_tier": "highly_selective",
+    "name": "University of Florida"
+  },
+  {
+    "unitid": 170976,
+    "expected_tier": "highly_selective",
+    "name": "University of Michigan-Ann Arbor"
+  },
+  {
+    "unitid": 110635,
+    "expected_tier": "highly_selective",
+    "name": "University of California-Berkeley"
+  },
+  {
+    "unitid": 134097,
+    "expected_tier": "highly_selective",
+    "name": "Florida State University"
+  },
+  {
+    "unitid": 199120,
+    "expected_tier": "highly_selective",
+    "name": "University of North Carolina at Chapel Hill"
+  },
+  {
+    "unitid": 139755,
+    "expected_tier": "highly_selective",
+    "name": "Georgia Institute of Technology-Main Campus"
+  },
+  {
+    "unitid": 164988,
+    "expected_tier": "highly_selective",
+    "name": "Boston University"
+  },
+  {
+    "unitid": 234076,
+    "expected_tier": "highly_selective",
+    "name": "University of Virginia-Main Campus"
+  },
+  {
+    "unitid": 135726,
+    "expected_tier": "highly_selective",
+    "name": "University of Miami"
+  },
+  {
+    "unitid": 164924,
+    "expected_tier": "highly_selective",
+    "name": "Boston College"
+  },
+  {
+    "unitid": 152080,
+    "expected_tier": "highly_selective",
+    "name": "University of Notre Dame"
+  },
+  {
+    "unitid": 179867,
+    "expected_tier": "highly_selective",
+    "name": "Washington University in St Louis"
+  },
+  {
+    "unitid": 160755,
+    "expected_tier": "highly_selective",
+    "name": "Tulane University of Louisiana"
+  },
+  {
+    "unitid": 133650,
+    "expected_tier": "highly_selective",
+    "name": "Florida Agricultural and Mechanical University"
+  },
+  {
+    "unitid": 131496,
+    "expected_tier": "highly_selective",
+    "name": "Georgetown University"
+  },
+  {
+    "unitid": 211440,
+    "expected_tier": "highly_selective",
+    "name": "Carnegie Mellon University"
+  },
+  {
+    "unitid": 139658,
+    "expected_tier": "highly_selective",
+    "name": "Emory University"
+  },
+  {
+    "unitid": 168148,
+    "expected_tier": "highly_selective",
+    "name": "Tufts University"
+  },
+  {
+    "unitid": 199847,
+    "expected_tier": "highly_selective",
+    "name": "Wake Forest University"
+  },
+  {
+    "unitid": 197036,
+    "expected_tier": "highly_selective",
+    "name": "United States Military Academy"
+  },
+  {
+    "unitid": 128328,
+    "expected_tier": "highly_selective",
+    "name": "United States Air Force Academy"
+  },
+  {
+    "unitid": 141060,
+    "expected_tier": "highly_selective",
+    "name": "Spelman College"
+  },
+  {
+    "unitid": 190099,
+    "expected_tier": "highly_selective",
+    "name": "Colgate University"
+  },
+  {
+    "unitid": 166124,
+    "expected_tier": "highly_selective",
+    "name": "College of the Holy Cross"
+  },
+  {
+    "unitid": 130697,
+    "expected_tier": "highly_selective",
+    "name": "Wesleyan University"
+  },
+  {
+    "unitid": 233374,
+    "expected_tier": "highly_selective",
+    "name": "University of Richmond"
+  },
+  {
+    "unitid": 230959,
+    "expected_tier": "highly_selective",
+    "name": "Middlebury College"
+  },
+  {
+    "unitid": 164580,
+    "expected_tier": "highly_selective",
+    "name": "Babson College"
+  },
+  {
+    "unitid": 217864,
+    "expected_tier": "highly_selective",
+    "name": "Citadel Military College of South Carolina"
+  },
+  {
+    "unitid": 195526,
+    "expected_tier": "highly_selective",
+    "name": "Skidmore College"
+  },
+  {
+    "unitid": 446561,
+    "expected_tier": "highly_selective",
+    "name": "Stanbridge University"
+  },
+  {
+    "unitid": 167835,
+    "expected_tier": "highly_selective",
+    "name": "Smith College"
+  },
+  {
+    "unitid": 197133,
+    "expected_tier": "highly_selective",
+    "name": "Vassar College"
+  },
+  {
+    "unitid": 202523,
+    "expected_tier": "highly_selective",
+    "name": "Denison University"
+  },
+  {
+    "unitid": 168218,
+    "expected_tier": "highly_selective",
+    "name": "Wellesley College"
+  },
+  {
+    "unitid": 173258,
+    "expected_tier": "highly_selective",
+    "name": "Carleton College"
+  },
+  {
+    "unitid": 217493,
+    "expected_tier": "highly_selective",
+    "name": "Rhode Island School of Design"
+  },
+  {
+    "unitid": 191515,
+    "expected_tier": "highly_selective",
+    "name": "Hamilton College"
+  },
+  {
+    "unitid": 126678,
+    "expected_tier": "highly_selective",
+    "name": "Colorado College"
+  },
+  {
+    "unitid": 132903,
+    "expected_tier": "selective",
+    "name": "University of Central Florida"
+  },
+  {
+    "unitid": 243780,
+    "expected_tier": "selective",
+    "name": "Purdue University-Main Campus"
+  },
+  {
+    "unitid": 228778,
+    "expected_tier": "selective",
+    "name": "The University of Texas at Austin"
+  },
+  {
+    "unitid": 137351,
+    "expected_tier": "selective",
+    "name": "University of South Florida"
+  },
+  {
+    "unitid": 240444,
+    "expected_tier": "selective",
+    "name": "University of Wisconsin-Madison"
+  },
+  {
+    "unitid": 145637,
+    "expected_tier": "selective",
+    "name": "University of Illinois Urbana-Champaign"
+  },
+  {
+    "unitid": 110583,
+    "expected_tier": "selective",
+    "name": "California State University-Long Beach"
+  },
+  {
+    "unitid": 122409,
+    "expected_tier": "selective",
+    "name": "San Diego State University"
+  },
+  {
+    "unitid": 110680,
+    "expected_tier": "selective",
+    "name": "University of California-San Diego"
+  },
+  {
+    "unitid": 110644,
+    "expected_tier": "selective",
+    "name": "University of California-Davis"
+  },
+  {
+    "unitid": 139959,
+    "expected_tier": "selective",
+    "name": "University of Georgia"
+  },
+  {
+    "unitid": 236948,
+    "expected_tier": "selective",
+    "name": "University of Washington-Seattle Campus"
+  },
+  {
+    "unitid": 163286,
+    "expected_tier": "selective",
+    "name": "University of Maryland-College Park"
+  },
+  {
+    "unitid": 221759,
+    "expected_tier": "selective",
+    "name": "The University of Tennessee-Knoxville"
+  },
+  {
+    "unitid": 110653,
+    "expected_tier": "selective",
+    "name": "University of California-Irvine"
+  },
+  {
+    "unitid": 199193,
+    "expected_tier": "selective",
+    "name": "North Carolina State University at Raleigh"
+  },
+  {
+    "unitid": 100858,
+    "expected_tier": "selective",
+    "name": "Auburn University"
+  },
+  {
+    "unitid": 217882,
+    "expected_tier": "selective",
+    "name": "Clemson University"
+  },
+  {
+    "unitid": 110705,
+    "expected_tier": "selective",
+    "name": "University of California-Santa Barbara"
+  },
+  {
+    "unitid": 110422,
+    "expected_tier": "selective",
+    "name": "California Polytechnic State University-San Luis Obispo"
+  },
+  {
+    "unitid": 196097,
+    "expected_tier": "selective",
+    "name": "Stony Brook University"
+  },
+  {
+    "unitid": 190512,
+    "expected_tier": "selective",
+    "name": "CUNY Bernard M Baruch College"
+  },
+  {
+    "unitid": 196413,
+    "expected_tier": "selective",
+    "name": "Syracuse University"
+  },
+  {
+    "unitid": 196079,
+    "expected_tier": "selective",
+    "name": "Binghamton University"
+  },
+  {
+    "unitid": 199102,
+    "expected_tier": "selective",
+    "name": "North Carolina A & T State University"
+  },
+  {
+    "unitid": 131469,
+    "expected_tier": "selective",
+    "name": "George Washington University"
+  },
+  {
+    "unitid": 228875,
+    "expected_tier": "selective",
+    "name": "Texas Christian University"
+  },
+  {
+    "unitid": 137847,
+    "expected_tier": "selective",
+    "name": "The University of Tampa"
+  },
+  {
+    "unitid": 131520,
+    "expected_tier": "selective",
+    "name": "Howard University"
+  },
+  {
+    "unitid": 164748,
+    "expected_tier": "selective",
+    "name": "Berklee College of Music"
+  },
+  {
+    "unitid": 117946,
+    "expected_tier": "selective",
+    "name": "Loyola Marymount University"
+  },
+  {
+    "unitid": 231624,
+    "expected_tier": "selective",
+    "name": "William & Mary"
+  },
+  {
+    "unitid": 216597,
+    "expected_tier": "selective",
+    "name": "Villanova University"
+  },
+  {
+    "unitid": 226152,
+    "expected_tier": "selective",
+    "name": "Texas A & M International University"
+  },
+  {
+    "unitid": 122931,
+    "expected_tier": "selective",
+    "name": "Santa Clara University"
+  },
+  {
+    "unitid": 201645,
+    "expected_tier": "selective",
+    "name": "Case Western Reserve University"
+  },
+  {
+    "unitid": 195030,
+    "expected_tier": "selective",
+    "name": "University of Rochester"
+  },
+  {
+    "unitid": 213543,
+    "expected_tier": "selective",
+    "name": "Lehigh University"
+  },
+  {
+    "unitid": 160621,
+    "expected_tier": "selective",
+    "name": "Southern University and A & M College"
+  },
+  {
+    "unitid": 183026,
+    "expected_tier": "accessible",
+    "name": "Southern New Hampshire University"
+  },
+  {
+    "unitid": 104717,
+    "expected_tier": "accessible",
+    "name": "Grand Canyon University"
+  },
+  {
+    "unitid": 104151,
+    "expected_tier": "accessible",
+    "name": "Arizona State University Campus Immersion"
+  },
+  {
+    "unitid": 228723,
+    "expected_tier": "accessible",
+    "name": "Texas A&M University-College Station"
+  },
+  {
+    "unitid": 232557,
+    "expected_tier": "accessible",
+    "name": "Liberty University"
+  },
+  {
+    "unitid": 204796,
+    "expected_tier": "accessible",
+    "name": "Ohio State University-Main Campus"
+  },
+  {
+    "unitid": 104179,
+    "expected_tier": "accessible",
+    "name": "University of Arizona"
+  },
+  {
+    "unitid": 214777,
+    "expected_tier": "accessible",
+    "name": "Pennsylvania State University-Main Campus"
+  },
+  {
+    "unitid": 486840,
+    "expected_tier": "accessible",
+    "name": "Kennesaw State University"
+  },
+  {
+    "unitid": 171100,
+    "expected_tier": "accessible",
+    "name": "Michigan State University"
+  },
+  {
+    "unitid": 133951,
+    "expected_tier": "accessible",
+    "name": "Florida International University"
+  },
+  {
+    "unitid": 110565,
+    "expected_tier": "accessible",
+    "name": "California State University-Fullerton"
+  },
+  {
+    "unitid": 225511,
+    "expected_tier": "accessible",
+    "name": "University of Houston"
+  },
+  {
+    "unitid": 151351,
+    "expected_tier": "accessible",
+    "name": "Indiana University-Bloomington"
+  },
+  {
+    "unitid": 186380,
+    "expected_tier": "accessible",
+    "name": "Rutgers University-New Brunswick"
+  },
+  {
+    "unitid": 228459,
+    "expected_tier": "accessible",
+    "name": "Texas State University"
+  },
+  {
+    "unitid": 227216,
+    "expected_tier": "accessible",
+    "name": "University of North Texas"
+  },
+  {
+    "unitid": 100751,
+    "expected_tier": "accessible",
+    "name": "The University of Alabama"
+  },
+  {
+    "unitid": 230038,
+    "expected_tier": "accessible",
+    "name": "Brigham Young University"
+  },
+  {
+    "unitid": 110608,
+    "expected_tier": "accessible",
+    "name": "California State University-Northridge"
+  },
+  {
+    "unitid": 229115,
+    "expected_tier": "accessible",
+    "name": "Texas Tech University"
+  },
+  {
+    "unitid": 228769,
+    "expected_tier": "accessible",
+    "name": "The University of Texas at Arlington"
+  },
+  {
+    "unitid": 126614,
+    "expected_tier": "accessible",
+    "name": "University of Colorado Boulder"
+  },
+  {
+    "unitid": 174066,
+    "expected_tier": "accessible",
+    "name": "University of Minnesota-Twin Cities"
+  },
+  {
+    "unitid": 233921,
+    "expected_tier": "accessible",
+    "name": "Virginia Polytechnic Institute and State University"
+  },
+  {
+    "unitid": 209542,
+    "expected_tier": "accessible",
+    "name": "Oregon State University"
+  },
+  {
+    "unitid": 159391,
+    "expected_tier": "accessible",
+    "name": "Louisiana State University and Agricultural & Mechanical College"
+  },
+  {
+    "unitid": 229027,
+    "expected_tier": "accessible",
+    "name": "The University of Texas at San Antonio"
+  },
+  {
+    "unitid": 201885,
+    "expected_tier": "accessible",
+    "name": "University of Cincinnati-Main Campus"
+  },
+  {
+    "unitid": 218663,
+    "expected_tier": "accessible",
+    "name": "University of South Carolina-Columbia"
+  },
+  {
+    "unitid": 106397,
+    "expected_tier": "accessible",
+    "name": "University of Arkansas"
+  },
+  {
+    "unitid": 227368,
+    "expected_tier": "accessible",
+    "name": "The University of Texas Rio Grande Valley"
+  },
+  {
+    "unitid": 110617,
+    "expected_tier": "accessible",
+    "name": "California State University-Sacramento"
+  },
+  {
+    "unitid": 232186,
+    "expected_tier": "accessible",
+    "name": "George Mason University"
+  },
+  {
+    "unitid": 122755,
+    "expected_tier": "accessible",
+    "name": "San Jose State University"
+  },
+  {
+    "unitid": 230764,
+    "expected_tier": "accessible",
+    "name": "University of Utah"
+  },
+  {
+    "unitid": 139940,
+    "expected_tier": "accessible",
+    "name": "Georgia State University"
+  },
+  {
+    "unitid": 126818,
+    "expected_tier": "accessible",
+    "name": "Colorado State University-Fort Collins"
+  },
+  {
+    "unitid": 153603,
+    "expected_tier": "accessible",
+    "name": "Iowa State University"
+  }
+]

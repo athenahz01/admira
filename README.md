@@ -1,36 +1,293 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Fitty
 
-## Getting Started
+Fitty is an honest college admit-probability engine. It renders public-data admissions priors as ranges first, cites available CDS C7 context, and makes the uncertainty visible instead of presenting a single number as a verdict.
 
-First, run the development server:
+## Prerequisites
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+- Node.js 20+
+- Python 3.11+
+- A Supabase project with database access
+- Supabase CLI installed and logged in
+- A College Scorecard API key from `api.data.gov`
+
+## 1. Install app dependencies
+
+```powershell
+npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 2. Install pipeline dependencies
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```powershell
+py -3.11 -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
+python -m pip install -r pipeline/requirements.txt
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 3. Configure environment
 
-## Learn More
+```powershell
+Copy-Item .env.example .env
+```
 
-To learn more about Next.js, take a look at the following resources:
+Fill the five required values in `.env`; leave the optional Phase 6 flags off until you intentionally enable capture or the real model path:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```dotenv
+SCORECARD_API_KEY=your_scorecard_api_key
+SUPABASE_URL=https://your-project-ref.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
+NEXT_PUBLIC_SUPABASE_URL=https://your-project-ref.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
+FITTY_OUTCOME_CAPTURE_ENABLED=false
+FITTY_CAPTURE_ALLOW_UNSIGNED_SUBJECT=false
+FITTY_REAL_MODEL_ENABLED=false
+NEXT_PUBLIC_FITTY_ANALYTICS_DEBUG=false
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Do not commit `.env`; it is ignored by git.
 
-## Deploy on Vercel
+## 4. Run the Supabase migration
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Link the checkout to your Supabase project, then push the checked-in migration:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```powershell
+supabase login
+supabase link --project-ref your-project-ref
+supabase db push
+```
+
+The migration creates `public.schools` from `supabase/migrations/202606150001_create_schools.sql`.
+
+## 5. Ingest College Scorecard schools
+
+Run the public-data ingest from the project root:
+
+```powershell
+python pipeline/ingest_scorecard.py
+```
+
+The script reads `pipeline/data/seed_unitids.json`, fetches public Scorecard fields, derives `selectivity_tier`, upserts by `unitid`, and prints:
+
+- total seeded, returned, and upserted rows
+- counts per selectivity tier
+- expected-tier mismatches
+- schools missing admit rate
+- schools missing SAT or ACT middle-50 fields
+
+The seed list contains 150 schools across all four tiers.
+
+## 6. Seed CDS C7 rubric data
+
+After the Scorecard ingest succeeds, run:
+
+```powershell
+python pipeline/seed_cds_c7.py
+```
+
+The script reads `pipeline/data/cds_c7_seed.json`, validates every C7 rating enum, merges the seeded factors into matching `schools` rows, updates `test_policy`, and prints any seed school not found.
+
+## 7. Start the dev server
+
+```powershell
+npm run dev
+```
+
+Open `http://localhost:3000`. The app searches the populated Supabase `schools` table, adds schools to a list, and renders the admissions prior interval returned by `/api/chance`.
+
+## Verification
+
+```powershell
+npm run lint
+npx tsc --noEmit
+npm run test
+npm run test:e2e
+npm run build
+```
+
+Expected Phase 1 coverage after a successful ingest:
+
+- 150 Scorecard seed entries
+- 33 `elite`
+- 39 `highly_selective`
+- 39 `selective`
+- 39 `accessible`
+- 25 CDS C7 seed entries
+
+No applicant personal data is collected in Phase 1, and no race or ethnicity field is present in the schema, seed data, or ingestion scripts.
+
+## Phase 2 - Modeling
+
+Phase 2 trains a synthetic public-data prior model. It does not claim real-outcome accuracy. The default run uses the checked-in cache at `pipeline/data/schools_public_cache.csv`, which contains the same public school fields produced by the Phase 1 ingest plus the C7 seed overlays. You can also point the trainer at Supabase with `--source supabase` after filling `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY`.
+
+Run the trainer from the project root:
+
+```powershell
+python pipeline/train_model.py
+```
+
+Optional Supabase-backed run:
+
+```powershell
+python pipeline/train_model.py --source supabase
+```
+
+The script uses fixed seed `20260616` and generates the same synthetic cohort, coefficients, artifacts, vectors, and report when run against the same input data.
+
+Outputs:
+
+- `lib/model/artifacts.json` - plain JSON for the Phase 3 TypeScript inference layer
+- `lib/model/test_vectors.json` - 15 shared examples across all selectivity tiers
+- `pipeline/reports/calibration_report.md` - synthetic reliability table and tier interval-width audit
+- `pipeline/reports/reliability_curve.png` - reliability curve labeled as synthetic prior calibration
+- `MODEL_CARD.md` - assumptions, exclusions, limitations, and Phase 6 retrain plan
+
+Phase 2 intentionally does not build `/api/chance` or any results UI. Every exported prediction includes a range; the point probability is only a marker inside that range.
+
+## Phase 3 - Inference API
+
+Phase 3 adds `POST /api/chance`, a Next.js App Router route that consumes `lib/model/artifacts.json` in TypeScript. It does not call Python, retrain the model, or fetch model files at runtime.
+
+Example request:
+
+```powershell
+Invoke-RestMethod `
+  -Method Post `
+  -Uri http://localhost:3000/api/chance `
+  -ContentType 'application/json' `
+  -Body '{
+    "unitid": 166683,
+    "sat_score": 1540,
+    "act_score": 35,
+    "gpa": 3.95,
+    "application_round": "regular"
+  }'
+```
+
+Example response shape:
+
+```json
+{
+  "school": {
+    "unitid": 166683,
+    "name": "Massachusetts Institute of Technology",
+    "selectivity_tier": "elite",
+    "sat_25": 1520,
+    "sat_75": 1580,
+    "act_25": 34,
+    "act_75": 36,
+    "gpa_avg": null,
+    "test_policy": "required"
+  },
+  "probability": {
+    "point": 0.0403255,
+    "calibrated": 0.032967,
+    "low": 0,
+    "high": 0.492967,
+    "width": 0.492967,
+    "coverage": 0.8
+  },
+  "band": {
+    "label": "reach",
+    "wide_band": true,
+    "note": "Public data cannot narrow this interval enough for a target/likely label.",
+    "input_confidence": "standard"
+  },
+  "levers": {
+    "controllable": [],
+    "fixed": [],
+    "unseen": []
+  },
+  "rubric": {
+    "c7_factors": {},
+    "gaps": {
+      "sat": { "score": 1540, "mid": 1550, "gap": -0.22483333333333333 },
+      "act": { "score": 35, "mid": 35, "gap": 0 },
+      "gpa": { "score": 3.95, "mid": null, "gap": null }
+    }
+  },
+  "disclaimers": [
+    "Synthetic public-data prior - not validated real-outcome accuracy.",
+    "Essays, recommendations, and institutional priorities are not modeled."
+  ],
+  "model": {
+    "type": "public_prior_logistic_v1",
+    "version": "2026.06.16-phase2",
+    "honesty_label": "Synthetic public-data prior. Not validated real-outcome accuracy."
+  }
+}
+```
+
+The actual `levers` arrays include modeled-feature logit contributions grouped into controllable/fixed categories and unseen disclosure entries for the "what we can't see" panel. The example above is shortened only for readability.
+
+Run the Phase 3 golden tests:
+
+```powershell
+npm run test
+```
+
+The tests assert that TypeScript feature engineering and prediction reproduce every entry in `lib/model/test_vectors.json` within `1e-6`, validate malformed input handling, confirm missing SAT/ACT input widens the band instead of erroring, and verify that race/ethnicity keys are stripped and never returned.
+
+## Phase 4 - Frontend
+
+Phase 4 builds the Admissions Almanac UI on top of the existing `/api/chance` route. It does not change the model artifact or inference contract.
+
+Local run:
+
+```powershell
+npm install
+npm run dev
+```
+
+Required environment for end-to-end school search and chance calls:
+
+```dotenv
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
+SUPABASE_URL=your_supabase_url
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
+```
+
+The `schools` table must be populated with Phase 1 data. The browser searches public school rows through the Supabase anon client, and each added school calls `POST /api/chance` for the full honesty payload.
+
+Design notes live in `DESIGN_NOTES.md`. The UI uses the range band as the dominant visual, shows the point only as a marker inside the band, renders lever decomposition, includes the "what we cannot see" disclosure, and grounds each result in C7 rubric factors and middle-50 gaps.
+
+## Phase 5 - Disclosure, Tests, and Deploy Readiness
+
+Phase 5 adds `/methodology`, linked from the app header, with the current artifact `model_type` and `honesty_label`, the sub-20 admit-rate limitation, unmodeled factors, validation status, race/ethnicity exclusion, and privacy boundaries.
+
+Result cards now add a contextual note for `elite` and `highly_selective` schools, cite CDS C7 `_source` when present, and label home state, intended major, and activity notes as not yet used by the model.
+
+Run browser coverage without live Supabase:
+
+```powershell
+npm run test:e2e
+```
+
+The Playwright suite starts Next on port `3100`, enables the local school-search fixture, mocks `/api/chance`, and verifies range-first rendering, honesty panels, sub-20 disclosure, list balance warning, dark mode, and the methodology page.
+
+Analytics are implemented as a no-op-by-default privacy wrapper. With `NEXT_PUBLIC_FITTY_ANALYTICS_DEBUG=true`, it logs only sanitized product events to the browser console: `page_view`, `profile_completed`, `school_added`, and `methodology_viewed`. It never records GPA, SAT, ACT, scores, school identifiers, names, state, email, phone, or zip-like fields.
+
+Deployment steps live in `DEPLOY.md`.
+
+## Phase 6 - Consented Outcomes and Real-Data Retraining
+
+Phase 6 adds disabled-by-default outcome capture and a dark real-outcome model path. Capture APIs live under `/api/outcomes/*` and require `FITTY_OUTCOME_CAPTURE_ENABLED=true`; production subject identity is resolved from a Supabase bearer token, while unsigned subject headers are local-audit only.
+
+New Supabase tables are created by `supabase/migrations/202606170001_phase6_outcome_capture.sql`: `consent_records`, `applicant_profiles`, `application_outcomes`, and `data_access_logs`. RLS is enabled on all four, and a database trigger blocks profile/outcome storage unless an active consent record exists for the same subject.
+
+Run the real trainer after consented outcomes exist:
+
+```powershell
+npm run train:real -- --source supabase
+```
+
+For local contract checks only:
+
+```powershell
+python pipeline/train_real.py --source fixture
+```
+
+The fixture run writes `lib/model/artifacts.real.json`, `lib/model/test_vectors.real.json`, and `pipeline/reports/real_calibration.json` so the route, tests, and methodology page can be audited without pretending fixture rows are production evidence. Set `FITTY_REAL_MODEL_ENABLED=true` only after reviewing a Supabase-trained real calibration report.
+
+Privacy, retention, data-subject controls, and threat model details live in `PRIVACY.md`.

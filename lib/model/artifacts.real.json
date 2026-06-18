@@ -1,0 +1,641 @@
+{
+  "version": "2026.06.17-phase6-fixture",
+  "trained_at": "2026-06-17T00:00:00+00:00",
+  "seed": 20260617,
+  "model_type": "real_outcome_v1",
+  "feature_order": [
+    "sat_gap",
+    "sat_missing",
+    "act_gap",
+    "act_missing",
+    "gpa_gap",
+    "gpa_missing",
+    "applying_early",
+    "log_school_size",
+    "tier_accessible",
+    "tier_selective",
+    "tier_highly_selective",
+    "tier_elite",
+    "test_policy_required",
+    "test_policy_optional",
+    "test_policy_blind",
+    "test_policy_unknown",
+    "setting_city",
+    "setting_suburb",
+    "setting_town",
+    "setting_rural",
+    "setting_unknown"
+  ],
+  "feature_documentation": {
+    "sat_gap": "Applicant SAT position vs. the school's SAT middle-50 midpoint, scaled by the middle-50 width.",
+    "sat_missing": "1 when the school has no usable SAT middle-50 range or the applicant has no SAT value.",
+    "act_gap": "Applicant ACT position vs. the school's ACT middle-50 midpoint, scaled by the middle-50 width.",
+    "act_missing": "1 when the school has no usable ACT middle-50 range or the applicant has no ACT value.",
+    "gpa_gap": "Applicant GPA position vs. school average GPA when available; neutral 0 when unavailable.",
+    "gpa_missing": "1 when school average GPA or applicant GPA is unavailable.",
+    "applying_early": "Synthetic ED/EA indicator; the label generator only bumps probability when ED/RD public rates imply an advantage.",
+    "log_school_size": "Natural log of undergraduate enrollment, with zero when size is unavailable.",
+    "tier_accessible": "One-hot selectivity tier from published admit_rate above 50%.",
+    "tier_selective": "One-hot selectivity tier from published admit_rate between 25% and 50%.",
+    "tier_highly_selective": "One-hot selectivity tier from published admit_rate between 10% and 25%.",
+    "tier_elite": "One-hot selectivity tier from published admit_rate below 10%.",
+    "test_policy_required": "One-hot school test policy from CDS seed/cache.",
+    "test_policy_optional": "One-hot school test policy from CDS seed/cache.",
+    "test_policy_blind": "One-hot school test policy from CDS seed/cache.",
+    "test_policy_unknown": "One-hot school test policy from CDS seed/cache.",
+    "setting_city": "One-hot Scorecard locale bucket.",
+    "setting_suburb": "One-hot Scorecard locale bucket.",
+    "setting_town": "One-hot Scorecard locale bucket.",
+    "setting_rural": "One-hot Scorecard locale bucket.",
+    "setting_unknown": "One-hot Scorecard locale bucket for missing locale."
+  },
+  "coefficients": [
+    0.253373605082,
+    0.072996041411,
+    0.220661482771,
+    0.072996041411,
+    0.0,
+    0.0,
+    -0.123818424989,
+    0.521266549855,
+    0.617493420598,
+    0.021873577887,
+    -0.052413043304,
+    -0.586953955181,
+    -0.142701340706,
+    0.049142712071,
+    -0.316885538505,
+    0.231798082982,
+    0.194785834088,
+    -0.194785834088,
+    0.0,
+    0.0,
+    0.0
+  ],
+  "intercept": -0.225839420434,
+  "feature_means": {
+    "sat_gap": -0.0228264181,
+    "sat_missing": 0.214285714286,
+    "act_gap": -0.054189700255,
+    "act_missing": 0.214285714286,
+    "gpa_gap": 0.0,
+    "gpa_missing": 1.0,
+    "applying_early": 0.217261904762,
+    "log_school_size": 10.25997366582,
+    "tier_accessible": 0.25,
+    "tier_selective": 0.25,
+    "tier_highly_selective": 0.25,
+    "tier_elite": 0.25,
+    "test_policy_required": 0.166666666667,
+    "test_policy_optional": 0.321428571429,
+    "test_policy_blind": 0.077380952381,
+    "test_policy_unknown": 0.434523809524,
+    "setting_city": 0.860119047619,
+    "setting_suburb": 0.139880952381,
+    "setting_town": 0.0,
+    "setting_rural": 0.0,
+    "setting_unknown": 0.0
+  },
+  "feature_scales": {
+    "sat_gap": 0.607929247011,
+    "sat_missing": 0.410325903324,
+    "act_gap": 0.847231833994,
+    "act_missing": 0.410325903324,
+    "gpa_gap": 1.0,
+    "gpa_missing": 1.0,
+    "applying_early": 0.412382309879,
+    "log_school_size": 0.645114162025,
+    "tier_accessible": 0.433012701892,
+    "tier_selective": 0.433012701892,
+    "tier_highly_selective": 0.433012701892,
+    "tier_elite": 0.433012701892,
+    "test_policy_required": 0.37267799625,
+    "test_policy_optional": 0.467024886808,
+    "test_policy_blind": 0.26719494866,
+    "test_policy_unknown": 0.495694329684,
+    "setting_city": 0.346863476806,
+    "setting_suburb": 0.346863476806,
+    "setting_town": 1.0,
+    "setting_rural": 1.0,
+    "setting_unknown": 1.0
+  },
+  "isotonic_calibration": {
+    "x": [
+      0.004436940132,
+      0.019421091429,
+      0.024922538827,
+      0.057260984808,
+      0.059425986196,
+      0.436955010527,
+      0.440017835788,
+      0.464705378737,
+      0.464713935589,
+      0.501607376686,
+      0.529838814379,
+      0.556423117708,
+      0.565758040012,
+      0.944169863848,
+      0.956989583406,
+      0.976826487954,
+      0.978691386837,
+      0.984130454024
+    ],
+    "y": [
+      0.0,
+      0.0,
+      0.083333333333,
+      0.083333333333,
+      0.19512195122,
+      0.19512195122,
+      0.25,
+      0.25,
+      0.375,
+      0.375,
+      0.5,
+      0.5,
+      0.636363636364,
+      0.636363636364,
+      0.75,
+      0.75,
+      1.0,
+      1.0
+    ]
+  },
+  "conformal_parameters": {
+    "method": "Absolute residual conformal recalibration on held-out consented outcomes",
+    "target_coverage": 0.8,
+    "alpha": 0.19999999999999996,
+    "by_tier": {
+      "accessible": {
+        "mapie_residual_quantile": 0.47227001,
+        "interval_half_width": 0.47227001,
+        "minimum_public_prior_floor": 0.0,
+        "calibration_examples": 14
+      },
+      "selective": {
+        "mapie_residual_quantile": 0.63636364,
+        "interval_half_width": 0.5,
+        "minimum_public_prior_floor": 0.0,
+        "calibration_examples": 13
+      },
+      "highly_selective": {
+        "mapie_residual_quantile": 0.26252772,
+        "interval_half_width": 0.26252772,
+        "minimum_public_prior_floor": 0.0,
+        "calibration_examples": 14
+      },
+      "elite": {
+        "mapie_residual_quantile": 0.19512195,
+        "interval_half_width": 0.19512195,
+        "minimum_public_prior_floor": 0.0,
+        "calibration_examples": 15
+      }
+    },
+    "note": "No synthetic public-prior floors are applied on the real-outcome path."
+  },
+  "school_base_rates": {
+    "110662": 0.0897,
+    "193900": 0.0923,
+    "123961": 0.0981,
+    "167358": 0.0522,
+    "190415": 0.0876,
+    "215062": 0.054,
+    "147767": 0.0769,
+    "190150": 0.0399,
+    "166027": 0.0365,
+    "144050": 0.0448,
+    "243744": 0.0361,
+    "217156": 0.0539,
+    "221999": 0.0586,
+    "130794": 0.0387,
+    "198419": 0.0571,
+    "186131": 0.0462,
+    "162928": 0.0644,
+    "227757": 0.08,
+    "182670": 0.054,
+    "166683": 0.0455,
+    "164155": 0.0927,
+    "189097": 0.0884,
+    "161086": 0.0709,
+    "168342": 0.0825,
+    "164465": 0.0901,
+    "161004": 0.0713,
+    "121345": 0.0709,
+    "216287": 0.0746,
+    "112260": 0.0959,
+    "110404": 0.0257,
+    "192110": 0.0915,
+    "483780": 0.0726,
+    "211893": 0.0458,
+    "134130": 0.242,
+    "170976": 0.1564,
+    "110635": 0.1098,
+    "134097": 0.2422,
+    "199120": 0.1534,
+    "139755": 0.1407,
+    "164988": 0.1111,
+    "234076": 0.1681,
+    "135726": 0.189,
+    "164924": 0.1643,
+    "152080": 0.1127,
+    "179867": 0.1206,
+    "160755": 0.1398,
+    "133650": 0.2056,
+    "131496": 0.1291,
+    "211440": 0.1166,
+    "139658": 0.1065,
+    "168148": 0.1149,
+    "199847": 0.2167,
+    "197036": 0.1245,
+    "128328": 0.1409,
+    "141060": 0.2487,
+    "190099": 0.1388,
+    "166124": 0.1761,
+    "130697": 0.1649,
+    "233374": 0.222,
+    "230959": 0.1075,
+    "164580": 0.1709,
+    "217864": 0.2272,
+    "195526": 0.2105,
+    "446561": 0.1,
+    "167835": 0.21,
+    "197133": 0.1857,
+    "202523": 0.1739,
+    "168218": 0.1405,
+    "173258": 0.2041,
+    "217493": 0.1866,
+    "191515": 0.1362,
+    "126678": 0.1847,
+    "132903": 0.4011,
+    "243780": 0.4987,
+    "228778": 0.2664,
+    "137351": 0.4319,
+    "240444": 0.452,
+    "145637": 0.4237,
+    "110583": 0.4627,
+    "122409": 0.3619,
+    "110680": 0.2671,
+    "110644": 0.4183,
+    "139959": 0.377,
+    "236948": 0.3915,
+    "163286": 0.4479,
+    "221759": 0.416,
+    "110653": 0.2857,
+    "199193": 0.4174,
+    "100858": 0.4592,
+    "217882": 0.3834,
+    "110705": 0.3297,
+    "110422": 0.3132,
+    "196097": 0.4904,
+    "190512": 0.4752,
+    "196413": 0.4592,
+    "196079": 0.3861,
+    "199102": 0.499,
+    "131469": 0.4709,
+    "228875": 0.4449,
+    "137847": 0.4034,
+    "131520": 0.4134,
+    "164748": 0.4353,
+    "117946": 0.4508,
+    "231624": 0.3407,
+    "216597": 0.2698,
+    "226152": 0.4437,
+    "122931": 0.48,
+    "201645": 0.3654,
+    "195030": 0.4008,
+    "213543": 0.2593,
+    "160621": 0.3512,
+    "183026": 0.9951,
+    "104717": 0.7891,
+    "104151": 0.8989,
+    "228723": 0.5743,
+    "232557": 0.9898,
+    "204796": 0.6057,
+    "104179": 0.8614,
+    "214777": 0.6056,
+    "486840": 0.6919,
+    "171100": 0.848,
+    "133951": 0.5466,
+    "110565": 0.9052,
+    "225511": 0.7392,
+    "151351": 0.7821,
+    "186380": 0.5815,
+    "228459": 0.8932,
+    "227216": 0.7223,
+    "100751": 0.7665,
+    "230038": 0.6778,
+    "110608": 0.9345,
+    "229115": 0.7265,
+    "228769": 0.799,
+    "126614": 0.7808,
+    "174066": 0.7975,
+    "233921": 0.5478,
+    "209542": 0.773,
+    "159391": 0.7333,
+    "229027": 0.8679,
+    "201885": 0.8529,
+    "218663": 0.6015,
+    "106397": 0.743,
+    "227368": 0.9419,
+    "110617": 0.9399,
+    "232186": 0.8748,
+    "122755": 0.8461,
+    "230764": 0.8598,
+    "139940": 0.5544,
+    "126818": 0.8854,
+    "153603": 0.8866
+  },
+  "hierarchical_offsets": {
+    "method": "empirical_bayes_logistic_partial_pooling",
+    "tier_prior_strength": 50.0,
+    "school_prior_strength": 20.0,
+    "minimum_events_per_predictor_guidance": "10-20",
+    "tier": {
+      "accessible": {
+        "events": 84,
+        "offset": 1.078010208709,
+        "shrinkage": 0.62686567
+      },
+      "selective": {
+        "events": 84,
+        "offset": 0.039490500859,
+        "shrinkage": 0.62686567
+      },
+      "highly_selective": {
+        "events": 84,
+        "offset": -0.432334837669,
+        "shrinkage": 0.62686567
+      },
+      "elite": {
+        "events": 84,
+        "offset": -0.883544897435,
+        "shrinkage": 0.62686567
+      }
+    },
+    "school": {
+      "104151": {
+        "events": 7,
+        "offset": 0.253490841257,
+        "shrinkage": 0.25925926
+      },
+      "104179": {
+        "events": 11,
+        "offset": 0.619493255831,
+        "shrinkage": 0.35483871
+      },
+      "104717": {
+        "events": 7,
+        "offset": 0.43566530254,
+        "shrinkage": 0.25925926
+      },
+      "110583": {
+        "events": 8,
+        "offset": 0.422379968788,
+        "shrinkage": 0.28571429
+      },
+      "110635": {
+        "events": 7,
+        "offset": 0.00368757927,
+        "shrinkage": 0.25925926
+      },
+      "110644": {
+        "events": 6,
+        "offset": 0.108362922939,
+        "shrinkage": 0.23076923
+      },
+      "110662": {
+        "events": 8,
+        "offset": -0.405772587833,
+        "shrinkage": 0.28571429
+      },
+      "110680": {
+        "events": 11,
+        "offset": -0.32101788914,
+        "shrinkage": 0.35483871
+      },
+      "122409": {
+        "events": 9,
+        "offset": -0.381084293925,
+        "shrinkage": 0.31034483
+      },
+      "123961": {
+        "events": 9,
+        "offset": -0.183363982338,
+        "shrinkage": 0.31034483
+      },
+      "132903": {
+        "events": 8,
+        "offset": -0.168856306823,
+        "shrinkage": 0.28571429
+      },
+      "134097": {
+        "events": 9,
+        "offset": 0.235762834923,
+        "shrinkage": 0.31034483
+      },
+      "134130": {
+        "events": 9,
+        "offset": 0.076037415161,
+        "shrinkage": 0.31034483
+      },
+      "135726": {
+        "events": 8,
+        "offset": -0.23466378568,
+        "shrinkage": 0.28571429
+      },
+      "137351": {
+        "events": 7,
+        "offset": 0.346850112215,
+        "shrinkage": 0.25925926
+      },
+      "139755": {
+        "events": 10,
+        "offset": -0.140491694887,
+        "shrinkage": 0.33333333
+      },
+      "144050": {
+        "events": 6,
+        "offset": -0.049744748011,
+        "shrinkage": 0.23076923
+      },
+      "145637": {
+        "events": 10,
+        "offset": 0.017797916483,
+        "shrinkage": 0.33333333
+      },
+      "147767": {
+        "events": 6,
+        "offset": -0.31870531247,
+        "shrinkage": 0.23076923
+      },
+      "164924": {
+        "events": 8,
+        "offset": -0.04671752398,
+        "shrinkage": 0.28571429
+      },
+      "164988": {
+        "events": 10,
+        "offset": -0.324235270269,
+        "shrinkage": 0.33333333
+      },
+      "166027": {
+        "events": 8,
+        "offset": -0.405772587833,
+        "shrinkage": 0.28571429
+      },
+      "167358": {
+        "events": 11,
+        "offset": -0.263453986194,
+        "shrinkage": 0.35483871
+      },
+      "170976": {
+        "events": 5,
+        "offset": -0.083191533515,
+        "shrinkage": 0.2
+      },
+      "171100": {
+        "events": 10,
+        "offset": 0.239136492181,
+        "shrinkage": 0.33333333
+      },
+      "183026": {
+        "events": 8,
+        "offset": 0.484886097313,
+        "shrinkage": 0.28571429
+      },
+      "190150": {
+        "events": 6,
+        "offset": -0.049744748011,
+        "shrinkage": 0.23076923
+      },
+      "190415": {
+        "events": 11,
+        "offset": 0.152267654268,
+        "shrinkage": 0.35483871
+      },
+      "193900": {
+        "events": 9,
+        "offset": -0.183363982338,
+        "shrinkage": 0.31034483
+      },
+      "199120": {
+        "events": 7,
+        "offset": 0.00368757927,
+        "shrinkage": 0.25925926
+      },
+      "204796": {
+        "events": 10,
+        "offset": 0.086510209011,
+        "shrinkage": 0.33333333
+      },
+      "214777": {
+        "events": 7,
+        "offset": -0.077606205804,
+        "shrinkage": 0.25925926
+      },
+      "215062": {
+        "events": 10,
+        "offset": -0.485862591689,
+        "shrinkage": 0.33333333
+      },
+      "228723": {
+        "events": 10,
+        "offset": -0.058967025612,
+        "shrinkage": 0.33333333
+      },
+      "228778": {
+        "events": 10,
+        "offset": -0.272824869768,
+        "shrinkage": 0.33333333
+      },
+      "232557": {
+        "events": 8,
+        "offset": 0.484886097313,
+        "shrinkage": 0.28571429
+      },
+      "234076": {
+        "events": 11,
+        "offset": -0.366181639103,
+        "shrinkage": 0.35483871
+      },
+      "240444": {
+        "events": 8,
+        "offset": 0.279045499146,
+        "shrinkage": 0.28571429
+      },
+      "243780": {
+        "events": 7,
+        "offset": 0.044865287427,
+        "shrinkage": 0.25925926
+      },
+      "486840": {
+        "events": 6,
+        "offset": -0.297899245511,
+        "shrinkage": 0.23076923
+      }
+    }
+  },
+  "lever_metadata": [
+    {
+      "feature": "test_score",
+      "lever": "controllable",
+      "label": "Test score",
+      "note": "Can still move if the student has another SAT or ACT sitting before application deadlines."
+    },
+    {
+      "feature": "application_round",
+      "lever": "controllable",
+      "label": "Application round",
+      "note": "Early decision or early action strategy can change the school-specific odds context."
+    },
+    {
+      "feature": "remaining_course_rigor",
+      "lever": "controllable",
+      "label": "Remaining course rigor",
+      "note": "Senior-year course choices may still be adjustable before schedules lock."
+    },
+    {
+      "feature": "gpa_to_date",
+      "lever": "fixed",
+      "label": "GPA to date",
+      "note": "Most of the academic record is already set by application season."
+    },
+    {
+      "feature": "state_residency",
+      "lever": "fixed",
+      "label": "State residency",
+      "note": "Public universities may weigh in-state context differently."
+    },
+    {
+      "feature": "school_context",
+      "lever": "fixed",
+      "label": "High school context",
+      "note": "Course availability and school profile are treated as background context."
+    },
+    {
+      "feature": "essays",
+      "lever": "unseen",
+      "label": "Essays",
+      "note": "Public data cannot evaluate writing quality or application narrative."
+    },
+    {
+      "feature": "recommendations",
+      "lever": "unseen",
+      "label": "Recommendations",
+      "note": "Teacher and counselor letters are not visible in the public-data model."
+    },
+    {
+      "feature": "institutional_priorities",
+      "lever": "unseen",
+      "label": "Institutional priorities",
+      "note": "Major balance, class-shaping needs, and yield goals are not directly observable."
+    },
+    {
+      "feature": "demonstrated_interest",
+      "lever": "unseen",
+      "label": "Demonstrated interest",
+      "note": "Some schools consider engagement, but public data rarely captures student-specific evidence."
+    }
+  ],
+  "honesty_label": "Fixture-trained real-outcome pipeline artifact. Not production evidence."
+}

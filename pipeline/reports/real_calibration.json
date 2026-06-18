@@ -1,0 +1,126 @@
+{
+  "status": "fixture_contract_check",
+  "source": "fixture",
+  "model_type": "real_outcome_v1",
+  "outcome_counts_by_tier": {
+    "accessible": 140,
+    "selective": 140,
+    "highly_selective": 140,
+    "elite": 140
+  },
+  "heldout_count": 56,
+  "metrics": {
+    "brier": 0.17543,
+    "log_loss": 0.711852
+  },
+  "calibration_by_bin": [
+    {
+      "bin": "0.00-0.10",
+      "mean_predicted": 0.03671,
+      "admitted_count": 1,
+      "outcome_count": 9
+    },
+    {
+      "bin": "0.10-0.20",
+      "mean_predicted": 0.195122,
+      "admitted_count": 3,
+      "outcome_count": 19
+    },
+    {
+      "bin": "0.20-0.30",
+      "mean_predicted": 0.249734,
+      "admitted_count": 2,
+      "outcome_count": 3
+    },
+    {
+      "bin": "0.30-0.40",
+      "mean_predicted": 0.375,
+      "admitted_count": 1,
+      "outcome_count": 3
+    },
+    {
+      "bin": "0.40-0.50",
+      "mean_predicted": 0.5,
+      "admitted_count": 1,
+      "outcome_count": 2
+    },
+    {
+      "bin": "0.60-0.70",
+      "mean_predicted": 0.636364,
+      "admitted_count": 4,
+      "outcome_count": 10
+    },
+    {
+      "bin": "0.70-0.80",
+      "mean_predicted": 0.739674,
+      "admitted_count": 6,
+      "outcome_count": 7
+    },
+    {
+      "bin": "0.90-1.00",
+      "mean_predicted": 1.0,
+      "admitted_count": 3,
+      "outcome_count": 3
+    }
+  ],
+  "calibration_by_tier": [
+    {
+      "tier": "accessible",
+      "mean_predicted": 0.765941,
+      "admitted_count": 11,
+      "outcome_count": 14
+    },
+    {
+      "tier": "selective",
+      "mean_predicted": 0.4141,
+      "admitted_count": 6,
+      "outcome_count": 15
+    },
+    {
+      "tier": "highly_selective",
+      "mean_predicted": 0.247122,
+      "admitted_count": 3,
+      "outcome_count": 13
+    },
+    {
+      "tier": "elite",
+      "mean_predicted": 0.093286,
+      "admitted_count": 1,
+      "outcome_count": 14
+    }
+  ],
+  "interval_width_comparison": [
+    {
+      "tier": "accessible",
+      "outcome_count": 14,
+      "real_mean_interval_width": 0.706329,
+      "real_half_width": 0.47227001,
+      "phase2_prior_interval_width": 0.314364
+    },
+    {
+      "tier": "selective",
+      "outcome_count": 15,
+      "real_mean_interval_width": 0.823191,
+      "real_half_width": 0.5,
+      "phase2_prior_interval_width": 0.36
+    },
+    {
+      "tier": "highly_selective",
+      "outcome_count": 13,
+      "real_mean_interval_width": 0.472241,
+      "real_half_width": 0.26252772,
+      "phase2_prior_interval_width": 0.54
+    },
+    {
+      "tier": "elite",
+      "outcome_count": 14,
+      "real_mean_interval_width": 0.288408,
+      "real_half_width": 0.19512195,
+      "phase2_prior_interval_width": 0.92
+    }
+  ],
+  "change_course": {
+    "status": "top_tier_intervals_narrowed_in_heldout_data",
+    "recommendation": "Real outcomes narrow some uncertainty, but keep range-first disclosure and monitor calibration before public claims."
+  }
+}

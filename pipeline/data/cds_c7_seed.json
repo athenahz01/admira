@@ -1,0 +1,502 @@
+[
+  {
+    "unitid": 166683,
+    "name": "Massachusetts Institute of Technology",
+    "test_policy": "required",
+    "ed_admit_rate": null,
+    "rd_admit_rate": null,
+    "_source": "2023-24 CDS; hand-entered seed, verify before production",
+    "c7_factors": {
+      "rigor": "Very Important",
+      "gpa": "Very Important",
+      "test_scores": "Very Important",
+      "essay": "Important",
+      "recommendations": "Important",
+      "extracurriculars": "Important",
+      "talent": "Important",
+      "first_generation": "Considered",
+      "state_residency": "Not Considered",
+      "demonstrated_interest": "Not Considered"
+    }
+  },
+  {
+    "unitid": 243744,
+    "name": "Stanford University",
+    "test_policy": "optional",
+    "ed_admit_rate": null,
+    "rd_admit_rate": null,
+    "_source": "2023-24 CDS; hand-entered seed, verify before production",
+    "c7_factors": {
+      "rigor": "Very Important",
+      "gpa": "Very Important",
+      "test_scores": "Considered",
+      "essay": "Very Important",
+      "recommendations": "Very Important",
+      "extracurriculars": "Very Important",
+      "talent": "Very Important",
+      "first_generation": "Considered",
+      "state_residency": "Not Considered",
+      "demonstrated_interest": "Not Considered"
+    }
+  },
+  {
+    "unitid": 110662,
+    "name": "University of California-Los Angeles",
+    "test_policy": "blind",
+    "ed_admit_rate": null,
+    "rd_admit_rate": null,
+    "_source": "2023-24 CDS; hand-entered seed, verify before production",
+    "c7_factors": {
+      "rigor": "Very Important",
+      "gpa": "Very Important",
+      "test_scores": "Not Considered",
+      "essay": "Very Important",
+      "recommendations": "Not Considered",
+      "extracurriculars": "Very Important",
+      "talent": "Important",
+      "first_generation": "Considered",
+      "state_residency": "Important",
+      "demonstrated_interest": "Not Considered"
+    }
+  },
+  {
+    "unitid": 166027,
+    "name": "Harvard University",
+    "test_policy": "optional",
+    "ed_admit_rate": null,
+    "rd_admit_rate": null,
+    "_source": "2023-24 CDS; hand-entered seed, verify before production",
+    "c7_factors": {
+      "rigor": "Very Important",
+      "gpa": "Very Important",
+      "test_scores": "Considered",
+      "essay": "Very Important",
+      "recommendations": "Very Important",
+      "extracurriculars": "Very Important",
+      "talent": "Very Important",
+      "first_generation": "Considered",
+      "state_residency": "Not Considered",
+      "demonstrated_interest": "Not Considered"
+    }
+  },
+  {
+    "unitid": 215062,
+    "name": "University of Pennsylvania",
+    "test_policy": "optional",
+    "ed_admit_rate": null,
+    "rd_admit_rate": null,
+    "_source": "2023-24 CDS; hand-entered seed, verify before production",
+    "c7_factors": {
+      "rigor": "Very Important",
+      "gpa": "Very Important",
+      "test_scores": "Considered",
+      "essay": "Very Important",
+      "recommendations": "Important",
+      "extracurriculars": "Very Important",
+      "talent": "Important",
+      "first_generation": "Considered",
+      "state_residency": "Not Considered",
+      "demonstrated_interest": "Not Considered"
+    }
+  },
+  {
+    "unitid": 167358,
+    "name": "Northeastern University",
+    "test_policy": "optional",
+    "ed_admit_rate": null,
+    "rd_admit_rate": null,
+    "_source": "2023-24 CDS; hand-entered seed, verify before production",
+    "c7_factors": {
+      "rigor": "Very Important",
+      "gpa": "Very Important",
+      "test_scores": "Considered",
+      "essay": "Important",
+      "recommendations": "Important",
+      "extracurriculars": "Important",
+      "talent": "Considered",
+      "first_generation": "Considered",
+      "state_residency": "Not Considered",
+      "demonstrated_interest": "Important"
+    }
+  },
+  {
+    "unitid": 139755,
+    "name": "Georgia Institute of Technology-Main Campus",
+    "test_policy": "required",
+    "ed_admit_rate": null,
+    "rd_admit_rate": null,
+    "_source": "2023-24 CDS; hand-entered seed, verify before production",
+    "c7_factors": {
+      "rigor": "Very Important",
+      "gpa": "Very Important",
+      "test_scores": "Important",
+      "essay": "Important",
+      "recommendations": "Considered",
+      "extracurriculars": "Important",
+      "talent": "Considered",
+      "first_generation": "Considered",
+      "state_residency": "Important",
+      "demonstrated_interest": "Not Considered"
+    }
+  },
+  {
+    "unitid": 199120,
+    "name": "University of North Carolina at Chapel Hill",
+    "test_policy": "optional",
+    "ed_admit_rate": null,
+    "rd_admit_rate": null,
+    "_source": "2023-24 CDS; hand-entered seed, verify before production",
+    "c7_factors": {
+      "rigor": "Very Important",
+      "gpa": "Very Important",
+      "test_scores": "Considered",
+      "essay": "Important",
+      "recommendations": "Important",
+      "extracurriculars": "Important",
+      "talent": "Considered",
+      "first_generation": "Considered",
+      "state_residency": "Very Important",
+      "demonstrated_interest": "Not Considered"
+    }
+  },
+  {
+    "unitid": 170976,
+    "name": "University of Michigan-Ann Arbor",
+    "test_policy": "optional",
+    "ed_admit_rate": null,
+    "rd_admit_rate": null,
+    "_source": "2023-24 CDS; hand-entered seed, verify before production",
+    "c7_factors": {
+      "rigor": "Very Important",
+      "gpa": "Very Important",
+      "test_scores": "Considered",
+      "essay": "Very Important",
+      "recommendations": "Important",
+      "extracurriculars": "Important",
+      "talent": "Considered",
+      "first_generation": "Considered",
+      "state_residency": "Important",
+      "demonstrated_interest": "Considered"
+    }
+  },
+  {
+    "unitid": 110635,
+    "name": "University of California-Berkeley",
+    "test_policy": "blind",
+    "ed_admit_rate": null,
+    "rd_admit_rate": null,
+    "_source": "2023-24 CDS; hand-entered seed, verify before production",
+    "c7_factors": {
+      "rigor": "Very Important",
+      "gpa": "Very Important",
+      "test_scores": "Not Considered",
+      "essay": "Very Important",
+      "recommendations": "Not Considered",
+      "extracurriculars": "Very Important",
+      "talent": "Important",
+      "first_generation": "Considered",
+      "state_residency": "Important",
+      "demonstrated_interest": "Not Considered"
+    }
+  },
+  {
+    "unitid": 134130,
+    "name": "University of Florida",
+    "test_policy": "required",
+    "ed_admit_rate": null,
+    "rd_admit_rate": null,
+    "_source": "2023-24 CDS; hand-entered seed, verify before production",
+    "c7_factors": {
+      "rigor": "Very Important",
+      "gpa": "Very Important",
+      "test_scores": "Important",
+      "essay": "Important",
+      "recommendations": "Not Considered",
+      "extracurriculars": "Important",
+      "talent": "Considered",
+      "first_generation": "Considered",
+      "state_residency": "Important",
+      "demonstrated_interest": "Not Considered"
+    }
+  },
+  {
+    "unitid": 234076,
+    "name": "University of Virginia-Main Campus",
+    "test_policy": "optional",
+    "ed_admit_rate": null,
+    "rd_admit_rate": null,
+    "_source": "2023-24 CDS; hand-entered seed, verify before production",
+    "c7_factors": {
+      "rigor": "Very Important",
+      "gpa": "Very Important",
+      "test_scores": "Considered",
+      "essay": "Very Important",
+      "recommendations": "Important",
+      "extracurriculars": "Important",
+      "talent": "Considered",
+      "first_generation": "Considered",
+      "state_residency": "Very Important",
+      "demonstrated_interest": "Not Considered"
+    }
+  },
+  {
+    "unitid": 164988,
+    "name": "Boston University",
+    "test_policy": "optional",
+    "ed_admit_rate": null,
+    "rd_admit_rate": null,
+    "_source": "2023-24 CDS; hand-entered seed, verify before production",
+    "c7_factors": {
+      "rigor": "Very Important",
+      "gpa": "Very Important",
+      "test_scores": "Considered",
+      "essay": "Important",
+      "recommendations": "Important",
+      "extracurriculars": "Important",
+      "talent": "Considered",
+      "first_generation": "Considered",
+      "state_residency": "Not Considered",
+      "demonstrated_interest": "Considered"
+    }
+  },
+  {
+    "unitid": 228778,
+    "name": "The University of Texas at Austin",
+    "test_policy": "required",
+    "ed_admit_rate": null,
+    "rd_admit_rate": null,
+    "_source": "2023-24 CDS; hand-entered seed, verify before production",
+    "c7_factors": {
+      "rigor": "Very Important",
+      "gpa": "Very Important",
+      "test_scores": "Important",
+      "essay": "Very Important",
+      "recommendations": "Considered",
+      "extracurriculars": "Important",
+      "talent": "Considered",
+      "first_generation": "Considered",
+      "state_residency": "Very Important",
+      "demonstrated_interest": "Not Considered"
+    }
+  },
+  {
+    "unitid": 243780,
+    "name": "Purdue University-Main Campus",
+    "test_policy": "required",
+    "ed_admit_rate": null,
+    "rd_admit_rate": null,
+    "_source": "2023-24 CDS; hand-entered seed, verify before production",
+    "c7_factors": {
+      "rigor": "Very Important",
+      "gpa": "Very Important",
+      "test_scores": "Important",
+      "essay": "Considered",
+      "recommendations": "Considered",
+      "extracurriculars": "Important",
+      "talent": "Considered",
+      "first_generation": "Considered",
+      "state_residency": "Important",
+      "demonstrated_interest": "Not Considered"
+    }
+  },
+  {
+    "unitid": 240444,
+    "name": "University of Wisconsin-Madison",
+    "test_policy": "optional",
+    "ed_admit_rate": null,
+    "rd_admit_rate": null,
+    "_source": "2023-24 CDS; hand-entered seed, verify before production",
+    "c7_factors": {
+      "rigor": "Very Important",
+      "gpa": "Very Important",
+      "test_scores": "Considered",
+      "essay": "Important",
+      "recommendations": "Considered",
+      "extracurriculars": "Important",
+      "talent": "Considered",
+      "first_generation": "Considered",
+      "state_residency": "Very Important",
+      "demonstrated_interest": "Not Considered"
+    }
+  },
+  {
+    "unitid": 145637,
+    "name": "University of Illinois Urbana-Champaign",
+    "test_policy": "required",
+    "ed_admit_rate": null,
+    "rd_admit_rate": null,
+    "_source": "2023-24 CDS; hand-entered seed, verify before production",
+    "c7_factors": {
+      "rigor": "Very Important",
+      "gpa": "Very Important",
+      "test_scores": "Important",
+      "essay": "Important",
+      "recommendations": "Considered",
+      "extracurriculars": "Important",
+      "talent": "Considered",
+      "first_generation": "Considered",
+      "state_residency": "Important",
+      "demonstrated_interest": "Not Considered"
+    }
+  },
+  {
+    "unitid": 163286,
+    "name": "University of Maryland-College Park",
+    "test_policy": "optional",
+    "ed_admit_rate": null,
+    "rd_admit_rate": null,
+    "_source": "2023-24 CDS; hand-entered seed, verify before production",
+    "c7_factors": {
+      "rigor": "Very Important",
+      "gpa": "Very Important",
+      "test_scores": "Considered",
+      "essay": "Important",
+      "recommendations": "Considered",
+      "extracurriculars": "Important",
+      "talent": "Considered",
+      "first_generation": "Considered",
+      "state_residency": "Important",
+      "demonstrated_interest": "Considered"
+    }
+  },
+  {
+    "unitid": 110680,
+    "name": "University of California-San Diego",
+    "test_policy": "blind",
+    "ed_admit_rate": null,
+    "rd_admit_rate": null,
+    "_source": "2023-24 CDS; hand-entered seed, verify before production",
+    "c7_factors": {
+      "rigor": "Very Important",
+      "gpa": "Very Important",
+      "test_scores": "Not Considered",
+      "essay": "Important",
+      "recommendations": "Not Considered",
+      "extracurriculars": "Very Important",
+      "talent": "Important",
+      "first_generation": "Considered",
+      "state_residency": "Important",
+      "demonstrated_interest": "Not Considered"
+    }
+  },
+  {
+    "unitid": 100751,
+    "name": "The University of Alabama",
+    "test_policy": "optional",
+    "ed_admit_rate": null,
+    "rd_admit_rate": null,
+    "_source": "2023-24 CDS; hand-entered seed, verify before production",
+    "c7_factors": {
+      "rigor": "Very Important",
+      "gpa": "Very Important",
+      "test_scores": "Considered",
+      "essay": "Considered",
+      "recommendations": "Considered",
+      "extracurriculars": "Important",
+      "talent": "Considered",
+      "first_generation": "Considered",
+      "state_residency": "Considered",
+      "demonstrated_interest": "Considered"
+    }
+  },
+  {
+    "unitid": 104151,
+    "name": "Arizona State University Campus Immersion",
+    "test_policy": "optional",
+    "ed_admit_rate": null,
+    "rd_admit_rate": null,
+    "_source": "2023-24 CDS; hand-entered seed, verify before production",
+    "c7_factors": {
+      "rigor": "Important",
+      "gpa": "Very Important",
+      "test_scores": "Considered",
+      "essay": "Not Considered",
+      "recommendations": "Not Considered",
+      "extracurriculars": "Considered",
+      "talent": "Considered",
+      "first_generation": "Considered",
+      "state_residency": "Considered",
+      "demonstrated_interest": "Not Considered"
+    }
+  },
+  {
+    "unitid": 204796,
+    "name": "Ohio State University-Main Campus",
+    "test_policy": "optional",
+    "ed_admit_rate": null,
+    "rd_admit_rate": null,
+    "_source": "2023-24 CDS; hand-entered seed, verify before production",
+    "c7_factors": {
+      "rigor": "Very Important",
+      "gpa": "Very Important",
+      "test_scores": "Considered",
+      "essay": "Important",
+      "recommendations": "Considered",
+      "extracurriculars": "Important",
+      "talent": "Considered",
+      "first_generation": "Considered",
+      "state_residency": "Important",
+      "demonstrated_interest": "Not Considered"
+    }
+  },
+  {
+    "unitid": 228723,
+    "name": "Texas A&M University-College Station",
+    "test_policy": "required",
+    "ed_admit_rate": null,
+    "rd_admit_rate": null,
+    "_source": "2023-24 CDS; hand-entered seed, verify before production",
+    "c7_factors": {
+      "rigor": "Very Important",
+      "gpa": "Very Important",
+      "test_scores": "Important",
+      "essay": "Important",
+      "recommendations": "Considered",
+      "extracurriculars": "Important",
+      "talent": "Considered",
+      "first_generation": "Considered",
+      "state_residency": "Very Important",
+      "demonstrated_interest": "Not Considered"
+    }
+  },
+  {
+    "unitid": 171100,
+    "name": "Michigan State University",
+    "test_policy": "optional",
+    "ed_admit_rate": null,
+    "rd_admit_rate": null,
+    "_source": "2023-24 CDS; hand-entered seed, verify before production",
+    "c7_factors": {
+      "rigor": "Very Important",
+      "gpa": "Very Important",
+      "test_scores": "Considered",
+      "essay": "Important",
+      "recommendations": "Considered",
+      "extracurriculars": "Important",
+      "talent": "Considered",
+      "first_generation": "Considered",
+      "state_residency": "Important",
+      "demonstrated_interest": "Considered"
+    }
+  },
+  {
+    "unitid": 104179,
+    "name": "University of Arizona",
+    "test_policy": "optional",
+    "ed_admit_rate": null,
+    "rd_admit_rate": null,
+    "_source": "2023-24 CDS; hand-entered seed, verify before production",
+    "c7_factors": {
+      "rigor": "Important",
+      "gpa": "Very Important",
+      "test_scores": "Considered",
+      "essay": "Considered",
+      "recommendations": "Considered",
+      "extracurriculars": "Important",
+      "talent": "Considered",
+      "first_generation": "Considered",
+      "state_residency": "Considered",
+      "demonstrated_interest": "Considered"
+    }
+  }
+]
