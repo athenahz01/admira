@@ -192,7 +192,46 @@ export type Database = {
       };
     };
     Views: Record<string, never>;
-    Functions: Record<string, never>;
+    Functions: {
+      match_fit_schools: {
+        Args: {
+          p_query_embedding: string;
+          p_match_count?: number;
+          p_preferred_region?: SchoolRegion | null;
+          p_preferred_size?: SchoolSizeBand | null;
+          p_preferred_setting?: School["setting"];
+          p_cost_ceiling?: number | null;
+        };
+        Returns: Array<
+          Pick<
+            School,
+            | "unitid"
+            | "name"
+            | "state"
+            | "setting"
+            | "size"
+            | "admit_rate"
+            | "sat_25"
+            | "sat_75"
+            | "act_25"
+            | "act_75"
+            | "gpa_avg"
+            | "test_policy"
+            | "c7_factors"
+            | "selectivity_tier"
+            | "program_areas"
+            | "size_band"
+            | "region"
+            | "net_price_avg"
+            | "sticker_cost"
+            | "median_earnings_10yr"
+            | "completion_rate"
+          > & {
+            similarity: number;
+          }
+        >;
+      };
+    };
     Enums: Record<string, never>;
     CompositeTypes: Record<string, never>;
   };

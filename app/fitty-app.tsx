@@ -4,15 +4,18 @@ import Link from "next/link";
 import {
   BookOpen,
   Check,
+  Compass,
   FileSearch,
+  Loader2,
   Moon,
   Plus,
   RefreshCw,
   Search,
+  Sparkles,
   Sun,
   Trash2,
 } from "lucide-react";
-import type { Dispatch, ReactNode, SetStateAction } from "react";
+import type { Dispatch, FormEvent, ReactNode, SetStateAction } from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import { trackEvent } from "@/lib/analytics";
@@ -122,6 +125,58 @@ type AddedSchool = {
   error?: string;
 };
 
+type FitPreferences = {
+  interests: string;
+  preferredSize: "" | "small" | "medium" | "large";
+  preferredSetting: "" | "city" | "suburb" | "town" | "rural";
+  preferredRegion: "" | "Northeast" | "Midwest" | "South" | "West";
+  costCeiling: string;
+  learningStyleNotes: string;
+};
+
+type FitResponse = {
+  query: {
+    embedded: true;
+    dim: number;
+    model: string;
+  };
+  results: FitResult[];
+  balance: Record<BandLabel, number> & {
+    note: string;
+  };
+  disclaimers: string[];
+};
+
+type FitResult = {
+  school: {
+    unitid: number;
+    name: string;
+    region: string | null;
+    size_band: string | null;
+    setting: string | null;
+    selectivity_tier: string | null;
+    net_price_avg: number | null;
+    sticker_cost: number | null;
+    program_areas: string[] | null;
+  };
+  match_reasons: {
+    matched: string[];
+    notable: string[];
+    cost_status: "within_ceiling" | "over_ceiling" | "unknown";
+  };
+  probability: ChanceResponse["probability"];
+  band: {
+    label: BandLabel;
+    wide_band: boolean;
+  };
+};
+
+type FitExplanationState = {
+  status: "loading" | "ready" | "fallback";
+  text?: string;
+  reason?: string;
+};
+
 const initialProfile: Profile = {
   gpa: "3.85",
   sat: "1480",
@@ -131,6 +186,15 @@ const initialProfile: Profile = {
   applicationRound: "regular",
   homeState: "NY",
   activityNote: "",
+};
+
+const initialFitPreferences: FitPreferences = {
+  interests: "",
+  preferredSize: "",
+  preferredSetting: "",
+  preferredRegion: "",
+  costCeiling: "",
+  learningStyleNotes: "",
 };
 
 const labelOrder: BandLabel[] = ["reach", "target", "likely"];
@@ -193,6 +257,49 @@ function buildChanceBody(profile: Profile, unitid: number) {
     ...(act !== undefined ? { act_score: act } : {}),
     ...(gpa !== undefined ? { gpa } : {}),
     application_round: profile.applicationRound,
+  };
+}
+
+function hasProfileForFit(profile: Profile) {
+  return (
+    numberOrUndefined(profile.gpa) !== undefined ||
+    profile.notSubmittingTests ||
+    numberOrUndefined(profile.sat) !== undefined ||
+    numberOrUndefined(profile.act) !== undefined
+  );
+}
+
+function buildFitBody(profile: Profile, preferences: FitPreferences) {
+  const chanceBody = buildChanceBody(profile, 0);
+  const costCeiling = numberOrUndefined(preferences.costCeiling);
+  const intendedMajor = profile.intendedMajor.trim();
+
+  return {
+    ...(preferences.interests.trim()
+      ? { interests: preferences.interests.trim() }
+      : {}),
+    ...(intendedMajor ? { intended_major: intendedMajor } : {}),
+    ...(preferences.preferredSize
+      ? { preferred_size: preferences.preferredSize }
+      : {}),
+    ...(preferences.preferredSetting
+      ? { preferred_setting: preferences.preferredSetting }
+      : {}),
+    ...(preferences.preferredRegion
+      ? { preferred_region: preferences.preferredRegion }
+      : {}),
+    ...(costCeiling !== undefined ? { cost_ceiling: costCeiling } : {}),
+    ...(preferences.learningStyleNotes.trim()
+      ? { learning_style_notes: preferences.learningStyleNotes.trim() }
+      : {}),
+    ...(chanceBody.sat_score !== undefined
+      ? { sat_score: chanceBody.sat_score }
+      : {}),
+    ...(chanceBody.act_score !== undefined
+      ? { act_score: chanceBody.act_score }
+      : {}),
+    ...(chanceBody.gpa !== undefined ? { gpa: chanceBody.gpa } : {}),
+    application_round: chanceBody.application_round,
   };
 }
 
@@ -470,6 +577,14 @@ export function FittyApp() {
           </aside>
 
           <section className="results-column" aria-label="School chance results">
+            <FitFinderPanel
+              profile={profile}
+              setProfile={setProfile}
+              profileErrors={profileErrors}
+              profileReady={hasProfileForFit(profile)}
+              onAddSchool={addSchool}
+              addedUnitids={addedSchools.map((entry) => entry.school.unitid)}
+            />
             {addedSchools.length === 0 ? (
               <EmptyState />
             ) : (
@@ -511,7 +626,7 @@ function ProfilePanel({
   }
 
   return (
-    <section className="ledger-panel">
+    <section className="ledger-panel" id="student-profile">
       <div className="panel-inner">
         <div className="section-kicker">Student profile</div>
         <h2 className="section-title">Academic evidence entered here.</h2>
@@ -640,6 +755,576 @@ function ProfilePanel({
       </div>
     </section>
   );
+}
+
+function FitFinderPanel({
+  profile,
+  setProfile,
+  profileErrors,
+  profileReady,
+  onAddSchool,
+  addedUnitids,
+}: {
+  profile: Profile;
+  setProfile: Dispatch<SetStateAction<Profile>>;
+  profileErrors: string[];
+  profileReady: boolean;
+  onAddSchool: (school: SchoolSearchRow) => void;
+  addedUnitids: number[];
+}) {
+  const [preferences, setPreferences] = useState<FitPreferences>(
+    initialFitPreferences,
+  );
+  const [status, setStatus] = useState<"idle" | "loading" | "ready" | "error">(
+    "idle",
+  );
+  const [error, setError] = useState("");
+  const [fitResponse, setFitResponse] = useState<FitResponse | null>(null);
+  const [explanations, setExplanations] = useState<
+    Record<number, FitExplanationState>
+  >({});
+  const explanationRequest = useRef(0);
+
+  function updatePreference(key: keyof FitPreferences, value: string) {
+    setPreferences((current) => ({ ...current, [key]: value }));
+  }
+
+  function updateIntendedMajor(value: string) {
+    setProfile((current) => ({ ...current, intendedMajor: value }));
+  }
+
+  async function loadExplanations(results: FitResult[], requestId: number) {
+    setExplanations(
+      Object.fromEntries(
+        results.map((result) => [
+          result.school.unitid,
+          { status: "loading" as const },
+        ]),
+      ),
+    );
+
+    await Promise.all(
+      results.map(async (result) => {
+        try {
+          const response = await fetch("/api/fit/explain", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              school: result.school,
+              match_reasons: result.match_reasons,
+              band: {
+                label: result.band.label,
+                low: result.probability.low,
+                high: result.probability.high,
+                wide_band: result.band.wide_band,
+              },
+            }),
+          });
+          const payload = await response.json();
+
+          if (requestId !== explanationRequest.current) {
+            return;
+          }
+
+          setExplanations((current) => ({
+            ...current,
+            [result.school.unitid]:
+              response.ok && payload?.available && payload?.explanation
+                ? {
+                    status: "ready",
+                    text: String(payload.explanation),
+                  }
+                : {
+                    status: "fallback",
+                    reason:
+                      payload?.reason ??
+                      "Structured reasons remain available without a prose note.",
+                  },
+          }));
+        } catch {
+          if (requestId !== explanationRequest.current) {
+            return;
+          }
+          setExplanations((current) => ({
+            ...current,
+            [result.school.unitid]: {
+              status: "fallback",
+              reason: "Structured reasons remain available without a prose note.",
+            },
+          }));
+        }
+      }),
+    );
+  }
+
+  async function submitFit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    if (profileErrors.length > 0) {
+      setStatus("error");
+      setError(profileErrors.join(" "));
+      return;
+    }
+
+    if (!profileReady) {
+      setStatus("error");
+      setError("Add academic evidence in the student profile before matching.");
+      return;
+    }
+
+    if (
+      !preferences.interests.trim() &&
+      !profile.intendedMajor.trim() &&
+      !preferences.learningStyleNotes.trim()
+    ) {
+      setStatus("error");
+      setError("Add interests, an intended major, or learning notes first.");
+      return;
+    }
+
+    setStatus("loading");
+    setError("");
+    setFitResponse(null);
+    setExplanations({});
+    const requestId = explanationRequest.current + 1;
+    explanationRequest.current = requestId;
+
+    try {
+      const response = await fetch("/api/fit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(buildFitBody(profile, preferences)),
+      });
+      const payload = await response.json();
+
+      if (!response.ok) {
+        throw new Error(payload?.error ?? "Fit Finder could not run.");
+      }
+
+      const nextResponse = payload as FitResponse;
+      setFitResponse(nextResponse);
+      setStatus("ready");
+      void loadExplanations(nextResponse.results, requestId);
+    } catch (fitError) {
+      setStatus("error");
+      setError(
+        fitError instanceof Error
+          ? fitError.message
+          : "Fit Finder could not run.",
+      );
+    }
+  }
+
+  return (
+    <section
+      className="fit-finder-panel"
+      aria-labelledby="fit-finder-title"
+      data-testid="fit-finder-panel"
+    >
+      <div className="panel-inner">
+        <div className="section-kicker">Fit Finder</div>
+        <h2 className="section-title" id="fit-finder-title">
+          Find schools by fit evidence.
+        </h2>
+        <p className="helper mt-2">
+          Uses the academic profile above. Fit is shown through matched
+          attributes and the chancing interval, not a single score.
+        </p>
+
+        <form className="fit-form" onSubmit={submitFit}>
+          <label className="control wide-field">
+            <span className="field-label">Interests</span>
+            <textarea
+              className="activity-control"
+              placeholder="Robotics, public policy, studio art, applied math..."
+              value={preferences.interests}
+              onChange={(event) => updatePreference("interests", event.target.value)}
+            />
+          </label>
+
+          <label className="control">
+            <span className="field-label">Intended major</span>
+            <input
+              className="text-control"
+              placeholder="Computer science"
+              value={profile.intendedMajor}
+              onChange={(event) => updateIntendedMajor(event.target.value)}
+            />
+          </label>
+
+          <FitOptionGroup
+            label="Preferred size"
+            value={preferences.preferredSize}
+            options={["small", "medium", "large"]}
+            onChange={(value) => updatePreference("preferredSize", value)}
+          />
+
+          <FitOptionGroup
+            label="Preferred setting"
+            value={preferences.preferredSetting}
+            options={["city", "suburb", "town", "rural"]}
+            onChange={(value) => updatePreference("preferredSetting", value)}
+          />
+
+          <FitOptionGroup
+            label="Preferred region"
+            value={preferences.preferredRegion}
+            options={["Northeast", "Midwest", "South", "West"]}
+            onChange={(value) => updatePreference("preferredRegion", value)}
+          />
+
+          <label className="control">
+            <span className="field-label">Published cost ceiling</span>
+            <input
+              className="text-control mono"
+              inputMode="numeric"
+              placeholder="30000"
+              value={preferences.costCeiling}
+              onChange={(event) =>
+                updatePreference("costCeiling", event.target.value)
+              }
+            />
+            <span className="helper">
+              Uses published net price or sticker cost. Merit aid is not predicted.
+            </span>
+          </label>
+
+          <label className="control wide-field">
+            <span className="field-label">Learning notes</span>
+            <textarea
+              className="activity-control"
+              placeholder="Collaborative labs, discussion seminars, structured advising..."
+              value={preferences.learningStyleNotes}
+              onChange={(event) =>
+                updatePreference("learningStyleNotes", event.target.value)
+              }
+            />
+          </label>
+
+          {!profileReady || profileErrors.length > 0 ? (
+            <p className="error-copy wide-field" role="alert">
+              Use the{" "}
+              <a className="inline-link" href="#student-profile">
+                student profile
+              </a>{" "}
+              before running Fit Finder.
+            </p>
+          ) : null}
+
+          {error ? (
+            <p className="error-copy wide-field" role="alert">
+              {error}
+            </p>
+          ) : null}
+
+          <button
+            className="add-button wide-action"
+            type="submit"
+            disabled={status === "loading"}
+          >
+            {status === "loading" ? (
+              <Loader2 className="spin" size={16} />
+            ) : (
+              <Compass size={16} />
+            )}
+            Find schools
+          </button>
+        </form>
+
+        <FitFinderResults
+          response={fitResponse}
+          status={status}
+          explanations={explanations}
+          onAddSchool={onAddSchool}
+          addedUnitids={addedUnitids}
+        />
+      </div>
+    </section>
+  );
+}
+
+function FitOptionGroup({
+  label,
+  value,
+  options,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  options: string[];
+  onChange: (value: string) => void;
+}) {
+  return (
+    <div className="control">
+      <span className="field-label">{label}</span>
+      <div className="option-grid" role="group" aria-label={label}>
+        <button
+          className="option-button"
+          type="button"
+          data-active={value === ""}
+          onClick={() => onChange("")}
+        >
+          Any
+        </button>
+        {options.map((option) => (
+          <button
+            className="option-button"
+            type="button"
+            key={option}
+            data-active={value === option}
+            onClick={() => onChange(option)}
+          >
+            {option}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function FitFinderResults({
+  response,
+  status,
+  explanations,
+  onAddSchool,
+  addedUnitids,
+}: {
+  response: FitResponse | null;
+  status: "idle" | "loading" | "ready" | "error";
+  explanations: Record<number, FitExplanationState>;
+  onAddSchool: (school: SchoolSearchRow) => void;
+  addedUnitids: number[];
+}) {
+  if (status === "idle") {
+    return (
+      <div className="fit-empty">
+        <Sparkles size={18} aria-hidden="true" />
+        <p className="helper">
+          Add a few preferences to search the embedded school ledger.
+        </p>
+      </div>
+    );
+  }
+
+  if (status === "loading") {
+    return (
+      <div className="fit-empty" aria-busy="true">
+        <div className="skeleton-band" />
+        <p className="helper">
+          Searching by embedded fit signals. No temporary score is shown.
+        </p>
+      </div>
+    );
+  }
+
+  if (!response) {
+    return null;
+  }
+
+  if (response.results.length === 0) {
+    return (
+      <div className="fit-empty">
+        <p className="helper">
+          No schools matched those filters. Try loosening region, size, setting,
+          or published cost.
+        </p>
+        <FitDisclaimers disclaimers={response.disclaimers} />
+      </div>
+    );
+  }
+
+  return (
+    <div className="fit-results" data-testid="fit-results">
+      <FitBalanceSummary response={response} />
+      {response.results.map((result) => (
+        <FitResultCard
+          key={result.school.unitid}
+          result={result}
+          explanation={explanations[result.school.unitid]}
+          onAddSchool={onAddSchool}
+          alreadyAdded={addedUnitids.includes(result.school.unitid)}
+        />
+      ))}
+      <FitDisclaimers disclaimers={response.disclaimers} />
+    </div>
+  );
+}
+
+function FitBalanceSummary({ response }: { response: FitResponse }) {
+  return (
+    <section
+      className="fit-balance"
+      aria-label="Fit Finder balance"
+      data-testid="fit-balance"
+    >
+      <div className="balance-grid">
+        {labelOrder.map((label) => (
+          <div key={label} className="balance-cell">
+            <div className="balance-count">{response.balance[label]}</div>
+            <div className="field-label">{label}</div>
+          </div>
+        ))}
+      </div>
+      <p className="helper">{response.balance.note}</p>
+    </section>
+  );
+}
+
+function FitResultCard({
+  result,
+  explanation,
+  onAddSchool,
+  alreadyAdded,
+}: {
+  result: FitResult;
+  explanation?: FitExplanationState;
+  onAddSchool: (school: SchoolSearchRow) => void;
+  alreadyAdded: boolean;
+}) {
+  const schoolForList: SchoolSearchRow = {
+    unitid: result.school.unitid,
+    name: result.school.name,
+    state: null,
+    selectivity_tier: result.school.selectivity_tier,
+    sat_25: null,
+    sat_75: null,
+    act_25: null,
+    act_75: null,
+    test_policy: null,
+  };
+
+  return (
+    <article className="fit-result-card" data-testid="fit-result-card">
+      <div className="fit-result-head">
+        <div>
+          <div className="section-kicker">Fit match</div>
+          <h3 className="result-title">{result.school.name}</h3>
+          <p className="helper">
+            {result.school.region ?? "region unknown"} -{" "}
+            {result.school.size_band ?? "size unknown"} - {result.band.label}
+          </p>
+        </div>
+        <button
+          className="capture-secondary"
+          type="button"
+          disabled={alreadyAdded}
+          onClick={() => onAddSchool(schoolForList)}
+        >
+          <Plus size={16} />
+          {alreadyAdded ? "Added" : "Add to my Fitty list"}
+        </button>
+      </div>
+
+      <div className="fit-range-block">
+        <div className="range-readout">
+          <span className="range-value">
+            {formatPercent(result.probability.low)}-
+            {formatPercent(result.probability.high)}
+          </span>
+          <span className="label-pill">{result.band.label}</span>
+        </div>
+        <RangeBand
+          low={result.probability.low}
+          high={result.probability.high}
+          point={result.probability.calibrated}
+          label={`${result.school.name} fit result admission prior interval`}
+          coverage={result.probability.coverage}
+          showMarkerValue={false}
+        />
+      </div>
+
+      <div className="fit-reason-grid">
+        <FitReasonList title="Matched" items={result.match_reasons.matched} />
+        <FitReasonList title="Notable" items={result.match_reasons.notable} />
+      </div>
+
+      <div className="cost-note" data-status={result.match_reasons.cost_status}>
+        <strong>Cost status: {formatCostStatus(result.match_reasons.cost_status)}</strong>
+        <span>
+          Published cost only. Merit aid is not predicted.
+        </span>
+      </div>
+
+      <FitExplanation explanation={explanation} />
+    </article>
+  );
+}
+
+function FitReasonList({ title, items }: { title: string; items: string[] }) {
+  return (
+    <section className="fit-reason-panel">
+      <div className="micro-label">{title}</div>
+      {items.length === 0 ? (
+        <p className="helper">No structured reason returned for this group.</p>
+      ) : (
+        <ul className="fit-chip-list">
+          {items.map((item) => (
+            <li key={item}>{item}</li>
+          ))}
+        </ul>
+      )}
+    </section>
+  );
+}
+
+function FitExplanation({
+  explanation,
+}: {
+  explanation?: FitExplanationState;
+}) {
+  if (!explanation || explanation.status === "loading") {
+    return (
+      <section className="why-fit" aria-busy="true">
+        <div className="micro-label">Why it fits</div>
+        <p className="helper">Loading a grounded explanation. The structured reasons above are ready now.</p>
+      </section>
+    );
+  }
+
+  if (explanation.status === "fallback") {
+    return (
+      <section className="why-fit">
+        <div className="micro-label">Why it fits</div>
+        <p className="helper">
+          {explanation.reason ??
+            "Structured reasons are shown because the prose note is unavailable."}
+        </p>
+      </section>
+    );
+  }
+
+  return (
+    <section className="why-fit">
+      <div className="micro-label">Why it fits</div>
+      <p>{explanation.text}</p>
+    </section>
+  );
+}
+
+function FitDisclaimers({ disclaimers }: { disclaimers: string[] }) {
+  return (
+    <section className="fit-disclaimers">
+      <div className="section-kicker">Fit Finder disclosures</div>
+      <ul className="disclaimer-list">
+        {disclaimers.map((disclaimer) => (
+          <li key={disclaimer} className="disclaimer-line">
+            {disclaimer}
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
+function formatCostStatus(status: FitResult["match_reasons"]["cost_status"]) {
+  switch (status) {
+    case "within_ceiling":
+      return "within ceiling";
+    case "over_ceiling":
+      return "over ceiling";
+    case "unknown":
+      return "unknown";
+  }
 }
 
 function SchoolSearchPanel({
@@ -949,18 +1634,22 @@ function RangeBand({
   point,
   label,
   coverage,
+  showMarkerValue = true,
 }: {
   low: number;
   high: number;
   point: number;
   label: string;
   coverage: number;
+  showMarkerValue?: boolean;
 }) {
   const left = clampPercent(low);
   const right = clampPercent(high);
   const width = Math.max(1, right - left);
   const pointLeft = clampPercent(point);
-  const aria = `${label}: ${Math.round(coverage * 100)} percent prior interval from ${formatPercentPrecise(low)} to ${formatPercentPrecise(high)}; marker at ${formatPercentPrecise(point)}.`;
+  const aria = showMarkerValue
+    ? `${label}: ${Math.round(coverage * 100)} percent prior interval from ${formatPercentPrecise(low)} to ${formatPercentPrecise(high)}; marker at ${formatPercentPrecise(point)}.`
+    : `${label}: ${Math.round(coverage * 100)} percent prior interval from ${formatPercentPrecise(low)} to ${formatPercentPrecise(high)} with an interior marker.`;
 
   return (
     <div

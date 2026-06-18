@@ -157,6 +157,110 @@ npm run fit:embedding-sanity
 
 The report is written to `pipeline/reports/embedding_sanity.md` and compares known school pairs by cosine similarity. It is a smoke check for populated vectors, not an admissions quality claim.
 
+## Fit Finder Phase 2 - Matching API
+
+Fit Finder Phase 2 adds `POST /api/fit`. It embeds a student's fit preferences with the same pinned model used for Phase 1 school documents, queries pgvector for nearby schools, applies hard filters, and attaches Fitty's existing honest chancing band to each result.
+
+The route does not return a single numeric fit score. Similarity is used only for internal ranking. The response explains fit through structured matched attributes and notable school data.
+
+Example request:
+
+```json
+{
+  "interests": "hands-on engineering, computing, applied research",
+  "intended_major": "computer science",
+  "preferred_size": "large",
+  "preferred_setting": "city",
+  "preferred_region": "Northeast",
+  "cost_ceiling": 30000,
+  "learning_style_notes": "project-based classes and collaborative labs",
+  "sat_score": 1540,
+  "act_score": 35,
+  "gpa": 3.95,
+  "application_round": "regular"
+}
+```
+
+Example response shape:
+
+```json
+{
+  "query": {
+    "embedded": true,
+    "dim": 384,
+    "model": "Xenova/all-MiniLM-L6-v2"
+  },
+  "results": [
+    {
+      "school": {
+        "unitid": 166683,
+        "name": "Massachusetts Institute of Technology",
+        "region": "Northeast",
+        "size_band": "large",
+        "setting": "city",
+        "selectivity_tier": "elite",
+        "net_price_avg": 22000,
+        "sticker_cost": 82000,
+        "program_areas": ["Computer and information sciences", "Engineering"]
+      },
+      "match_reasons": {
+        "matched": ["region", "size", "setting", "cost within ceiling", "programs: computer and information sciences"],
+        "notable": ["completion 0.94", "median earnings 10yr 95000"],
+        "cost_status": "within_ceiling"
+      },
+      "probability": {
+        "point": 0.04,
+        "calibrated": 0.03,
+        "low": 0,
+        "high": 0.49,
+        "width": 0.49,
+        "coverage": 0.8
+      },
+      "band": {
+        "label": "reach",
+        "wide_band": true
+      }
+    }
+  ],
+  "balance": {
+    "reach": 1,
+    "target": 0,
+    "likely": 0,
+    "note": "All returned schools landed in reach based on the chancing ranges."
+  },
+  "disclaimers": [
+    "Fit uses published attributes only; campus culture and social fit are not modeled.",
+    "Affordability uses published net price or sticker cost. Merit aid is not predicted.",
+    "Chances are calibrated ranges, not guarantees."
+  ]
+}
+```
+
+The pgvector search lives in `public.match_fit_schools`, added by `supabase/migrations/202606180002_fit_finder_phase2_match_function.sql`. It searches rows with stored embeddings, orders by cosine distance, and applies hard filters for region, size, setting, and published cost. Cost filtering uses `net_price_avg` first, falls back to `sticker_cost`, and keeps schools with both costs missing as `unknown`.
+
+The route pulls a candidate pool, computes each candidate's chance by calling `buildChancePayload` directly, then interleaves reach, target, and likely buckets where the pool allows it. If every candidate lands in one bucket, the balance note says that plainly.
+
+## Fit Finder Phase 3 - UI and Explanations
+
+Fit Finder now appears as a `Find schools` panel on the main Almanac page. It reuses the student profile already entered in the left column for GPA, SAT, ACT, and application round, then collects fit preferences: interests, intended major, preferred size, setting, region, published cost ceiling, and learning notes.
+
+Run locally:
+
+```powershell
+npm run dev
+```
+
+Open `http://localhost:3000`, fill the student profile, then use the Fit Finder panel. The form calls `POST /api/fit`; each returned school card shows the range band, matched attributes, notable public outcomes, cost status, the API disclaimers, and an `Add to my Fitty list` action that uses the existing school-list path.
+
+Claude explanations are optional. Add these values when you want the `why it fits` paragraph:
+
+```dotenv
+ANTHROPIC_API_KEY=your_anthropic_key
+ANTHROPIC_MODEL=claude-haiku-4-5-20251001
+```
+
+If `ANTHROPIC_API_KEY` is missing or the call fails, `POST /api/fit/explain` returns a fallback flag and the card remains usable with structured reasons only. The explanation prompt is constrained to use only the provided school attributes, matched reasons, and range band. It cannot use outside facts, rankings, unprovided programs, or a single admit number.
+
 ## Phase 2 - Modeling
 
 Phase 2 trains a synthetic public-data prior model. It does not claim real-outcome accuracy. The default run uses the checked-in cache at `pipeline/data/schools_public_cache.csv`, which contains the same public school fields produced by the Phase 1 ingest plus the C7 seed overlays. You can also point the trainer at Supabase with `--source supabase` after filling `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY`.

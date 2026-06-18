@@ -99,6 +99,63 @@ const mitChanceResponse = {
   },
 };
 
+const fitFinderResponse = {
+  query: {
+    embedded: true,
+    dim: 384,
+    model: "Xenova/all-MiniLM-L6-v2",
+  },
+  results: [
+    {
+      school: {
+        unitid: 166683,
+        name: "Massachusetts Institute of Technology",
+        region: "Northeast",
+        size_band: "large",
+        setting: "city",
+        selectivity_tier: "elite",
+        net_price_avg: 22000,
+        sticker_cost: 82000,
+        program_areas: ["Computer and information sciences", "Engineering"],
+      },
+      match_reasons: {
+        matched: [
+          "region",
+          "size",
+          "setting",
+          "cost within ceiling",
+          "programs: computer and information sciences",
+        ],
+        notable: ["completion 0.94", "median earnings 10yr 95000"],
+        cost_status: "within_ceiling",
+      },
+      probability: {
+        point: 0.0403255,
+        calibrated: 0.032967,
+        low: 0,
+        high: 0.492967,
+        width: 0.492967,
+        coverage: 0.8,
+      },
+      band: {
+        label: "reach",
+        wide_band: true,
+      },
+    },
+  ],
+  balance: {
+    reach: 1,
+    target: 0,
+    likely: 0,
+    note: "All returned schools landed in reach based on the chancing ranges.",
+  },
+  disclaimers: [
+    "Fit uses published attributes only; campus culture and social fit are not modeled.",
+    "Affordability uses published net price or sticker cost. Merit aid is not predicted.",
+    "Chances are calibrated ranges, not guarantees.",
+  ],
+};
+
 const authUser = {
   id: "00000000-0000-4000-8000-000000000001",
   aud: "authenticated",
@@ -235,6 +292,54 @@ async function signInOutcomePanel(page: Page) {
   await captureFlow.getByRole("button", { name: "Sign in" }).click();
   await expect(captureFlow.getByText("Signed in")).toBeVisible();
   return captureFlow;
+}
+
+async function mockFitFinder(page: Page) {
+  await page.route("**/api/fit", async (route) => {
+    expect(route.request().method()).toBe("POST");
+    const body = JSON.parse(route.request().postData() ?? "{}");
+    expect(body).toMatchObject({
+      interests: "robotics and computing",
+      intended_major: "Computer science",
+      preferred_region: "Northeast",
+      preferred_size: "large",
+      preferred_setting: "city",
+      cost_ceiling: 30000,
+      learning_style_notes: "project labs",
+      sat_score: 1540,
+      act_score: 35,
+      gpa: 3.95,
+      application_round: "regular",
+    });
+    expectNoForbiddenKeys(body);
+
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify(fitFinderResponse),
+    });
+  });
+}
+
+async function fillFitFinderForm(page: Page) {
+  const finder = page.getByTestId("fit-finder-panel");
+  await finder.getByLabel("Interests").fill("robotics and computing");
+  await finder.getByLabel("Intended major").fill("Computer science");
+  await finder
+    .getByRole("group", { name: "Preferred size" })
+    .getByRole("button", { name: "large" })
+    .click();
+  await finder
+    .getByRole("group", { name: "Preferred setting" })
+    .getByRole("button", { name: "city" })
+    .click();
+  await finder
+    .getByRole("group", { name: "Preferred region" })
+    .getByRole("button", { name: "Northeast" })
+    .click();
+  await finder.getByLabel("Published cost ceiling").fill("30000");
+  await finder.getByLabel("Learning notes").fill("project labs");
+  await finder.getByRole("button", { name: "Find schools" }).click();
+  return finder;
 }
 
 test.beforeEach(async ({ page }) => {
@@ -488,6 +593,110 @@ test("exports, revokes, and deletes signed-in outcome data with confirmation", a
     "1 consent records",
   );
   await expect(controls.getByTestId("delete-counts")).toContainText("2 access logs");
+});
+
+test("runs Fit Finder, renders grounded prose, and adds a school to the list", async ({
+  page,
+}) => {
+  let explainRequests = 0;
+
+  await mockOutcomeStatus(page, false);
+  await mockFitFinder(page);
+  await page.route("**/api/fit/explain", async (route) => {
+    expect(route.request().method()).toBe("POST");
+    const body = JSON.parse(route.request().postData() ?? "{}");
+    expectNoForbiddenKeys(body);
+    expect(body).toMatchObject({
+      school: {
+        unitid: 166683,
+        name: "Massachusetts Institute of Technology",
+      },
+      match_reasons: {
+        cost_status: "within_ceiling",
+      },
+      band: {
+        label: "reach",
+        low: 0,
+        high: 0.492967,
+      },
+    });
+    explainRequests += 1;
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify({
+        available: true,
+        model: "claude-haiku-4-5-20251001",
+        explanation:
+          "This school fits the stated preferences through the region, size, setting, and computing program matches. The chance label remains reach, with the range shown on the card rather than a single admit number.",
+      }),
+    });
+  });
+
+  await page.goto("/");
+  await page.getByLabel("GPA").fill("3.95");
+  await page.getByLabel("SAT").fill("1540");
+  await page.getByRole("textbox", { exact: true, name: "ACT" }).fill("35");
+
+  const finder = await fillFitFinderForm(page);
+
+  await expect(finder.getByTestId("fit-result-card")).toContainText(
+    "Massachusetts Institute of Technology",
+  );
+  await expect(finder.getByTestId("fit-result-card")).toContainText("0%-49%");
+  await expect(finder.getByTestId("fit-result-card")).toContainText(
+    "programs: computer and information sciences",
+  );
+  await expect(finder.getByTestId("fit-result-card")).toContainText(
+    "This school fits the stated preferences",
+  );
+  await expect(finder.getByTestId("fit-balance")).toContainText(
+    "All returned schools landed in reach",
+  );
+  await expect(finder).toContainText("Merit aid is not predicted");
+  await expect(finder).not.toContainText(
+    new RegExp(`${["match", "%"].join(" ")}|${["match", "percent"].join(" ")}`, "i"),
+  );
+  await expect(page.getByText(/your chance/i)).toHaveCount(0);
+  expect(explainRequests).toBe(1);
+
+  await finder.getByRole("button", { name: "Add to my Fitty list" }).click();
+  await expect(page.getByTestId("result-card")).toContainText(
+    "Massachusetts Institute of Technology",
+  );
+});
+
+test("keeps Fit Finder cards useful when Claude explanation falls back", async ({
+  page,
+}) => {
+  await mockOutcomeStatus(page, false);
+  await mockFitFinder(page);
+  await page.route("**/api/fit/explain", async (route) => {
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify({
+        available: false,
+        explanation: null,
+        reason: "Claude explanation is not configured.",
+      }),
+    });
+  });
+
+  await page.goto("/");
+  await page.getByLabel("GPA").fill("3.95");
+  await page.getByLabel("SAT").fill("1540");
+  await page.getByRole("textbox", { exact: true, name: "ACT" }).fill("35");
+
+  const finder = await fillFitFinderForm(page);
+
+  await expect(finder.getByTestId("fit-result-card")).toContainText(
+    "programs: computer and information sciences",
+  );
+  await expect(finder.getByTestId("fit-result-card")).toContainText(
+    "Claude explanation is not configured.",
+  );
+  await expect(finder.getByTestId("fit-result-card")).toContainText(
+    "Published cost only",
+  );
 });
 
 test("renders an honest elite-school result and methodology disclosure", async ({
