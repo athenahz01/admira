@@ -53,8 +53,8 @@ export default function MethodologyPage() {
   return (
     <main className="fitty-shell">
       <MethodologyAnalytics />
-      <div className="almanac-frame methodology-frame">
-        <header className="ledger-topbar">
+      <div className="fitty-frame methodology-frame">
+        <header className="app-topbar">
           <div className="brand-mark">
             <div className="brand-sigil" aria-hidden="true">
               F
@@ -62,8 +62,8 @@ export default function MethodologyPage() {
             <div className="brand-copy">
               <h1>Methodology</h1>
               <p>
-                Fitty is an admissions almanac: useful for reading public
-                signals, deliberately cautious about individual outcomes.
+                Fitty pairs school-fit evidence with chance ranges, and keeps
+                both honest about what public data can and cannot see.
               </p>
             </div>
           </div>
@@ -76,8 +76,8 @@ export default function MethodologyPage() {
           <div>
             <div className="section-kicker">Public prior, not prophecy</div>
             <h2 id="methodology-title" className="methodology-title">
-              Fitty shows calibrated prior probability ranges grounded in
-              public data and CDS C7 priorities.
+              Fitty shows chance as a range, FIT as profile overlap, and the
+              unseen factors beside both.
             </h2>
           </div>
           <div className="methodology-stamp" aria-label="Current model label">
@@ -97,6 +97,17 @@ export default function MethodologyPage() {
               priorities into an 80% prior interval. The single probability is
               shown only as a marker inside that interval because the interval
               is the honest object.
+            </p>
+          </section>
+
+          <section className="method-panel">
+            <div className="section-kicker">FIT score</div>
+            <h3 className="section-title">Profile overlap, not admission odds.</h3>
+            <p className="method-copy">
+              FIT is a 0 to 100 overlap score shown only when the Fit Finder
+              flow has fit inputs. It averages known radar axes: academics,
+              major, selectivity, interest, and rigor. Unknown axes are
+              excluded and called out instead of guessed.
             </p>
           </section>
 
@@ -157,7 +168,7 @@ export default function MethodologyPage() {
 
           <section className="method-panel limitation-panel">
             <div className="section-kicker">Fit Finder</div>
-            <h3 className="section-title">Reasons plus ranges, never a fit score.</h3>
+            <h3 className="section-title">FIT beside range, never merged.</h3>
             <p className="method-copy">
               Fit Finder compares the student&apos;s stated interests and
               preferences with each school&apos;s published attributes: programs,
@@ -167,6 +178,15 @@ export default function MethodologyPage() {
             </p>
             <ul className="method-list">
               <li>
+                FIT is the equal-weight mean of known overlap axes and is not
+                an admit probability.
+              </li>
+              <li>
+                Major overlap uses the pinned Fit Finder embedding model and
+                school program areas. Interest overlap uses the school document
+                similarity from the same embedding space.
+              </li>
+              <li>
                 It cannot weigh campus culture, social fit, teaching quality,
                 vibe, or anything missing from public data.
               </li>
@@ -175,20 +195,20 @@ export default function MethodologyPage() {
                 Merit aid is not predicted, and a family&apos;s real cost can differ.
               </li>
               <li>
-                Fit is shown as matched reasons and notable attributes, not as a
-                score. Chances are calibrated ranges, not guarantees.
+                Chances are calibrated ranges, not guarantees. The tick is only
+                a marker inside the interval.
               </li>
               <li>Race and ethnicity are never used for matching or chances.</li>
             </ul>
           </section>
         </div>
 
-        <section className="calibration-ledger" aria-labelledby="calibration-ledger">
-          <div className="calibration-ledger-head">
+        <section className="calibration-record" aria-labelledby="calibration-record">
+          <div className="calibration-record-head">
             <div>
               <div className="section-kicker">Published calibration</div>
-              <h2 id="calibration-ledger" className="section-title">
-                Real-outcome calibration ledger.
+              <h2 id="calibration-record" className="section-title">
+                Real-outcome calibration record.
               </h2>
               <p className="method-copy">
                 Status: <strong>{realCalibration.status}</strong>. Source:{" "}

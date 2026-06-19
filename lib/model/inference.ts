@@ -17,12 +17,16 @@ type RuntimeArtifact = Artifact & {
   hierarchical_offsets?: HierarchicalOffsets;
 };
 
+export type { RuntimeArtifact };
+
 export type InferenceSchool = {
   unitid: number;
   name: string;
   setting?: string | null;
   size?: number | null;
   admit_rate?: number | null;
+  ed_admit_rate?: number | null;
+  rd_admit_rate?: number | null;
   sat_25?: number | null;
   sat_75?: number | null;
   act_25?: number | null;

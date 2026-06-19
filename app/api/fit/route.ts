@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 
 import { embedFitQuery } from "@/lib/fit/embed-query";
+import { computeFitScore } from "@/lib/fit/fit-score";
+import { buildClimbLevers } from "@/lib/fit/levers";
 import {
   FIT_CANDIDATE_POOL_SIZE,
   FIT_DISCLAIMERS,
@@ -88,7 +90,55 @@ export async function POST(request: Request) {
   const candidates = ((data ?? []) as FitSchoolCandidate[]).filter((school) =>
     schoolMatchesHardFilters(school, parsed.data),
   );
-  const balanced = buildBalancedFitResponse(candidates, parsed.data);
+  const unitids = candidates.map((candidate) => candidate.unitid);
+  const rateRowsByUnitid = new Map<
+    number,
+    Pick<FitSchoolCandidate, "ed_admit_rate" | "rd_admit_rate">
+  >();
+
+  if (unitids.length > 0) {
+    const { data: rateRows, error: rateError } = await supabase
+      .from("schools")
+      .select("unitid,ed_admit_rate,rd_admit_rate")
+      .in("unitid", unitids);
+
+    if (rateError) {
+      return NextResponse.json(
+        { error: "Unable to load school lever data." },
+        { status: 500 },
+      );
+    }
+
+    for (const row of rateRows ?? []) {
+      rateRowsByUnitid.set(Number(row.unitid), {
+        ed_admit_rate: row.ed_admit_rate,
+        rd_admit_rate: row.rd_admit_rate,
+      });
+    }
+  }
+
+  const enrichedCandidates = candidates.map((candidate) => ({
+    ...candidate,
+    ...(rateRowsByUnitid.get(candidate.unitid) ?? {}),
+  }));
+  const candidatesByUnitid = new Map(
+    enrichedCandidates.map((candidate) => [candidate.unitid, candidate]),
+  );
+  const balanced = buildBalancedFitResponse(enrichedCandidates, parsed.data);
+  const results = await Promise.all(
+    balanced.results.map(async (result) => {
+      const candidate = candidatesByUnitid.get(result.school.unitid);
+      if (!candidate) {
+        return result;
+      }
+
+      return {
+        ...result,
+        fit_score: await computeFitScore(parsed.data, candidate),
+        climb_levers: buildClimbLevers(parsed.data, candidate),
+      };
+    }),
+  );
 
   return NextResponse.json({
     query: {
@@ -96,7 +146,7 @@ export async function POST(request: Request) {
       dim: embedding.dim,
       model: embedding.model,
     },
-    results: balanced.results,
+    results,
     balance: balanced.balance,
     disclaimers: FIT_DISCLAIMERS,
   });

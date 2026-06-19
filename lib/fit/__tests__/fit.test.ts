@@ -16,6 +16,8 @@ import {
   embedFitQuery,
   resetFitQueryEmbedderForTests,
 } from "../embed-query";
+import { computeFitScore } from "../fit-score";
+import { buildClimbLevers } from "../levers";
 import {
   buildBalancedFitResponse,
   schoolMatchesHardFilters,
@@ -192,7 +194,7 @@ describe("Fit Finder matching", () => {
     ).toBe(false);
   });
 
-  it("returns chance bands, honest balance counts, and no numeric fit score field", () => {
+  it("returns chance bands, honest balance counts, and no legacy combined score", () => {
     const response = buildBalancedFitResponse(
       [
         candidate({ unitid: 166683 }),
@@ -231,5 +233,116 @@ describe("Fit Finder matching", () => {
     expect(response.balance.reach).toBe(counts.reach);
     expect(response.balance.target).toBe(counts.target);
     expect(response.balance.likely).toBe(counts.likely);
+  });
+});
+
+describe("Fit overlap score", () => {
+  const request = fitRequestSchema.parse({
+    interests: "computer science and engineering",
+    intended_major: "computer science",
+    preferred_region: "Northeast",
+    preferred_size: "large",
+    preferred_setting: "city",
+    sat_score: 1540,
+    act_score: 35,
+    gpa: 3.95,
+    application_round: "regular",
+  });
+
+  it("is deterministic, bounded, and uses the pinned embedding model", async () => {
+    const school = candidate({
+      similarity: 0.82,
+      c7_factors: { rigor: "Very Important" },
+    });
+
+    const first = await computeFitScore(request, school);
+    resetFitQueryEmbedderForTests();
+    const second = await computeFitScore(request, school);
+
+    expect(first).toEqual(second);
+    expect(first.score).not.toBeNull();
+    expect(first.score).toBeGreaterThanOrEqual(0);
+    expect(first.score).toBeLessThanOrEqual(100);
+    expect(first.axes).toHaveLength(5);
+    for (const axis of first.axes) {
+      if (axis.value !== null) {
+        expect(axis.value).toBeGreaterThanOrEqual(0);
+        expect(axis.value).toBeLessThanOrEqual(100);
+      }
+    }
+    expect(first.model).toEqual({
+      id: EMBEDDING_MODEL_ID,
+      dim: EMBEDDING_DIM,
+    });
+    expect(transformerMock.pipeline).toHaveBeenCalledWith(
+      "feature-extraction",
+      EMBEDDING_MODEL_ID,
+    );
+  });
+
+  it("excludes missing axes and reports reduced coverage", async () => {
+    const sparseRequest = fitRequestSchema.parse({
+      intended_major: "history",
+      gpa: 3.5,
+      application_round: "regular",
+    });
+
+    const score = await computeFitScore(
+      sparseRequest,
+      candidate({
+        gpa_avg: 3.6,
+        program_areas: null,
+        similarity: null,
+        c7_factors: {},
+      }),
+    );
+
+    expect(score.score).not.toBeNull();
+    expect(score.score).toBeGreaterThanOrEqual(0);
+    expect(score.score).toBeLessThanOrEqual(100);
+    expect(score.coverage.reduced).toBe(true);
+    expect(score.axes.some((axis) => axis.status === "unknown")).toBe(true);
+  });
+});
+
+describe("Climb levers", () => {
+  it("uses real deltas for modeled test score and published early spread", () => {
+    const request = fitRequestSchema.parse({
+      interests: "engineering",
+      sat_score: 1400,
+      gpa: 3.8,
+      application_round: "regular",
+    });
+    const levers = buildClimbLevers(
+      request,
+      candidate({
+        ed_admit_rate: 0.32,
+        rd_admit_rate: 0.22,
+      }),
+    );
+
+    const testScore = levers.find((lever) => lever.id === "test_score");
+    const round = levers.find((lever) => lever.id === "application_round");
+    expect(testScore?.kind).toBe("modeled_delta");
+    expect(testScore?.delta?.tick).toEqual(expect.any(Number));
+    expect(round?.kind).toBe("published_delta");
+    expect(round?.delta?.tick).toBeCloseTo(0.1);
+  });
+
+  it("keeps unseen levers and missing early data direction only", () => {
+    const request = fitRequestSchema.parse({
+      interests: "engineering",
+      application_round: "regular",
+    });
+    const levers = buildClimbLevers(request, candidate());
+
+    expect(
+      levers.find((lever) => lever.id === "application_round")?.kind,
+    ).toBe("direction_only");
+    for (const id of ["essays", "recommendations", "demonstrated_interest"]) {
+      const lever = levers.find((item) => item.id === id);
+      expect(lever?.kind).toBe("direction_only");
+      expect(lever?.delta).toBeUndefined();
+    }
   });
 });

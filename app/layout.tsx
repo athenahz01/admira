@@ -1,32 +1,39 @@
 import type { Metadata } from "next";
-import { JetBrains_Mono, Literata, Public_Sans } from "next/font/google";
+import {
+  Bricolage_Grotesque,
+  Plus_Jakarta_Sans,
+  Space_Mono,
+} from "next/font/google";
 import "./globals.css";
 
-const literata = Literata({
-  variable: "--font-almanac-heading",
+const bricolage = Bricolage_Grotesque({
+  variable: "--font-display",
   subsets: ["latin"],
+  weight: ["800"],
 });
 
-const publicSans = Public_Sans({
-  variable: "--font-almanac-body",
+const plusJakarta = Plus_Jakarta_Sans({
+  variable: "--font-body",
   subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
 });
 
-const jetBrainsMono = JetBrains_Mono({
-  variable: "--font-almanac-data",
+const spaceMono = Space_Mono({
+  variable: "--font-data",
   subsets: ["latin"],
+  weight: ["400", "700"],
 });
 
 export const metadata: Metadata = {
   title: {
-    default: "Fitty | Admissions Almanac",
+    default: "Fitty | Fit and Honest Chance",
     template: "%s | Fitty",
   },
   description:
     "Honest college admissions odds rendered as public-data prior ranges, levers, and uncertainty disclosures.",
   applicationName: "Fitty",
   openGraph: {
-    title: "Fitty | Admissions Almanac",
+    title: "Fitty | Fit and Honest Chance",
     description:
       "College admissions planning ranges grounded in public data, with clear limits on what cannot be known.",
     type: "website",
@@ -41,14 +48,10 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${literata.variable} ${publicSans.variable} ${jetBrainsMono.variable}`}
+      className={`${bricolage.variable} ${plusJakarta.variable} ${spaceMono.variable}`}
       suppressHydrationWarning
     >
-      <body
-        className="antialiased"
-      >
-        {children}
-      </body>
+      <body className="antialiased">{children}</body>
     </html>
   );
 }

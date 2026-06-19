@@ -83,6 +83,7 @@ type ChanceResponse = {
     fixed: LeverContribution[];
     unseen: UnseenLever[];
   };
+  climb_levers?: ClimbLever[];
   rubric: {
     c7_factors: Record<string, string | undefined>;
     gaps: {
@@ -110,6 +111,24 @@ type UnseenLever = {
   feature: string;
   label: string;
   note?: string;
+};
+
+type ClimbLever = {
+  id:
+    | "test_score"
+    | "application_round"
+    | "essays"
+    | "recommendations"
+    | "demonstrated_interest";
+  label: string;
+  kind: "modeled_delta" | "published_delta" | "direction_only";
+  note: string;
+  direction: string;
+  delta?: {
+    low: number;
+    high: number;
+    tick: number;
+  };
 };
 
 type GapValue = {
@@ -169,6 +188,34 @@ type FitResult = {
     label: BandLabel;
     wide_band: boolean;
   };
+  fit_score?: FitScore | null;
+  climb_levers?: ClimbLever[];
+};
+
+type FitScoreAxis = {
+  key: "academics" | "major" | "selectivity" | "interest" | "rigor";
+  label: string;
+  value: number | null;
+  typical: number;
+  status: "good" | "caution" | "unknown";
+  note: string;
+};
+
+type FitScore = {
+  score: number | null;
+  axes: FitScoreAxis[];
+  coverage: {
+    known: number;
+    total: number;
+    label: string;
+    reduced: boolean;
+  };
+  method: string;
+  model: {
+    id: string;
+    dim: number;
+  };
+  note: string;
 };
 
 type FitExplanationState = {
@@ -212,18 +259,20 @@ function numberOrUndefined(value: string) {
   return Number.isFinite(parsed) ? parsed : undefined;
 }
 
-function formatPercent(value: number) {
-  return `${Math.round(value * 100)}%`;
+function formatChanceRange(low: number, high: number) {
+  return `${Math.round(low * 100)}-${Math.round(high * 100)}%`;
 }
 
 function formatPercentPrecise(value: number) {
   return `${(value * 100).toFixed(value < 0.1 ? 1 : 0)}%`;
 }
 
-function formatFeatureName(feature: string) {
-  return feature
-    .replace(/_/g, " ")
-    .replace(/\b\w/g, (letter) => letter.toUpperCase());
+function formatDeltaPoints(value: number) {
+  const rounded = Math.round(value * 100);
+  if (rounded === 0) {
+    return "0 pts";
+  }
+  return `${rounded > 0 ? "+" : ""}${rounded} pts`;
 }
 
 function validateProfile(profile: Profile) {
@@ -550,8 +599,8 @@ export function FittyApp() {
 
   return (
     <main className="fitty-shell">
-      <div className="almanac-frame">
-        <header className="ledger-topbar">
+      <div className="fitty-frame">
+        <header className="app-topbar">
           <div className="brand-mark">
             <div className="brand-sigil" aria-hidden="true">
               F
@@ -559,7 +608,7 @@ export function FittyApp() {
             <div className="brand-copy">
               <h1>Fitty</h1>
               <p>
-                Honest admissions odds, rendered as ranges you can reason with.
+                Fit evidence and honest chance ranges, side by side.
               </p>
             </div>
           </div>
@@ -574,13 +623,13 @@ export function FittyApp() {
               aria-label={`Switch to ${theme === "light" ? "dark" : "light"} mode`}
             >
               {theme === "light" ? <Moon size={17} /> : <Sun size={17} />}
-              <span>{theme === "light" ? "Dark ledger" : "Light ledger"}</span>
+              <span>{theme === "light" ? "Dark paper" : "Light paper"}</span>
             </button>
           </div>
         </header>
 
         <div className="workspace-grid">
-          <aside className="ledger-column" aria-label="Student profile and school list">
+          <aside className="planning-column" aria-label="Student profile and school list">
             <ProfilePanel
               profile={profile}
               setProfile={setProfile}
@@ -663,7 +712,7 @@ function ProfilePanel({
   }
 
   return (
-    <section className="ledger-panel" id="student-profile">
+    <section className="profile-card" id="student-profile">
       <div className="panel-inner">
         <div className="section-kicker">Student profile</div>
         <h2 className="section-title">Academic evidence entered here.</h2>
@@ -972,7 +1021,8 @@ function FitFinderPanel({
         </h2>
         <p className="helper mt-2">
           Uses the academic profile above. Fit is shown through matched
-          attributes and the chancing interval, not a single score.
+          attributes, radar overlap, and the chancing interval. FIT is never an
+          admit probability.
         </p>
 
         <form className="fit-form" onSubmit={submitFit}>
@@ -1144,7 +1194,7 @@ function FitFinderResults({
       <div className="fit-empty">
         <Sparkles size={18} aria-hidden="true" />
         <p className="helper">
-          Add a few preferences to search the embedded school ledger.
+          Add a few preferences to search the embedded school profile set.
         </p>
       </div>
     );
@@ -1155,7 +1205,7 @@ function FitFinderResults({
       <div className="fit-empty" aria-busy="true">
         <div className="skeleton-band" />
         <p className="helper">
-          Searching by embedded fit signals. No temporary score is shown.
+          Searching by embedded fit signals. No temporary FIT score is shown.
         </p>
       </div>
     );
@@ -1259,6 +1309,10 @@ function FitResultCard({
             {result.school.size_band ?? "size unknown"} - {result.band.label}
           </p>
         </div>
+        <div className="result-pill-stack">
+          <FitPill fitScore={result.fit_score} />
+          <BandPill label={result.band.label} />
+        </div>
         <button
           className="capture-secondary"
           type="button"
@@ -1270,23 +1324,41 @@ function FitResultCard({
         </button>
       </div>
 
-      <div className="fit-range-block">
-        <div className="range-readout">
-          <span className="range-value">
-            {formatPercent(result.probability.low)}-
-            {formatPercent(result.probability.high)}
-          </span>
-          <span className="label-pill">{result.band.label}</span>
+      <div className="fit-card-grid">
+        {result.fit_score ? <FitScorePanel fitScore={result.fit_score} /> : null}
+        <div className="fit-range-block">
+          <div className="range-readout">
+            <span className="range-value">
+              {formatChanceRange(result.probability.low, result.probability.high)}
+            </span>
+            <span className="point-note">
+              tick ~{formatPercentPrecise(result.probability.calibrated)}
+            </span>
+          </div>
+          <RangeBand
+            low={result.probability.low}
+            high={result.probability.high}
+            point={result.probability.calibrated}
+            label={`${result.school.name} admission prior interval`}
+            coverage={result.probability.coverage}
+            showMarkerValue={false}
+          />
+          <ReachLadder
+            low={result.probability.low}
+            high={result.probability.high}
+            point={result.probability.calibrated}
+            label={result.band.label}
+          />
         </div>
-        <RangeBand
-          low={result.probability.low}
-          high={result.probability.high}
-          point={result.probability.calibrated}
-          label={`${result.school.name} fit result admission prior interval`}
-          coverage={result.probability.coverage}
-          showMarkerValue={false}
-        />
       </div>
+
+      <WideRangeCallout />
+
+      {result.climb_levers ? (
+        <ClimbLeversPanel levers={result.climb_levers} />
+      ) : null}
+
+      <CannotSeePanel />
 
       <div className="fit-reason-grid">
         <FitReasonList title="Matched" items={result.match_reasons.matched} />
@@ -1382,6 +1454,306 @@ function formatCostStatus(status: FitResult["match_reasons"]["cost_status"]) {
   }
 }
 
+function BandPill({ label }: { label: BandLabel }) {
+  return (
+    <span className="label-pill band-pill" data-band={label}>
+      {label.toUpperCase()}
+    </span>
+  );
+}
+
+function FitPill({ fitScore }: { fitScore?: FitScore | null }) {
+  if (!fitScore || fitScore.score === null) {
+    return null;
+  }
+
+  return (
+    <span
+      className="label-pill fit-pill"
+      aria-label={`FIT ${fitScore.score}, profile overlap score, not an admit probability`}
+    >
+      FIT {fitScore.score}
+    </span>
+  );
+}
+
+function FitScorePanel({ fitScore }: { fitScore: FitScore }) {
+  if (fitScore.score === null) {
+    return null;
+  }
+
+  return (
+    <section className="fit-score-panel" data-testid="fit-score-panel">
+      <div>
+        <div className="section-kicker">Fit overlap</div>
+        <h4 className="section-title text-[22px]">
+          You fit the shape where the data can see it.
+        </h4>
+        <p className="helper">
+          FIT is not an admit probability. It is an equal-weight overlap across
+          known radar axes.
+        </p>
+      </div>
+      <div className="fit-score-layout">
+        <FitRadar fitScore={fitScore} />
+        <div className="fit-score-readout">
+          <FitPill fitScore={fitScore} />
+          <span className="coverage-label">{fitScore.coverage.label}</span>
+          {fitScore.coverage.reduced ? (
+            <p className="helper">
+              Reduced coverage: unknown axes are excluded instead of guessed.
+            </p>
+          ) : null}
+        </div>
+      </div>
+      <FitDimensionRows axes={fitScore.axes} />
+    </section>
+  );
+}
+
+function FitRadar({ fitScore }: { fitScore: FitScore }) {
+  const center = 110;
+  const radius = 78;
+  const axes = fitScore.axes;
+  const axisPoints = axes.map((_, index) =>
+    radarPoint(center, radius, 1, index, axes.length),
+  );
+  const studentPoints = axes
+    .map((axis, index) =>
+      radarPoint(center, radius, (axis.value ?? 0) / 100, index, axes.length),
+    )
+    .map((point) => `${point.x},${point.y}`)
+    .join(" ");
+  const typicalPoints = axes
+    .map((axis, index) =>
+      radarPoint(center, radius, axis.typical / 100, index, axes.length),
+    )
+    .map((point) => `${point.x},${point.y}`)
+    .join(" ");
+  const aria = `FIT ${fitScore.score}. ${axes
+    .map((axis) =>
+      axis.value === null
+        ? `${axis.label} unknown`
+        : `${axis.label} ${axis.value}`,
+    )
+    .join(", ")}.`;
+
+  return (
+    <figure className="fit-radar" role="img" aria-label={aria}>
+      <svg viewBox="0 0 220 220" aria-hidden="true">
+        <polygon className="radar-grid" points={axisPoints.map((point) => `${point.x},${point.y}`).join(" ")} />
+        {axisPoints.map((point, index) => (
+          <line
+            key={axes[index].key}
+            className="radar-axis"
+            x1={center}
+            y1={center}
+            x2={point.x}
+            y2={point.y}
+          />
+        ))}
+        <polygon className="radar-typical" points={typicalPoints} />
+        <polygon className="radar-student" points={studentPoints} />
+        {axes.map((axis, index) => {
+          const labelPoint = radarPoint(center, radius + 18, 1, index, axes.length);
+          return (
+            <text
+              key={axis.key}
+              className="radar-label"
+              x={labelPoint.x}
+              y={labelPoint.y}
+              textAnchor="middle"
+              dominantBaseline="middle"
+            >
+              {axis.label}
+            </text>
+          );
+        })}
+      </svg>
+      <figcaption className="radar-legend">
+        <span><i className="legend-dot student" />Your overlap</span>
+        <span><i className="legend-dot typical" />Typical admit reference</span>
+      </figcaption>
+    </figure>
+  );
+}
+
+function radarPoint(
+  center: number,
+  radius: number,
+  scale: number,
+  index: number,
+  total: number,
+) {
+  const angle = (-90 + (360 / total) * index) * (Math.PI / 180);
+  return {
+    x: center + Math.cos(angle) * radius * scale,
+    y: center + Math.sin(angle) * radius * scale,
+  };
+}
+
+function FitDimensionRows({ axes }: { axes: FitScoreAxis[] }) {
+  return (
+    <ul className="fit-dimension-list">
+      {axes.map((axis) => (
+        <li key={axis.key} data-status={axis.status}>
+          <span className="dimension-status">
+            {axis.status === "good" ? <Check size={14} /> : null}
+            {axis.status === "good"
+              ? "Good"
+              : axis.status === "caution"
+                ? "Watch"
+                : "Unknown"}
+          </span>
+          <span>
+            <strong>{axis.label}</strong>
+            <span className="helper">{axis.note}</span>
+          </span>
+          <span className="mono">
+            {axis.value === null ? "n/a" : `${axis.value}/100`}
+          </span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+function ReachLadder({
+  low,
+  high,
+  point,
+  label,
+}: {
+  low: number;
+  high: number;
+  point: number;
+  label: BandLabel;
+}) {
+  const left = clampPercent(low);
+  const right = clampPercent(high);
+  const width = Math.max(1, right - left);
+  const pointLeft = clampPercent(point);
+
+  return (
+    <section
+      className="reach-ladder"
+      data-testid="reach-ladder"
+      aria-label={`Reach ladder: interval ${formatChanceRange(low, high)}, tick ${formatPercentPrecise(point)}, interval-derived label ${label}.`}
+    >
+      <div className="micro-label">Reach ladder</div>
+      <div className="ladder-track">
+        <span className="ladder-zone reach">Reach</span>
+        <span className="ladder-zone target">Target</span>
+        <span className="ladder-zone likely">Likely</span>
+        <span
+          className="ladder-band"
+          style={{ left: `${left}%`, width: `${width}%` }}
+        />
+        <span className="ladder-tick" style={{ left: `${pointLeft}%` }} />
+      </div>
+      <p className="scale-caption">
+        Ladder position follows the interval, not a label we picked.
+      </p>
+    </section>
+  );
+}
+
+function WideRangeCallout() {
+  return (
+    <section className="wide-range-callout">
+      <div className="section-kicker">THE RANGE IS WIDE ON PURPOSE</div>
+      <p>
+        Essays, recommendations, and demonstrated interest are not in the model
+        yet. They are the human levers that can narrow a real decision.
+      </p>
+    </section>
+  );
+}
+
+function ClimbLeversPanel({ levers }: { levers: ClimbLever[] }) {
+  return (
+    <section className="climb-panel" data-testid="climb-levers">
+      <div>
+        <div className="section-kicker">Climb levers</div>
+        <h4 className="section-title text-[22px]">Real deltas only.</h4>
+      </div>
+      <div className="climb-list">
+        {levers.map((lever) => (
+          <div key={lever.id} className="climb-row" data-kind={lever.kind}>
+            <div>
+              <strong>{lever.label}</strong>
+              <p className="helper">{lever.direction}</p>
+              <p className="helper">{lever.note}</p>
+            </div>
+            <span className="climb-value">
+              {lever.delta
+                ? lever.kind === "published_delta"
+                  ? `${formatDeltaPoints(lever.delta.tick)} published spread`
+                  : `${formatDeltaPoints(lever.delta.low)} to ${formatDeltaPoints(
+                      lever.delta.high,
+                    )} range move`
+                : "direction only"}
+            </span>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function CannotSeePanel() {
+  return (
+    <section className="cannot-see-panel" data-testid="cannot-see-panel">
+      <div className="section-kicker">What Fitty can&apos;t see</div>
+      <ul className="blind-spot-list" aria-label="Unmodeled application factors">
+        <li>Essays</li>
+        <li>Recommendations</li>
+        <li>Demonstrated interest</li>
+      </ul>
+    </section>
+  );
+}
+
+function fallbackClimbLevers(): ClimbLever[] {
+  return [
+    {
+      id: "test_score",
+      label: "Test score",
+      kind: "direction_only",
+      direction: "Modeled when the server returns a higher submitted-score rerun.",
+      note: "No numeric delta is displayed without a real model rerun.",
+    },
+    {
+      id: "application_round",
+      label: "Application round",
+      kind: "direction_only",
+      direction: "Could matter at some schools when published ED/RD rates exist.",
+      note: "No published spread is loaded in this response.",
+    },
+    {
+      id: "essays",
+      label: "Essays",
+      kind: "direction_only",
+      direction: "Can narrow the real outcome range, but is not in this model yet.",
+      note: "Public data cannot evaluate writing quality or application narrative.",
+    },
+    {
+      id: "recommendations",
+      label: "Recommendations",
+      kind: "direction_only",
+      direction: "Can narrow the real outcome range, but is not in this model yet.",
+      note: "Teacher and counselor letters are not visible to the public-data model.",
+    },
+    {
+      id: "demonstrated_interest",
+      label: "Demonstrated interest",
+      kind: "direction_only",
+      direction: "Can narrow the real outcome range, but is not in this model yet.",
+      note: "Student-specific engagement evidence is not sent to this model.",
+    },
+  ];
+}
+
 function SchoolSearchPanel({
   query,
   setQuery,
@@ -1410,7 +1782,7 @@ function SchoolSearchPanel({
             <div className="relative">
               <Search
                 aria-hidden="true"
-                className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[var(--ledger-faint)]"
+                className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[var(--faint)]"
                 size={17}
               />
               <input
@@ -1609,7 +1981,7 @@ function ResultCard({
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <span className="label-pill">{result.band.label}</span>
+          <BandPill label={result.band.label} />
           <button
             className="icon-button"
             type="button"
@@ -1628,11 +2000,10 @@ function ResultCard({
           </div>
           <div className="range-readout">
             <span className="range-value">
-              {formatPercent(result.probability.low)}-
-              {formatPercent(result.probability.high)}
+              {formatChanceRange(result.probability.low, result.probability.high)}
             </span>
             <span className="point-note">
-              marker within band {formatPercentPrecise(result.probability.calibrated)}
+              tick ~{formatPercentPrecise(result.probability.calibrated)}
             </span>
             <span className="label-pill">{profileConfidence}</span>
           </div>
@@ -1644,6 +2015,13 @@ function ResultCard({
           label={`${result.school.name} admission prior interval`}
           coverage={result.probability.coverage}
         />
+        <ReachLadder
+          low={result.probability.low}
+          high={result.probability.high}
+          point={result.probability.calibrated}
+          label={result.band.label}
+        />
+        <WideRangeCallout />
         <p className="scale-caption">{result.band.note}</p>
         {isHighUncertaintyTier(result.school.selectivity_tier) ? (
           <p className="limitation-note" data-testid="sub20-note">
@@ -1656,24 +2034,12 @@ function ResultCard({
       </section>
 
       <div className="evidence-grid">
-        <section className="evidence-panel" aria-label="Lever map">
-          <div>
-            <div className="section-kicker">Lever map</div>
-            <h4 className="section-title text-[22px]">What can still move?</h4>
-          </div>
-          <LeverSection
-            title="Controllable"
-            items={result.levers.controllable}
-            emptyText="No modeled controllable lever moved the logit in this run."
-          />
-          <LeverSection
-            title="Fixed"
-            items={result.levers.fixed}
-            emptyText="No fixed feature contribution was returned."
-          />
-        </section>
+        <ClimbLeversPanel
+          levers={result.climb_levers ?? fallbackClimbLevers()}
+        />
 
         <div className="rubric-grid">
+          <CannotSeePanel />
           <UnseenPanel items={result.levers.unseen} />
           <RubricPanel result={result} />
           <DisclaimerPanel disclaimers={result.disclaimers} />
@@ -1757,51 +2123,6 @@ function MiniRangeBand({
         <span className="mini-range-point" style={{ left: `${pointLeft}%` }} />
       </div>
       <span className="mini-band-caption">{label}</span>
-    </div>
-  );
-}
-
-function LeverSection({
-  title,
-  items,
-  emptyText,
-}: {
-  title: string;
-  items: LeverContribution[];
-  emptyText: string;
-}) {
-  const largest = Math.max(
-    0.01,
-    ...items.map((item) => Math.abs(item.logit_contribution)),
-  );
-
-  return (
-    <div className="lever-section">
-      <div className="micro-label">{title}</div>
-      {items.length === 0 ? <p className="helper">{emptyText}</p> : null}
-      {items.map((item) => {
-        const contribution = item.logit_contribution;
-        const magnitude = Math.min(50, (Math.abs(contribution) / largest) * 50);
-        const positive = contribution >= 0;
-        return (
-          <div key={item.feature} className="lever-row">
-            <div>
-              <strong>{formatFeatureName(item.feature)}</strong>
-              <div className="helper">{item.label}</div>
-            </div>
-            <div
-              className="lever-bar"
-              aria-label={`${formatFeatureName(item.feature)} contribution ${contribution.toFixed(3)} logit`}
-            >
-              <span
-                className={`lever-fill ${positive ? "positive" : "negative"}`}
-                style={{ width: `${magnitude}%` }}
-              />
-            </div>
-            <span className="mono">{contribution.toFixed(3)}</span>
-          </div>
-        );
-      })}
     </div>
   );
 }
@@ -1926,7 +2247,7 @@ function DisclaimerPanel({ disclaimers }: { disclaimers: string[] }) {
 
 function EmptyState() {
   return (
-    <section className="empty-ledger">
+    <section className="empty-state-card">
       <FileSearch size={28} aria-hidden="true" />
       <h2 className="empty-title mt-4">Start with one school record.</h2>
       <p className="muted mt-3 max-w-2xl">
@@ -1952,7 +2273,7 @@ function EmptyState() {
 function EmptyRule({ icon, text }: { icon: ReactNode; text: string }) {
   return (
     <div className="balance-cell">
-      <div className="flex items-center gap-2 text-[var(--ledger-muted)]">
+      <div className="flex items-center gap-2 text-[var(--muted)]">
         {icon}
         <span>{text}</span>
       </div>

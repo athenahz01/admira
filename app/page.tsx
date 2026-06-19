@@ -4,10 +4,10 @@ import { FittyApp } from "./fitty-app";
 
 export const metadata: Metadata = {
   title: {
-    absolute: "Admissions Almanac | Fitty",
+    absolute: "Fit and Honest Chance | Fitty",
   },
   description:
-    "Fitty renders honest college admissions odds as public-data prior ranges with levers, gaps, and uncertainty disclosures.",
+    "Fitty renders school fit evidence beside honest college admissions chance ranges.",
 };
 
 export default function Home() {

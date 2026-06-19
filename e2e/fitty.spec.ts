@@ -72,6 +72,45 @@ const mitChanceResponse = {
       },
     ],
   },
+  climb_levers: [
+    {
+      id: "test_score",
+      label: "Test score",
+      kind: "modeled_delta",
+      direction: "Reruns the existing chance model with a higher submitted score.",
+      note: "Scenario uses SAT plus 50 points, capped at 1600.",
+      delta: { low: 0.01, high: 0.03, tick: 0.02 },
+    },
+    {
+      id: "application_round",
+      label: "Application round",
+      kind: "direction_only",
+      direction:
+        "Could matter at some schools, but no usable published ED/RD spread is loaded here.",
+      note: "Fitty does not invent an ED or EA number when the published rates are missing.",
+    },
+    {
+      id: "essays",
+      label: "Essays",
+      kind: "direction_only",
+      direction: "Can narrow the real outcome range, but is not in this model yet.",
+      note: "Public data cannot evaluate writing quality or application narrative.",
+    },
+    {
+      id: "recommendations",
+      label: "Recommendations",
+      kind: "direction_only",
+      direction: "Can narrow the real outcome range, but is not in this model yet.",
+      note: "Teacher and counselor letters are not visible in the public-data model.",
+    },
+    {
+      id: "demonstrated_interest",
+      label: "Demonstrated interest",
+      kind: "direction_only",
+      direction: "Can narrow the real outcome range, but is not in this model yet.",
+      note: "Student-specific engagement evidence is not sent to this model.",
+    },
+  ],
   rubric: {
     c7_factors: {
       _source: "2023-24 CDS Common Data Set",
@@ -141,6 +180,102 @@ const fitFinderResponse = {
         label: "reach",
         wide_band: true,
       },
+      fit_score: {
+        score: 82,
+        axes: [
+          {
+            key: "academics",
+            label: "Academics",
+            value: 76,
+            typical: 84,
+            status: "good",
+            note: "GPA and submitted test scores are compared with the school's public middle 50 or average.",
+          },
+          {
+            key: "major",
+            label: "Major",
+            value: 91,
+            typical: 84,
+            status: "good",
+            note: "Program overlap uses the pinned Fit Finder embedding model.",
+          },
+          {
+            key: "selectivity",
+            label: "Selectivity",
+            value: 63,
+            typical: 84,
+            status: "caution",
+            note: "Academic strength is compared with the elite selectivity tier.",
+          },
+          {
+            key: "interest",
+            label: "Interest",
+            value: 86,
+            typical: 84,
+            status: "good",
+            note: "Interest overlap uses the school document similarity.",
+          },
+          {
+            key: "rigor",
+            label: "Rigor",
+            value: 78,
+            typical: 84,
+            status: "caution",
+            note: "Thin proxy from academic signal and CDS rigor rating.",
+          },
+        ],
+        coverage: {
+          known: 5,
+          total: 5,
+          label: "5/5 axes",
+          reduced: false,
+        },
+        method: "equal_weight_known_axis_mean",
+        model: {
+          id: "Xenova/all-MiniLM-L6-v2",
+          dim: 384,
+        },
+        note: "FIT is a profile-overlap score, not an admit probability.",
+      },
+      climb_levers: [
+        {
+          id: "test_score",
+          label: "Test score",
+          kind: "modeled_delta",
+          direction: "Reruns the existing chance model with a higher submitted score.",
+          note: "Scenario uses SAT plus 50 points, capped at 1600.",
+          delta: { low: 0.01, high: 0.03, tick: 0.02 },
+        },
+        {
+          id: "application_round",
+          label: "Application round",
+          kind: "direction_only",
+          direction:
+            "Could matter at some schools, but no usable published ED/RD spread is loaded here.",
+          note: "Fitty does not invent an ED or EA number when the published rates are missing.",
+        },
+        {
+          id: "essays",
+          label: "Essays",
+          kind: "direction_only",
+          direction: "Can narrow the real outcome range, but is not in this model yet.",
+          note: "Public data cannot evaluate writing quality or application narrative.",
+        },
+        {
+          id: "recommendations",
+          label: "Recommendations",
+          kind: "direction_only",
+          direction: "Can narrow the real outcome range, but is not in this model yet.",
+          note: "Teacher and counselor letters are not visible in the public-data model.",
+        },
+        {
+          id: "demonstrated_interest",
+          label: "Demonstrated interest",
+          kind: "direction_only",
+          direction: "Can narrow the real outcome range, but is not in this model yet.",
+          note: "Student-specific engagement evidence is not sent to this model.",
+        },
+      ],
     },
   ],
   balance: {
@@ -690,7 +825,16 @@ test("runs Fit Finder, renders grounded prose, and adds a school to the list", a
   await expect(finder.getByTestId("fit-result-card")).toContainText(
     "Massachusetts Institute of Technology",
   );
-  await expect(finder.getByTestId("fit-result-card")).toContainText("0%-49%");
+  await expect(finder.getByTestId("fit-result-card")).toContainText("0-49%");
+  await expect(finder.getByTestId("fit-result-card")).toContainText("FIT 82");
+  await expect(finder.getByTestId("fit-score-panel")).toBeVisible();
+  await expect(finder.getByTestId("reach-ladder")).toBeVisible();
+  await expect(finder.getByTestId("climb-levers")).toContainText("Real deltas only");
+  await expect(finder.getByTestId("climb-levers")).toContainText("direction only");
+  await expect(finder.getByTestId("cannot-see-panel")).toContainText("Essays");
+  await expect(finder.getByTestId("fit-result-card")).toContainText(
+    "FIT is not an admit probability",
+  );
   await expect(finder.getByTestId("fit-result-card")).toContainText(
     "programs: computer and information sciences",
   );
@@ -755,7 +899,7 @@ test("renders an honest elite-school result and methodology disclosure", async (
   await mockFitStatus(page, false);
   await page.goto("/");
 
-  await expect(page).toHaveTitle(/Admissions Almanac \| Fitty/);
+  await expect(page).toHaveTitle(/Fit and Honest Chance \| Fitty/);
   await page.getByLabel("GPA").fill("3.95");
   await page.getByLabel("SAT").fill("1540");
   await page.getByRole("textbox", { exact: true, name: "ACT" }).fill("35");
@@ -768,8 +912,12 @@ test("renders an honest elite-school result and methodology disclosure", async (
     "Massachusetts Institute of Technology",
   );
   await expect(page.getByTestId("range-band")).toBeVisible();
-  await expect(page.getByText("Lever map")).toBeVisible();
-  await expect(page.getByText("What we cannot see")).toBeVisible();
+  await expect(page.getByTestId("reach-ladder")).toBeVisible();
+  await expect(page.getByText("Climb levers")).toBeVisible();
+  await expect(page.getByTestId("cannot-see-panel")).toContainText(
+    "Demonstrated interest",
+  );
+  await expect(page.getByTestId("fit-score-panel")).toHaveCount(0);
   await expect(page.getByText("C7 rubric grounding")).toBeVisible();
   await expect(page.getByText("Disclosures")).toBeVisible();
   await expect(page.getByText("Source: 2023-24 CDS Common Data Set")).toBeVisible();
@@ -800,10 +948,11 @@ test("renders an honest elite-school result and methodology disclosure", async (
   await expect(
     page.getByRole("heading", { name: /Race and ethnicity are never used/i }),
   ).toBeVisible();
-  await expect(page.getByText("Reasons plus ranges, never a fit score.")).toBeVisible();
+  await expect(page.getByText("FIT beside range, never merged.")).toBeVisible();
+  await expect(page.getByText("Profile overlap, not admission odds.")).toBeVisible();
   await expect(page.getByText(/campus culture, social fit, teaching quality/i)).toBeVisible();
   await expect(page.getByText(/Merit aid is not predicted/i)).toBeVisible();
-  await expect(page.getByText("Real-outcome calibration ledger.")).toBeVisible();
+  await expect(page.getByText("Real-outcome calibration record.")).toBeVisible();
   await expect(page.getByText("fixture_contract_check")).toBeVisible();
   await expect(page.getByText("Change-course check")).toBeVisible();
 });

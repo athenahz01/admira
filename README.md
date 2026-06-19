@@ -383,7 +383,7 @@ The tests assert that TypeScript feature engineering and prediction reproduce ev
 
 ## Phase 4 - Frontend
 
-Phase 4 builds the Admissions Almanac UI on top of the existing `/api/chance` route. It does not change the model artifact or inference contract.
+Phase 4 builds the Fit and Honest Chance UI on top of the existing `/api/chance` route. It does not change the model artifact or inference contract.
 
 Local run:
 
@@ -403,7 +403,7 @@ SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
 
 The `schools` table must be populated with Phase 1 data. The browser searches public school rows through the Supabase anon client, and each added school calls `POST /api/chance` for the full honesty payload.
 
-Design notes live in `DESIGN_NOTES.md`. The UI uses the range band as the dominant visual, shows the point only as a marker inside the band, renders lever decomposition, includes the "what we cannot see" disclosure, and grounds each result in C7 rubric factors and middle-50 gaps.
+Design notes live in `DESIGN_NOTES.md`. The UI uses an oxide chance range bar, reach ladder, honest climb levers, and the "what Fitty can't see" disclosure. Fit Finder results add a separate teal FIT overlap score and radar when fit inputs exist. FIT is never an admit probability.
 
 ## Phase 5 - Disclosure, Tests, and Deploy Readiness
 

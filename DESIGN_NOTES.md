@@ -2,51 +2,68 @@
 
 ## Direction
 
-Direction 3: Admissions Almanac. The interface borrows from annual statistical almanacs, Common Data Set tables, marginal notes, and admissions records. The product should feel calm, exact, and willing to show uncertainty rather than smoothing it away.
-
-## Signature
-
-The confidence band is a horizontal 0-100 measurement scale. The shaded interval is the answer. The calibrated point is only a thin tick inside the interval. This appears in result cards, list balance mini-bands, loading states, and card copy.
+Fit and Honest Chance. Every result answers two separate questions: is this school a good fit, and what is the honest admissions range. Chance stays oxide and range-first. FIT stays teal, explainable, and separate from admission odds.
 
 ## Token System
 
-Light and dark modes use the same hue family. Only lightness, contrast, and temperature shift.
+Light mode uses the uploaded warm paper palette. Dark mode keeps the same hue roles and shifts lightness for contrast.
 
 | Token | Light | Dark | Role |
 | --- | --- | --- | --- |
-| `--almanac-sheet` | `#EDF0E8` | `#151A1B` | Archive-green page paper |
-| `--almanac-plate` | `#FFFAF0` | `#1C2222` | Primary panels |
-| `--almanac-panel` | `#F6F1E3` | `#202727` | Evidence panels |
-| `--almanac-inset` | `#E7E1D2` | `#121718` | Inputs and rails |
-| `--ledger-ink` | `#1F2523` | `#EFE9DC` | Main text and point tick |
-| `--ledger-muted` | `#58625D` | `#B7ADA0` | Supporting text |
-| `--ledger-rule` | translucent ink | translucent paper | Hairline structure |
-| `--oxide-band` | `#B9653B` | `#D08A5F` | Confidence band accent |
-| `--slate-green` | `#566B67` | `#82A09A` | Calm positive signal |
-| `--annotation-plum` | `#6D5365` | `#B895A9` | Secondary annotation |
+| `--chance-ink` | `#7C2D12` | `#FED7AA` | Chance text and tick emphasis |
+| `--chance-deep` | `#9A3412` | `#FDBA74` | Deep chance accent |
+| `--chance-primary` | `#C2410C` | `#FB923C` | Primary chance action and range color |
+| `--chance-bright` | `#EA580C` | `#F97316` | Bright chance accent |
+| `--chance-soft` | `#FDBA74` | `#9A3412` | Soft chance band |
+| `--chance-wash` | `#FFF6F1` | `#34170F` | Chance wash and reach background |
+| `--fit-ink` | `#0B3D34` | `#C7F7E8` | FIT text |
+| `--fit-teal` | `#0F766E` | `#5EEAD4` | FIT outline and radar stroke |
+| `--fit-green` | `#10B981` | `#34D399` | Student radar fill and good states |
+| `--fit-wash` | `#E5F5F0` | `#0F2F2A` | FIT wash |
+| `--school-indigo` | `#6366F1` | `#A5B4FC` | Typical admit reference |
+| `--school-indigo-wash` | `#EEF0FE` | `#20254C` | Methodology and school wash |
+| `--canvas` | `#E7E5DF` | `#17120F` | Warm page paper |
+| `--warm-card` | `#FFF8F2` | `#211813` | Main cards |
+| `--plain-card` | `#FFFFFF` | `#261D17` | High-contrast plain card |
+| `--ink` | `#2A1F18` | `#F6EFE7` | Main text |
+| `--muted` | `#6B5F54` | `#C9BDB2` | Supporting text |
+| `--faint` | `#9A938A` | `#A89B90` | Labels and axes |
+
+Oxide is reserved for chance. Teal and green are reserved for FIT. Indigo is reserved for the school or typical-admit reference.
 
 ## Type
 
-- Heading: Literata, for almanac/editorial authority.
-- Body: Public Sans, for plain interface readability.
-- Data: JetBrains Mono with tabular numerals, for ranges, gaps, counts, and logit contributions.
+- Display and headings: Bricolage Grotesque, weight 800.
+- Body and UI: Plus Jakarta Sans, weights 400 to 700.
+- Labels, ranges, axes, and data: Space Mono with tabular numerals.
 
-## Structure
+## Signature Elements
 
-The page is a decision workspace:
+1. Honest Chance Range Bar: 0 to 100 track, oxide interval, and a most-likely tick. The visible answer is the interval, such as `9-19%`; the tick is only a marker.
+2. Reach Ladder: reach, target, and likely zones with the actual interval and tick placed by their numeric values. The ladder footnote says the position follows the interval.
+3. Fit Radar: five axes, Academics, Major, Selectivity, Interest, and Rigor. Student overlap is green. Typical admit reference is indigo dashed. The same data is listed as text.
+4. Fit Overlap: `FIT NN` is a 0 to 100 profile-overlap score, not a probability. It sits beside the chance range and never replaces it.
 
-- Left ledger: student profile, school search, list balance.
-- Right record stack: one result card per school.
-- Result card hierarchy: range band first, then lever map, unseen factors, C7 grounding, disclosures.
+## FIT Score Definition
 
-## Defaults Rejected
+`lib/fit/fit-score.ts` computes FIT server-side for Fit Finder results:
 
-- Big percentage hero: replaced by interval-first measurement scale.
-- Donut/progress ring: replaced by horizontal 0-100 rule.
-- Traffic-light safety chips: replaced by secondary interval-derived labels.
-- Generic stat cards: replaced by evidence panels and almanac record cards.
-- College-brochure blue: replaced by oxide, paper, ledger ink, slate green, and annotation plum.
+- Academics compares GPA and submitted test scores with public middle-50 bands or GPA average.
+- Major embeds the student's intended major and interests against the school's program areas with `Xenova/all-MiniLM-L6-v2`, the pinned Fit Finder embedding model.
+- Selectivity compares academic strength with the school's selectivity tier.
+- Interest uses the school-document similarity returned by the pinned embedding search.
+- Rigor is a thin proxy because Fit Finder does not receive a course-rigor transcript field. It uses academic signal plus the school's CDS rigor rating when available and labels the limitation.
+
+The score is the equal-weight mean of known axes. Unknown axes are excluded and reported in coverage.
+
+## Climb Levers
+
+`lib/fit/levers.ts` separates numeric deltas from direction-only guidance:
+
+- Test score gets a numeric range movement only after rerunning the existing chance inference with a modest higher submitted score.
+- Application round gets a numeric value only from loaded published ED/RD rate spread.
+- Essays, recommendations, and demonstrated interest are direction-only. They say these factors can narrow the real outcome range, but they are not in the model yet.
 
 ## Accessibility Notes
 
-The band has `role="img"` and an aria label naming the interval and point marker. It is keyboard-focusable. Meaning is not color-only: low/high labels, marker text, interval-derived labels, and disclosure copy are all textual.
+The range bar, reach ladder, and radar have text equivalents or aria labels. Color is never the only signal: labels, axis rows, `FIT NN`, chance range text, ladder zones, and blind-spot chips all name their meaning. Dark mode keeps the same semantic hue roles.
