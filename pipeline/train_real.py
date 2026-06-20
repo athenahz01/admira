@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-"""Train Fitty's Phase 6 real-outcome model path.
+"""Train Admira's Phase 6 real-outcome model path.
 
 Production runs load consented rows from Supabase. The ``fixture`` source is
 only for local verification of the training/export contract; it is marked in
@@ -75,7 +75,7 @@ class SplitData:
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Train Fitty's consented real-outcome model path."
+        description="Train Admira's consented real-outcome model path."
     )
     parser.add_argument(
         "--source",
@@ -685,7 +685,7 @@ def write_artifact(
 ) -> None:
     artifact = {
         "version": f"{VERSION}-{source_label}",
-        "trained_at": os.getenv("FITTY_TRAINED_AT", "2026-06-17T00:00:00+00:00"),
+        "trained_at": os.getenv("ADMIRA_TRAINED_AT", "2026-06-17T00:00:00+00:00"),
         "seed": SEED,
         "model_type": MODEL_TYPE,
         "feature_order": FEATURE_ORDER,
@@ -939,7 +939,7 @@ def main() -> None:
         ACTIVE_TEST_VECTOR_PATH.write_text(json.dumps(vectors, indent=2), encoding="utf-8")
     write_reports(report)
 
-    print("Fitty Phase 6 real-outcome model trained")
+    print("Admira Phase 6 real-outcome model trained")
     print(f"Source: {args.source}")
     print(f"Outcomes: {len(real):,}")
     print(f"Real artifact: {REAL_ARTIFACT_PATH}")

@@ -1,12 +1,12 @@
-# Fitty Phase 2 Model Card
+# Admira Phase 2 Model Card
 
 ## Model
 
-`public_prior_logistic_v1` is Fitty's Phase 2 synthetic public-data prior model. It is trained offline in `pipeline/train_model.py` and exported as plain JSON to `lib/model/artifacts.json` for later TypeScript inference.
+`public_prior_logistic_v1` is Admira's Phase 2 synthetic public-data prior model. It is trained offline in `pipeline/train_model.py` and exported as plain JSON to `lib/model/artifacts.json` for later TypeScript inference.
 
 ## Purpose
 
-The model provides an honest prior range for school-specific admissions chances using only public, school-level data. It exists to prove the artifact contract, calibration flow, and uncertainty behavior before Fitty has consented applicant-level admit/deny outcomes.
+The model provides an honest prior range for school-specific admissions chances using only public, school-level data. It exists to prove the artifact contract, calibration flow, and uncertainty behavior before Admira has consented applicant-level admit/deny outcomes.
 
 ## Synthetic Cohort Assumptions
 
@@ -37,7 +37,7 @@ Every downstream prediction must be presented as a range. The point probability 
 
 ## Intended Use
 
-This model is for decision support and product-contract validation. It can say, in a public-data-prior sense, where a student sits relative to a school's published bands and how much uncertainty remains. It must not be used as an oracle or as a claim that Fitty can predict real individual outcomes from public data alone.
+This model is for decision support and product-contract validation. It can say, in a public-data-prior sense, where a student sits relative to a school's published bands and how much uncertainty remains. It must not be used as an oracle or as a claim that Admira can predict real individual outcomes from public data alone.
 
 ## Known Limitations
 
@@ -47,4 +47,4 @@ Required honesty statement: because the synthetic labels are generated from the 
 
 ## Phase 6 Plan
 
-When Whetstone has consented profile-to-outcome data, Fitty should retrain behind the same artifact/API contract using real applicant outcomes. The Phase 2 public prior remains useful as a transparent fallback and as a benchmark for whether proprietary data actually narrows uncertainty without overpromising.
+When Whetstone has consented profile-to-outcome data, Admira should retrain behind the same artifact/API contract using real applicant outcomes. The Phase 2 public prior remains useful as a transparent fallback and as a benchmark for whether proprietary data actually narrows uncertainty without overpromising.

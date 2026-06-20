@@ -1,10 +1,10 @@
 # Real Model Enablement
 
-The real-outcome model stays off until a human reviews fresh Supabase training evidence and the gate check passes. The gate does not change `FITTY_REAL_MODEL_ENABLED`. It only reports whether the latest evidence is ready for review.
+The real-outcome model stays off until a human reviews fresh Supabase training evidence and the gate check passes. The gate does not change `ADMIRA_REAL_MODEL_ENABLED`. It only reports whether the latest evidence is ready for review.
 
 ## Order Of Steps
 
-Run these from PowerShell in `C:\AA_Whetstone\fitty`.
+Run these from PowerShell in `C:\AA_Whetstone\admira`.
 
 1. Train from Supabase consented outcomes:
 
@@ -20,12 +20,12 @@ Run these from PowerShell in `C:\AA_Whetstone\fitty`.
 
 3. Read the command output and `pipeline/reports/real_calibration.json`.
 
-4. If the gate prints `GATE: FAIL`, keep `FITTY_REAL_MODEL_ENABLED=false`.
+4. If the gate prints `GATE: FAIL`, keep `ADMIRA_REAL_MODEL_ENABLED=false`.
 
 5. If the gate prints `GATE: PASS`, a human reviewer may decide whether to set:
 
    ```powershell
-   FITTY_REAL_MODEL_ENABLED=true
+   ADMIRA_REAL_MODEL_ENABLED=true
    ```
 
 The gate informs that decision. It does not flip the flag, deploy the app, train a model, or call Supabase.

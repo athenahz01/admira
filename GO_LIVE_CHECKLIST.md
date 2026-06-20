@@ -1,6 +1,6 @@
-# Fitty Go-Live Checklist
+# Admira Go-Live Checklist
 
-This is the ordered, gated path from "audited in code" to "serving the real-outcome model to real students." Each gate must pass before the next. The whole point of Fitty is honesty, so none of these gates may be skipped to move faster.
+This is the ordered, gated path from "audited in code" to "serving the real-outcome model to real students." Each gate must pass before the next. The whole point of Admira is honesty, so none of these gates may be skipped to move faster.
 
 Tone note: no em-dashes in repo copy by convention.
 
@@ -11,7 +11,7 @@ Tone note: no em-dashes in repo copy by convention.
 The CI-style checks must all pass on your machine. (A sandboxed mount can corrupt files and give false failures, so trust a clean local checkout, not a remote sandbox.)
 
 ```powershell
-cd C:\AA_Whetstone\fitty
+cd C:\AA_Whetstone\admira
 npm ci
 npm run lint
 npx tsc --noEmit
@@ -50,9 +50,9 @@ npm run fit:embed
 npm run fit:embedding-sanity
 ```
 
-- Keep `FITTY_FIT_FINDER_ENABLED=false` until these steps pass on the target project.
+- Keep `ADMIRA_FIT_FINDER_ENABLED=false` until these steps pass on the target project.
 - `GET /api/fit/status` must return `{ "enabled": false }` while the flag is off, and the Fit Finder UI must not render.
-- After data verification, set `FITTY_FIT_FINDER_ENABLED=true` and confirm `/api/fit` returns range-first results with matched reasons and no fit score.
+- After data verification, set `ADMIRA_FIT_FINDER_ENABLED=true` and confirm `/api/fit` returns range-first results with matched reasons and no fit score.
 - `ANTHROPIC_API_KEY` is optional. If it is missing, Fit Finder must still show structured reasons and the Claude explanation endpoint must degrade gracefully.
 - Confirm the methodology page states what matching cannot weigh and that merit aid is not predicted.
 
@@ -61,7 +61,7 @@ npm run fit:embedding-sanity
 This is the precondition for collecting any real data. The harness has only been proven to refuse without a staging flag; it has not yet run against a live project.
 
 ```powershell
-$env:FITTY_RLS_TARGET = "staging"
+$env:ADMIRA_RLS_TARGET = "staging"
 npm run verify:rls
 ```
 
@@ -69,12 +69,12 @@ Every check must print PASS and the process must exit 0: cross-user reads/insert
 
 ## 4. Keep capture OFF until gate 3 passes
 
-- `FITTY_OUTCOME_CAPTURE_ENABLED` stays unset/false until the live RLS run is green.
+- `ADMIRA_OUTCOME_CAPTURE_ENABLED` stays unset/false until the live RLS run is green.
 - With the flag off, the capture and data-control UIs do not render and the capture APIs return 404. Verify this on staging.
 
 ## 5. Turn on capture (staging first)
 
-- Set `FITTY_OUTCOME_CAPTURE_ENABLED=true` on staging only.
+- Set `ADMIRA_OUTCOME_CAPTURE_ENABLED=true` on staging only.
 - Do one full real pass as a test user: sign in, give explicit consent, submit a profile and one outcome.
 - Exercise the data-subject controls: export downloads JSON, revoke marks consent revoked, delete removes data and leaves exactly one `deleted` tombstone.
 - Only after this is clean should capture be enabled in production.
@@ -82,7 +82,7 @@ Every check must print PASS and the process must exit 0: cross-user reads/insert
 ## 6. Accumulate consented outcomes
 
 - Let real, consented outcomes accrue. The trainer refuses to export a production model below `len(FEATURE_ORDER) * 20` consented outcomes.
-- Until then, Fitty serves the honest synthetic public-data prior, clearly labeled as such.
+- Until then, Admira serves the honest synthetic public-data prior, clearly labeled as such.
 
 ## 7. Real-model enablement (hard gate)
 
@@ -93,11 +93,11 @@ npm run check:real-gate
 
 - `check:real-gate` must end with `GATE: PASS` (status trained, enough held-out outcomes, calibration within tolerance, Brier/log-loss under ceilings). A fixture report cannot pass.
 - A human reviews `pipeline/reports/real_calibration.json` and the gate output. The gate informs the decision; it does not flip the flag.
-- Only then set `FITTY_REAL_MODEL_ENABLED=true`. On FAIL, the flag stays off and Fitty keeps serving the prior.
+- Only then set `ADMIRA_REAL_MODEL_ENABLED=true`. On FAIL, the flag stays off and Admira keeps serving the prior.
 
 ## 8. Publish honest calibration
 
-- Surface Fitty's own calibration table (by probability bin and by tier) on `/methodology`.
+- Surface Admira's own calibration table (by probability bin and by tier) on `/methodology`.
 - Run the change-course check: if sub-20% intervals stay near 0 to 100 percent even with real data, do not fake precision. Pivot messaging to "fit plus honest ranges" and keep the prior as the transparent fallback.
 
 ---

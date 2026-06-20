@@ -1,3 +1,3 @@
 export function fitFinderEnabled() {
-  return process.env.FITTY_FIT_FINDER_ENABLED === "true";
+  return process.env.ADMIRA_FIT_FINDER_ENABLED === "true";
 }

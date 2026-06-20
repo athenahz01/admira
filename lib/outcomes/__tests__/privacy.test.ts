@@ -29,7 +29,7 @@ describe("Phase 6 outcome privacy controls", () => {
       consentSchema.parse({
         consent_version: "2026-06-17",
         consent_text:
-          "I consent to Fitty storing my profile and outcomes for real-outcome model training.",
+          "I consent to Admira storing my profile and outcomes for real-outcome model training.",
       }),
     ).toMatchObject({ purpose: "real_outcome_modeling" });
 

@@ -51,8 +51,8 @@ type HarnessDb = {
 };
 
 const requiredTarget = "staging";
-const subjectAEmailPrefix = "fitty-rls-a";
-const subjectBEmailPrefix = "fitty-rls-b";
+const subjectAEmailPrefix = "admira-rls-a";
+const subjectBEmailPrefix = "admira-rls-b";
 
 function asHarnessDb(client: unknown) {
   return client as HarnessDb;
@@ -76,8 +76,8 @@ function requireAnonKey() {
 }
 
 function assertRequiredTarget() {
-  if (process.env.FITTY_RLS_TARGET !== requiredTarget) {
-    throw new Error("FITTY_RLS_TARGET=staging is required");
+  if (process.env.ADMIRA_RLS_TARGET !== requiredTarget) {
+    throw new Error("ADMIRA_RLS_TARGET=staging is required");
   }
 }
 
@@ -221,7 +221,7 @@ async function main() {
   try {
     await insertRows(serviceDb, "schools", {
       unitid: testUnitid,
-      name: `Fitty RLS Harness ${runId}`,
+      name: `Admira RLS Harness ${runId}`,
       state: "TS",
       setting: "city",
       size: 1,

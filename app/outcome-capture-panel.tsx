@@ -72,11 +72,11 @@ type OutcomeResponse = {
 };
 
 const useLocalSchoolFixture =
-  process.env.NEXT_PUBLIC_FITTY_USE_LOCAL_SCHOOL_FIXTURE === "true";
+  process.env.NEXT_PUBLIC_ADMIRA_USE_LOCAL_SCHOOL_FIXTURE === "true";
 
 const consentVersion = "phase-7-capture-ui-v1";
 const outcomeConsentText =
-  "I agree to let Fitty store the applicant profile fields I enter here: cycle year, GPA, course rigor, SAT, ACT, test submission status, activities tier, intended major, application round, and demonstrated interest. I also agree to let Fitty store the school application outcomes I enter here: school, outcome, application round, and cycle year. Fitty uses this optional data to improve admission-chance calibration. I can use Fitty without sharing it, and I can export or delete this data later.";
+  "I agree to let Admira store the applicant profile fields I enter here: cycle year, GPA, course rigor, SAT, ACT, test submission status, activities tier, intended major, application round, and demonstrated interest. I also agree to let Admira store the school application outcomes I enter here: school, outcome, application round, and cycle year. Admira uses this optional data to improve admission-chance calibration. I can use Admira without sharing it, and I can export or delete this data later.";
 
 const currentCycleYear = String(new Date().getFullYear());
 
@@ -494,7 +494,7 @@ export function OutcomeCapturePanel() {
           <div>
             <div className="section-kicker">Outcome capture</div>
             <p className="helper mt-1">
-              Outcome capture is not currently open. Fitty is waiting for the
+              Outcome capture is not currently open. Admira is waiting for the
               privacy verification gate before collecting real results.
             </p>
           </div>
@@ -616,7 +616,7 @@ function ConsentStep({
           checked={checked}
           onChange={(event) => onCheckedChange(event.target.checked)}
         />
-        <span>I agree to share these optional records with Fitty.</span>
+        <span>I agree to share these optional records with Admira.</span>
       </label>
       {error ? (
         <p className="error-copy" role="alert">

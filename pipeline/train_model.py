@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-"""Train Fitty's Phase 2 public-data prior model.
+"""Train Admira's Phase 2 public-data prior model.
 
 This is not a real-outcome admissions model. Phase 2 has only public,
 school-level facts, so the training labels are synthetic by design:
@@ -50,7 +50,7 @@ except ImportError:  # pragma: no cover - Supabase is optional for cached runs.
 SEED = 20260616
 MODEL_TYPE = "public_prior_logistic_v1"
 VERSION = "2026.06.16-phase2"
-TRAINED_AT = os.getenv("FITTY_TRAINED_AT", "2026-06-16T00:00:00+00:00")
+TRAINED_AT = os.getenv("ADMIRA_TRAINED_AT", "2026-06-16T00:00:00+00:00")
 TARGET_COVERAGE = 0.80
 ALPHA = 1.0 - TARGET_COVERAGE
 
@@ -155,7 +155,7 @@ class CalibratedProbabilityEstimator:
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Train Fitty's synthetic public-data prior model."
+        description="Train Admira's synthetic public-data prior model."
     )
     parser.add_argument(
         "--schools-csv",
@@ -869,7 +869,7 @@ def write_report(
     REPORT_PATH.write_text(
         f"""# Calibration Report
 
-This report is for Fitty's Phase 2 synthetic public-data prior model, not real-outcome accuracy.
+This report is for Admira's Phase 2 synthetic public-data prior model, not real-outcome accuracy.
 
 ![Reliability curve](reliability_curve.png)
 
@@ -971,7 +971,7 @@ def main() -> None:
     write_test_vectors(vectors)
     write_report(reliability, interval_summary, metrics, args.applicants_per_school)
 
-    print("Fitty Phase 2 public-prior model trained")
+    print("Admira Phase 2 public-prior model trained")
     print(f"Data source: {data_source}")
     print(f"Synthetic applicants: {len(cohort):,}")
     print(f"Artifacts: {ARTIFACT_PATH}")

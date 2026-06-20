@@ -67,7 +67,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const useRealModel = process.env.FITTY_REAL_MODEL_ENABLED === "true";
+  const useRealModel = process.env.ADMIRA_REAL_MODEL_ENABLED === "true";
   const runtimeArtifact = useRealModel ? realOutcomeArtifact : publicPriorArtifact;
   const payload = useRealModel
     ? buildChancePayloadForArtifact(parsed.data, school, realOutcomeArtifact)

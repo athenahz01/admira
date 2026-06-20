@@ -1,6 +1,6 @@
-# Fitty
+# Admira
 
-Fitty is an honest college admit-probability engine. It renders public-data admissions priors as ranges first, cites available CDS C7 context, and makes the uncertainty visible instead of presenting a single number as a verdict.
+Admira is an honest college admit-probability engine. It renders public-data admissions priors as ranges first, cites available CDS C7 context, and makes the uncertainty visible instead of presenting a single number as a verdict.
 
 ## Prerequisites
 
@@ -39,10 +39,10 @@ SUPABASE_URL=https://your-project-ref.supabase.co
 SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
 NEXT_PUBLIC_SUPABASE_URL=https://your-project-ref.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
-FITTY_OUTCOME_CAPTURE_ENABLED=false
-FITTY_CAPTURE_ALLOW_UNSIGNED_SUBJECT=false
-FITTY_REAL_MODEL_ENABLED=false
-NEXT_PUBLIC_FITTY_ANALYTICS_DEBUG=false
+ADMIRA_OUTCOME_CAPTURE_ENABLED=false
+ADMIRA_CAPTURE_ALLOW_UNSIGNED_SUBJECT=false
+ADMIRA_REAL_MODEL_ENABLED=false
+NEXT_PUBLIC_ADMIRA_ANALYTICS_DEBUG=false
 ```
 
 Do not commit `.env`; it is ignored by git.
@@ -159,7 +159,7 @@ The report is written to `pipeline/reports/embedding_sanity.md` and compares kno
 
 ## Fit Finder Phase 2 - Matching API
 
-Fit Finder Phase 2 adds `POST /api/fit`. It embeds a student's fit preferences with the same pinned model used for Phase 1 school documents, queries pgvector for nearby schools, applies hard filters, and attaches Fitty's existing honest chancing band to each result.
+Fit Finder Phase 2 adds `POST /api/fit`. It embeds a student's fit preferences with the same pinned model used for Phase 1 school documents, queries pgvector for nearby schools, applies hard filters, and attaches Admira's existing honest chancing band to each result.
 
 The route does not return a single numeric fit score. Similarity is used only for internal ranking. The response explains fit through structured matched attributes and notable school data.
 
@@ -247,7 +247,7 @@ Fit Finder now appears as a `Find schools` panel on the main Almanac page. It re
 Fit Finder is dark by default. Set this server flag only after the target Supabase project has Phase 1 enrichment and embeddings:
 
 ```dotenv
-FITTY_FIT_FINDER_ENABLED=true
+ADMIRA_FIT_FINDER_ENABLED=true
 ```
 
 Run locally:
@@ -256,7 +256,7 @@ Run locally:
 npm run dev
 ```
 
-Open `http://localhost:3000`, fill the student profile, then use the Fit Finder panel. The form calls `POST /api/fit`; each returned school card shows the range band, matched attributes, notable public outcomes, cost status, the API disclaimers, and an `Add to my Fitty list` action that uses the existing school-list path.
+Open `http://localhost:3000`, fill the student profile, then use the Fit Finder panel. The form calls `POST /api/fit`; each returned school card shows the range band, matched attributes, notable public outcomes, cost status, the API disclaimers, and an `Add to my Admira list` action that uses the existing school-list path.
 
 Claude explanations are optional. Add these values when you want the `why it fits` paragraph:
 
@@ -403,7 +403,7 @@ SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
 
 The `schools` table must be populated with Phase 1 data. The browser searches public school rows through the Supabase anon client, and each added school calls `POST /api/chance` for the full honesty payload.
 
-Design notes live in `DESIGN_NOTES.md`. The UI uses an oxide chance range bar, reach ladder, honest climb levers, and the "what Fitty can't see" disclosure. Fit Finder results add a separate teal FIT overlap score and radar when fit inputs exist. FIT is never an admit probability.
+Design notes live in `DESIGN_NOTES.md`. The UI uses an oxide chance range bar, reach ladder, honest climb levers, and the "what Admira can't see" disclosure. Fit Finder results add a separate teal FIT overlap score and radar when fit inputs exist. FIT is never an admit probability.
 
 ## Phase 5 - Disclosure, Tests, and Deploy Readiness
 
@@ -419,13 +419,13 @@ npm run test:e2e
 
 The Playwright suite starts Next on port `3100`, enables the local school-search fixture, mocks `/api/chance`, and verifies range-first rendering, honesty panels, sub-20 disclosure, list balance warning, dark mode, and the methodology page.
 
-Analytics are implemented as a no-op-by-default privacy wrapper. With `NEXT_PUBLIC_FITTY_ANALYTICS_DEBUG=true`, it logs only sanitized product events to the browser console: `page_view`, `profile_completed`, `school_added`, and `methodology_viewed`. It never records GPA, SAT, ACT, scores, school identifiers, names, state, email, phone, or zip-like fields.
+Analytics are implemented as a no-op-by-default privacy wrapper. With `NEXT_PUBLIC_ADMIRA_ANALYTICS_DEBUG=true`, it logs only sanitized product events to the browser console: `page_view`, `profile_completed`, `school_added`, and `methodology_viewed`. It never records GPA, SAT, ACT, scores, school identifiers, names, state, email, phone, or zip-like fields.
 
 Deployment steps live in `DEPLOY.md`.
 
 ## Phase 6 - Consented Outcomes and Real-Data Retraining
 
-Phase 6 adds disabled-by-default outcome capture and a dark real-outcome model path. Capture APIs live under `/api/outcomes/*` and require `FITTY_OUTCOME_CAPTURE_ENABLED=true`; production subject identity is resolved from a Supabase bearer token, while unsigned subject headers are local-audit only.
+Phase 6 adds disabled-by-default outcome capture and a dark real-outcome model path. Capture APIs live under `/api/outcomes/*` and require `ADMIRA_OUTCOME_CAPTURE_ENABLED=true`; production subject identity is resolved from a Supabase bearer token, while unsigned subject headers are local-audit only.
 
 New Supabase tables are created by `supabase/migrations/202606170001_phase6_outcome_capture.sql`: `consent_records`, `applicant_profiles`, `application_outcomes`, and `data_access_logs`. RLS is enabled on all four, and a database trigger blocks profile/outcome storage unless an active consent record exists for the same subject.
 
@@ -441,6 +441,6 @@ For local contract checks only:
 python pipeline/train_real.py --source fixture
 ```
 
-The fixture run writes `lib/model/artifacts.real.json`, `lib/model/test_vectors.real.json`, and `pipeline/reports/real_calibration.json` so the route, tests, and methodology page can be audited without pretending fixture rows are production evidence. Set `FITTY_REAL_MODEL_ENABLED=true` only after reviewing a Supabase-trained real calibration report.
+The fixture run writes `lib/model/artifacts.real.json`, `lib/model/test_vectors.real.json`, and `pipeline/reports/real_calibration.json` so the route, tests, and methodology page can be audited without pretending fixture rows are production evidence. Set `ADMIRA_REAL_MODEL_ENABLED=true` only after reviewing a Supabase-trained real calibration report.
 
 Privacy, retention, data-subject controls, and threat model details live in `PRIVACY.md`.

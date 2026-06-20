@@ -1,10 +1,10 @@
-# Fitty Phase 6 Privacy, Retention, and Threat Model
+# Admira Phase 6 Privacy, Retention, and Threat Model
 
-Fitty's real-outcome moat is opt-in only. The production capture path is disabled unless `FITTY_OUTCOME_CAPTURE_ENABLED=true`.
+Admira's real-outcome moat is opt-in only. The production capture path is disabled unless `ADMIRA_OUTCOME_CAPTURE_ENABLED=true`.
 
 ## Data Collected With Consent
 
-Fitty stores only modeling inputs needed for admission-outcome calibration:
+Admira stores only modeling inputs needed for admission-outcome calibration:
 
 - Applicant profile: GPA, course rigor bucket, SAT, ACT, test-submission flag, activity tier, intended major, application round, demonstrated-interest bucket, and cycle year.
 - Application outcome: school `unitid`, admitted/denied/waitlisted/deferred, application round, and cycle year.
@@ -45,7 +45,7 @@ The checked-in migration does not create a scheduled retention job because Supab
 - Outcome APIs use `SUPABASE_SERVICE_ROLE_KEY` only on the server.
 - Browser code never receives service-role credentials.
 - The default production subject identity path requires a Supabase user bearer token.
-- `FITTY_CAPTURE_ALLOW_UNSIGNED_SUBJECT=true` is blocked in production and exists only for local audits/tests.
+- `ADMIRA_CAPTURE_ALLOW_UNSIGNED_SUBJECT=true` is blocked in production and exists only for local audits/tests.
 - Row Level Security is enabled on all Phase 6 tables, with authenticated users limited to their own `subject_id`.
 
 ## Threat Model

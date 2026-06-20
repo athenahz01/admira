@@ -41,7 +41,7 @@ function downloadJsonFile(payload: ExportPayload) {
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
-  link.download = "fitty-my-data.json";
+  link.download = "admira-my-data.json";
   document.body.append(link);
   link.click();
   link.remove();

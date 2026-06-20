@@ -1,6 +1,6 @@
-# Deploying Fitty
+# Deploying Admira
 
-Fitty deploys as a Next.js app backed by a Supabase `schools` table. The model artifact is checked in at `lib/model/artifacts.json`; deployment does not retrain the model.
+Admira deploys as a Next.js app backed by a Supabase `schools` table. The model artifact is checked in at `lib/model/artifacts.json`; deployment does not retrain the model.
 
 ## Required Environment Variables
 
@@ -17,20 +17,33 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
 Optional:
 
 ```dotenv
-NEXT_PUBLIC_FITTY_ANALYTICS_DEBUG=true
-FITTY_FIT_FINDER_ENABLED=false
+NEXT_PUBLIC_ADMIRA_ANALYTICS_DEBUG=true
+ADMIRA_FIT_FINDER_ENABLED=false
 ANTHROPIC_API_KEY=your_anthropic_key
 ANTHROPIC_MODEL=claude-haiku-4-5-20251001
-FITTY_OUTCOME_CAPTURE_ENABLED=false
-FITTY_CAPTURE_ALLOW_UNSIGNED_SUBJECT=false
-FITTY_REAL_MODEL_ENABLED=false
+ADMIRA_OUTCOME_CAPTURE_ENABLED=false
+ADMIRA_CAPTURE_ALLOW_UNSIGNED_SUBJECT=false
+ADMIRA_REAL_MODEL_ENABLED=false
 ```
 
-Analytics are no-op by default. When the debug flag is enabled, Fitty writes sanitized product events to the browser console only: `page_view`, `profile_completed`, `school_added`, `methodology_viewed`, `fit_finder_viewed`, `fit_search_run`, and `fit_school_added`. The wrapper allowlists non-identifying booleans and counts only. It blocks GPA, SAT, ACT, scores, interests, majors, published cost values, school identifiers, names, state, email, phone, and zip-like fields.
+Analytics are no-op by default. When the debug flag is enabled, Admira writes sanitized product events to the browser console only: `page_view`, `profile_completed`, `school_added`, `methodology_viewed`, `fit_finder_viewed`, `fit_search_run`, and `fit_school_added`. The wrapper allowlists non-identifying booleans and counts only. It blocks GPA, SAT, ACT, scores, interests, majors, published cost values, school identifiers, names, state, email, phone, and zip-like fields.
 
-Fit Finder is disabled by default. Keep `FITTY_FIT_FINDER_ENABLED=false` until the target Supabase project has the Phase 1 school enrichment and embeddings populated. `ANTHROPIC_API_KEY` is optional; without it, Fit Finder still renders structured reasons and skips the Claude prose.
+Fit Finder is disabled by default. Keep `ADMIRA_FIT_FINDER_ENABLED=false` until the target Supabase project has the Phase 1 school enrichment and embeddings populated. `ANTHROPIC_API_KEY` is optional; without it, Fit Finder still renders structured reasons and skips the Claude prose.
 
-Outcome capture is disabled by default. Enable `FITTY_OUTCOME_CAPTURE_ENABLED=true` only after Supabase Auth, the Phase 6 migration, and the published consent text are in place. Keep `FITTY_CAPTURE_ALLOW_UNSIGNED_SUBJECT=false` in all hosted environments.
+Outcome capture is disabled by default. Enable `ADMIRA_OUTCOME_CAPTURE_ENABLED=true` only after Supabase Auth, the Phase 6 migration, and the published consent text are in place. Keep `ADMIRA_CAPTURE_ALLOW_UNSIGNED_SUBJECT=false` in all hosted environments.
+
+## Renamed env vars (Fitty -> Admira)
+
+Update every deployed environment after the product rename:
+
+```text
+FITTY_OUTCOME_CAPTURE_ENABLED -> ADMIRA_OUTCOME_CAPTURE_ENABLED
+FITTY_FIT_FINDER_ENABLED -> ADMIRA_FIT_FINDER_ENABLED
+FITTY_RLS_TARGET -> ADMIRA_RLS_TARGET
+FITTY_REAL_MODEL_ENABLED -> ADMIRA_REAL_MODEL_ENABLED
+FITTY_CAPTURE_ALLOW_UNSIGNED_SUBJECT -> ADMIRA_CAPTURE_ALLOW_UNSIGNED_SUBJECT
+NEXT_PUBLIC_FITTY_ANALYTICS_DEBUG -> NEXT_PUBLIC_ADMIRA_ANALYTICS_DEBUG
+```
 
 ## Supabase Setup
 
@@ -79,7 +92,7 @@ npm run fit:embed
 npm run fit:embedding-sanity
 ```
 
-Only after those pass should you set `FITTY_FIT_FINDER_ENABLED=true`.
+Only after those pass should you set `ADMIRA_FIT_FINDER_ENABLED=true`.
 
 ## Vercel Deployment
 
@@ -92,13 +105,13 @@ npm run build
 ```
 
 4. Deploy after the Supabase migration and data population steps have completed.
-5. For Fit Finder, verify Phase 1 enrichment and embeddings on the target project, set `FITTY_FIT_FINDER_ENABLED=true`, and confirm `GET /api/fit/status` returns `{ "enabled": true }`.
+5. For Fit Finder, verify Phase 1 enrichment and embeddings on the target project, set `ADMIRA_FIT_FINDER_ENABLED=true`, and confirm `GET /api/fit/status` returns `{ "enabled": true }`.
 
 The browser school search uses `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY`. The server route `/api/chance` uses `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` to load the selected school before applying the checked-in TypeScript inference artifact.
 
-`/api/fit` and `/api/fit/explain` return 404 unless `FITTY_FIT_FINDER_ENABLED=true`. `/api/fit/explain` returns a fallback response when `ANTHROPIC_API_KEY` is not configured, so the product remains usable with structured reasons only.
+`/api/fit` and `/api/fit/explain` return 404 unless `ADMIRA_FIT_FINDER_ENABLED=true`. `/api/fit/explain` returns a fallback response when `ANTHROPIC_API_KEY` is not configured, so the product remains usable with structured reasons only.
 
-`FITTY_REAL_MODEL_ENABLED=true` switches `/api/chance` to `lib/model/artifacts.real.json` behind the same request/response contract. Leave it off until `pipeline/train_real.py --source supabase --export-active` has been run on enough consented outcomes and the calibration report has been reviewed.
+`ADMIRA_REAL_MODEL_ENABLED=true` switches `/api/chance` to `lib/model/artifacts.real.json` behind the same request/response contract. Leave it off until `pipeline/train_real.py --source supabase --export-active` has been run on enough consented outcomes and the calibration report has been reviewed.
 
 ## Pre-Deploy Verification
 

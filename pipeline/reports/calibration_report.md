@@ -1,6 +1,6 @@
 # Calibration Report
 
-This report is for Fitty's Phase 2 synthetic public-data prior model, not real-outcome accuracy.
+This report is for Admira's Phase 2 synthetic public-data prior model, not real-outcome accuracy.
 
 ![Reliability curve](reliability_curve.png)
 

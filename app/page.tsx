@@ -1,15 +1,15 @@
 import type { Metadata } from "next";
 
-import { FittyApp } from "./fitty-app";
+import { AdmiraApp } from "./admira-app";
 
 export const metadata: Metadata = {
   title: {
-    absolute: "Fit and Honest Chance | Fitty",
+    absolute: "Fit and Honest Chance | Admira",
   },
   description:
-    "Fitty renders school fit evidence beside honest college admissions chance ranges.",
+    "Admira renders school fit evidence beside honest college admissions chance ranges.",
 };
 
 export default function Home() {
-  return <FittyApp />;
+  return <AdmiraApp />;
 }

@@ -31,12 +31,12 @@ export function trackEvent(
 ) {
   if (
     typeof window === "undefined" ||
-    process.env.NEXT_PUBLIC_FITTY_ANALYTICS_DEBUG !== "true"
+    process.env.NEXT_PUBLIC_ADMIRA_ANALYTICS_DEBUG !== "true"
   ) {
     return;
   }
 
-  console.info("[fitty-analytics]", {
+  console.info("[admira-analytics]", {
     event,
     properties: sanitizeAnalyticsProperties(properties),
   });

@@ -117,12 +117,12 @@ button {
   background: var(--chance-wash);
 }
 
-.fitty-shell {
+.admira-shell {
   min-height: 100vh;
   padding: 28px;
 }
 
-.fitty-frame {
+.admira-frame {
   margin: 0 auto;
   width: min(1480px, 100%);
 }
@@ -1780,7 +1780,7 @@ button {
 }
 
 @media (max-width: 720px) {
-  .fitty-shell {
+  .admira-shell {
     padding: 16px;
   }
 

@@ -87,7 +87,7 @@ const mitChanceResponse = {
       kind: "direction_only",
       direction:
         "Could matter at some schools, but no usable published ED/RD spread is loaded here.",
-      note: "Fitty does not invent an ED or EA number when the published rates are missing.",
+      note: "Admira does not invent an ED or EA number when the published rates are missing.",
     },
     {
       id: "essays",
@@ -252,7 +252,7 @@ const fitFinderResponse = {
           kind: "direction_only",
           direction:
             "Could matter at some schools, but no usable published ED/RD spread is loaded here.",
-          note: "Fitty does not invent an ED or EA number when the published rates are missing.",
+          note: "Admira does not invent an ED or EA number when the published rates are missing.",
         },
         {
           id: "essays",
@@ -388,7 +388,7 @@ async function mockSupabaseAuth(page: Page) {
     "access-control-allow-origin": "*",
   };
 
-  await page.route("https://fitty-test.supabase.co/auth/v1/**", async (route) => {
+  await page.route("https://admira-test.supabase.co/auth/v1/**", async (route) => {
     if (route.request().method() === "OPTIONS") {
       await route.fulfill({ headers: corsHeaders, status: 204 });
       return;
@@ -619,7 +619,7 @@ test("records consent, profile, and one outcome through the enabled capture flow
 
   const consentCopy = await captureFlow.getByTestId("outcome-consent-text").innerText();
   const consentCheckbox = captureFlow.getByLabel(
-    "I agree to share these optional records with Fitty.",
+    "I agree to share these optional records with Admira.",
   );
   await expect(consentCheckbox).not.toBeChecked();
   await expect(
@@ -749,7 +749,7 @@ test("exports, revokes, and deletes signed-in outcome data with confirmation", a
   const downloadPromise = page.waitForEvent("download");
   await controls.getByRole("button", { name: "Export my data" }).click();
   const download = await downloadPromise;
-  expect(download.suggestedFilename()).toBe("fitty-my-data.json");
+  expect(download.suggestedFilename()).toBe("admira-my-data.json");
   expect(exportRequests).toBe(1);
   await expect(controls).toContainText("phase-7-capture-ui-v1");
 
@@ -851,7 +851,7 @@ test("runs Fit Finder, renders grounded prose, and adds a school to the list", a
   await expect(page.getByText(/your chance/i)).toHaveCount(0);
   expect(explainRequests).toBe(1);
 
-  await finder.getByRole("button", { name: "Add to my Fitty list" }).click();
+  await finder.getByRole("button", { name: "Add to my Admira list" }).click();
   await expect(page.getByTestId("result-card")).toContainText(
     "Massachusetts Institute of Technology",
   );
@@ -899,7 +899,7 @@ test("renders an honest elite-school result and methodology disclosure", async (
   await mockFitStatus(page, false);
   await page.goto("/");
 
-  await expect(page).toHaveTitle(/Fit and Honest Chance \| Fitty/);
+  await expect(page).toHaveTitle(/Fit and Honest Chance \| Admira/);
   await page.getByLabel("GPA").fill("3.95");
   await page.getByLabel("SAT").fill("1540");
   await page.getByRole("textbox", { exact: true, name: "ACT" }).fill("35");
@@ -939,7 +939,7 @@ test("renders an honest elite-school result and methodology disclosure", async (
 
   await page.getByRole("link", { exact: true, name: "Methodology" }).click();
   await expect(page).toHaveURL(/\/methodology$/);
-  await expect(page).toHaveTitle(/Methodology \| Fitty/);
+  await expect(page).toHaveTitle(/Methodology \| Admira/);
   await expect(
     page.getByRole("heading", { name: /hard accuracy ceiling/i }),
   ).toBeVisible();

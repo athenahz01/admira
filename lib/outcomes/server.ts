@@ -5,7 +5,7 @@ import { createSupabaseServiceRoleClient } from "@/lib/supabase-server";
 const subjectHeader = "x-fitty-subject-id";
 
 export function outcomeCaptureEnabled() {
-  return process.env.FITTY_OUTCOME_CAPTURE_ENABLED === "true";
+  return process.env.ADMIRA_OUTCOME_CAPTURE_ENABLED === "true";
 }
 
 export function captureDisabledResponse() {
@@ -17,7 +17,7 @@ export function captureDisabledResponse() {
 
 export async function subjectIdFromRequest(request: Request) {
   const allowUnsigned =
-    process.env.FITTY_CAPTURE_ALLOW_UNSIGNED_SUBJECT === "true" &&
+    process.env.ADMIRA_CAPTURE_ALLOW_UNSIGNED_SUBJECT === "true" &&
     process.env.NODE_ENV !== "production";
 
   if (allowUnsigned) {

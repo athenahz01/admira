@@ -8,10 +8,10 @@ import { MethodologyAnalytics } from "./methodology-analytics";
 
 export const metadata: Metadata = {
   title: {
-    absolute: "Methodology | Fitty",
+    absolute: "Methodology | Admira",
   },
   description:
-    "How Fitty builds admissions ranges, where the model is weakest, and what applicant context it never uses.",
+    "How Admira builds admissions ranges, where the model is weakest, and what applicant context it never uses.",
 };
 
 const unmodeledFactors = [
@@ -51,24 +51,24 @@ function formatSpan(value: number | null) {
 
 export default function MethodologyPage() {
   return (
-    <main className="fitty-shell">
+    <main className="admira-shell">
       <MethodologyAnalytics />
-      <div className="fitty-frame methodology-frame">
+      <div className="admira-frame methodology-frame">
         <header className="app-topbar">
           <div className="brand-mark">
             <div className="brand-sigil" aria-hidden="true">
-              F
+              A
             </div>
             <div className="brand-copy">
               <h1>Methodology</h1>
               <p>
-                Fitty pairs school-fit evidence with chance ranges, and keeps
+                Admira pairs school-fit evidence with chance ranges, and keeps
                 both honest about what public data can and cannot see.
               </p>
             </div>
           </div>
           <Link className="method-link" href="/">
-            Back to Fitty
+            Back to Admira
           </Link>
         </header>
 
@@ -76,7 +76,7 @@ export default function MethodologyPage() {
           <div>
             <div className="section-kicker">Public prior, not prophecy</div>
             <h2 id="methodology-title" className="methodology-title">
-              Fitty shows chance as a range, FIT as profile overlap, and the
+              Admira shows chance as a range, FIT as profile overlap, and the
               unseen factors beside both.
             </h2>
           </div>
@@ -92,7 +92,7 @@ export default function MethodologyPage() {
             <div className="section-kicker">What it does</div>
             <h3 className="section-title">Range first, point second.</h3>
             <p className="method-copy">
-              Fitty combines public College Scorecard fields, selectivity tiers,
+              Admira combines public College Scorecard fields, selectivity tiers,
               test ranges, school context, and seeded CDS C7 admissions
               priorities into an 80% prior interval. The single probability is
               shown only as a marker inside that interval because the interval
@@ -118,7 +118,7 @@ export default function MethodologyPage() {
             </h3>
             <p className="method-copy">
               At highly selective and elite schools, many decisive factors are
-              invisible in public data. Fitty can frame uncertainty, but it
+              invisible in public data. Admira can frame uncertainty, but it
               cannot reliably predict one student&apos;s individual outcome at
               sub-20 admit-rate institutions.
             </p>
@@ -150,7 +150,7 @@ export default function MethodologyPage() {
             <div className="section-kicker">Data boundaries</div>
             <h3 className="section-title">Race and ethnicity are never used.</h3>
             <p className="method-copy">
-              Fitty excludes race and ethnicity by design. The app does not sell
+              Admira excludes race and ethnicity by design. The app does not sell
               personal data, and its analytics wrapper is off by default and
               restricted to non-identifying product events.
             </p>
@@ -174,7 +174,7 @@ export default function MethodologyPage() {
               preferences with each school&apos;s published attributes: programs,
               size, setting, region, public outcomes, and published cost. It
               uses text embeddings to find nearby school records, then attaches
-              the same honest chancing range Fitty uses elsewhere.
+              the same honest chancing range Admira uses elsewhere.
             </p>
             <ul className="method-list">
               <li>

@@ -10,7 +10,7 @@ export type FeatureLever = {
 /*
  * These tags power the downstream lever map and disclosure UI. Phase 1 only
  * stores the metadata; later phases use it to separate movable choices from
- * locked profile context and factors Fitty cannot observe from public data.
+ * locked profile context and factors Admira cannot observe from public data.
  */
 export const featureLevers = [
   {

@@ -14,10 +14,10 @@ export default defineConfig({
   webServer: {
     command: "npm run dev -- --hostname 127.0.0.1 --port 3100",
     env: {
-      NEXT_PUBLIC_FITTY_ANALYTICS_DEBUG: "true",
-      NEXT_PUBLIC_FITTY_USE_LOCAL_SCHOOL_FIXTURE: "true",
-      NEXT_PUBLIC_SUPABASE_URL: "https://fitty-test.supabase.co",
-      NEXT_PUBLIC_SUPABASE_ANON_KEY: "fitty-anon-test-key",
+      NEXT_PUBLIC_ADMIRA_ANALYTICS_DEBUG: "true",
+      NEXT_PUBLIC_ADMIRA_USE_LOCAL_SCHOOL_FIXTURE: "true",
+      NEXT_PUBLIC_SUPABASE_URL: "https://admira-test.supabase.co",
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: "admira-anon-test-key",
     },
     reuseExistingServer: false,
     timeout: 120_000,

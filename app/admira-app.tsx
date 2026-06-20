@@ -248,7 +248,7 @@ const initialFitPreferences: FitPreferences = {
 
 const labelOrder: BandLabel[] = ["reach", "target", "likely"];
 const useLocalSchoolFixture =
-  process.env.NEXT_PUBLIC_FITTY_USE_LOCAL_SCHOOL_FIXTURE === "true";
+  process.env.NEXT_PUBLIC_ADMIRA_USE_LOCAL_SCHOOL_FIXTURE === "true";
 
 function numberOrUndefined(value: string) {
   if (value.trim() === "") {
@@ -366,7 +366,9 @@ function useTheme() {
   const [theme, setTheme] = useState<"light" | "dark">("light");
 
   useEffect(() => {
-    const stored = window.localStorage.getItem("fitty-theme");
+    const stored =
+      window.localStorage.getItem("admira-theme") ??
+      window.localStorage.getItem("fitty-theme");
     const nextTheme = stored === "dark" ? "dark" : "light";
     setTheme(nextTheme);
     document.documentElement.dataset.theme = nextTheme;
@@ -376,7 +378,7 @@ function useTheme() {
     setTheme((current) => {
       const next = current === "light" ? "dark" : "light";
       document.documentElement.dataset.theme = next;
-      window.localStorage.setItem("fitty-theme", next);
+      window.localStorage.setItem("admira-theme", next);
       return next;
     });
   }
@@ -384,7 +386,7 @@ function useTheme() {
   return { theme, toggleTheme };
 }
 
-export function FittyApp() {
+export function AdmiraApp() {
   const { theme, toggleTheme } = useTheme();
   const [profile, setProfile] = useState<Profile>(initialProfile);
   const [schoolQuery, setSchoolQuery] = useState("");
@@ -598,15 +600,15 @@ export function FittyApp() {
     .filter((result): result is ChanceResponse => Boolean(result));
 
   return (
-    <main className="fitty-shell">
-      <div className="fitty-frame">
+    <main className="admira-shell">
+      <div className="admira-frame">
         <header className="app-topbar">
           <div className="brand-mark">
             <div className="brand-sigil" aria-hidden="true">
-              F
+              A
             </div>
             <div className="brand-copy">
-              <h1>Fitty</h1>
+              <h1>Admira</h1>
               <p>
                 Fit evidence and honest chance ranges, side by side.
               </p>
@@ -834,7 +836,7 @@ function ProfilePanel({
         ) : null}
         {noAcademicInput ? (
           <p className="helper">
-            No submitted SAT or ACT is being sent. Fitty will still respond, but
+            No submitted SAT or ACT is being sent. Admira will still respond, but
             the band is widened and marked low input confidence.
           </p>
         ) : null}
@@ -1320,7 +1322,7 @@ function FitResultCard({
           onClick={handleAddSchool}
         >
           <Plus size={16} />
-          {alreadyAdded ? "Added" : "Add to my Fitty list"}
+          {alreadyAdded ? "Added" : "Add to my Admira list"}
         </button>
       </div>
 
@@ -1704,7 +1706,7 @@ function ClimbLeversPanel({ levers }: { levers: ClimbLever[] }) {
 function CannotSeePanel() {
   return (
     <section className="cannot-see-panel" data-testid="cannot-see-panel">
-      <div className="section-kicker">What Fitty can&apos;t see</div>
+      <div className="section-kicker">What Admira can&apos;t see</div>
       <ul className="blind-spot-list" aria-label="Unmodeled application factors">
         <li>Essays</li>
         <li>Recommendations</li>
@@ -1953,7 +1955,7 @@ function LoadingCard({
       </div>
       <div className="skeleton-band mt-4" />
       <p className="helper">
-        Fitty is waiting for the interval. No temporary number is shown.
+        Admira is waiting for the interval. No temporary number is shown.
       </p>
     </article>
   );
@@ -2251,7 +2253,7 @@ function EmptyState() {
       <FileSearch size={28} aria-hidden="true" />
       <h2 className="empty-title mt-4">Start with one school record.</h2>
       <p className="muted mt-3 max-w-2xl">
-        Search the public schools table, add a target, and Fitty will render the
+        Search the public schools table, add a target, and Admira will render the
         interval first. The point estimate will only appear as a marker inside
         the band.
       </p>

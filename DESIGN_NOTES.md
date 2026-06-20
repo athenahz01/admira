@@ -1,4 +1,4 @@
-# Fitty Design Notes
+# Admira Design Notes
 
 ## Direction
 

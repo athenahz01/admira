@@ -26,14 +26,14 @@ const spaceMono = Space_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "Fitty | Fit and Honest Chance",
-    template: "%s | Fitty",
+    default: "Admira | Fit and Honest Chance",
+    template: "%s | Admira",
   },
   description:
     "Honest college admissions odds rendered as public-data prior ranges, levers, and uncertainty disclosures.",
-  applicationName: "Fitty",
+  applicationName: "Admira",
   openGraph: {
-    title: "Fitty | Fit and Honest Chance",
+    title: "Admira | Fit and Honest Chance",
     description:
       "College admissions planning ranges grounded in public data, with clear limits on what cannot be known.",
     type: "website",

@@ -148,7 +148,7 @@ function buildRoundLever(input: LeverInput, school: InferenceSchool): ClimbLever
     kind: "direction_only",
     direction:
       "Could matter at some schools, but no usable published ED/RD spread is loaded here.",
-    note: "Fitty does not invent an ED or EA number when the published rates are missing.",
+    note: "Admira does not invent an ED or EA number when the published rates are missing.",
   };
 }
 
