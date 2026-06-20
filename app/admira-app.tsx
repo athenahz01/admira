@@ -2,8 +2,10 @@
 
 import Link from "next/link";
 import {
+  AlertTriangle,
   BookOpen,
   Check,
+  CircleHelp,
   Compass,
   FileSearch,
   Loader2,
@@ -609,9 +611,7 @@ export function AdmiraApp() {
             </div>
             <div className="brand-copy">
               <h1>Admira</h1>
-              <p>
-                Fit evidence and honest chance ranges, side by side.
-              </p>
+              <p>honest college chances</p>
             </div>
           </div>
           <div className="topbar-actions">
@@ -624,8 +624,10 @@ export function AdmiraApp() {
               onClick={toggleTheme}
               aria-label={`Switch to ${theme === "light" ? "dark" : "light"} mode`}
             >
-              {theme === "light" ? <Moon size={17} /> : <Sun size={17} />}
-              <span>{theme === "light" ? "Dark paper" : "Light paper"}</span>
+              {theme === "light" ? <Moon size={16} /> : <Sun size={16} />}
+              <span className="theme-switch-label">
+                {theme === "light" ? "Dark" : "Light"}
+              </span>
             </button>
           </div>
         </header>
@@ -1316,7 +1318,7 @@ function FitResultCard({
           <BandPill label={result.band.label} />
         </div>
         <button
-          className="capture-secondary"
+          className="add-button fit-add-button"
           type="button"
           disabled={alreadyAdded}
           onClick={handleAddSchool}
@@ -1326,15 +1328,15 @@ function FitResultCard({
         </button>
       </div>
 
-      <div className="fit-card-grid">
+      <div className="fit-card-flow">
         {result.fit_score ? <FitScorePanel fitScore={result.fit_score} /> : null}
-        <div className="fit-range-block">
+        <section className="fit-range-block">
           <div className="range-readout">
+            <span className="range-title">
+              Where {result.school.name} lands for you
+            </span>
             <span className="range-value">
               {formatChanceRange(result.probability.low, result.probability.high)}
-            </span>
-            <span className="point-note">
-              tick ~{formatPercentPrecise(result.probability.calibrated)}
             </span>
           </div>
           <RangeBand
@@ -1351,16 +1353,14 @@ function FitResultCard({
             point={result.probability.calibrated}
             label={result.band.label}
           />
-        </div>
+        </section>
+        <FitExplanation explanation={explanation} />
+        <WideRangeCallout />
+        {result.climb_levers ? (
+          <ClimbLeversPanel levers={result.climb_levers} />
+        ) : null}
+        <CannotSeePanel />
       </div>
-
-      <WideRangeCallout />
-
-      {result.climb_levers ? (
-        <ClimbLeversPanel levers={result.climb_levers} />
-      ) : null}
-
-      <CannotSeePanel />
 
       <div className="fit-reason-grid">
         <FitReasonList title="Matched" items={result.match_reasons.matched} />
@@ -1374,7 +1374,6 @@ function FitResultCard({
         </span>
       </div>
 
-      <FitExplanation explanation={explanation} />
     </article>
   );
 }
@@ -1486,10 +1485,10 @@ function FitScorePanel({ fitScore }: { fitScore: FitScore }) {
 
   return (
     <section className="fit-score-panel" data-testid="fit-score-panel">
-      <div>
+      <div className="fit-score-intro">
         <div className="section-kicker">Fit overlap</div>
         <h4 className="section-title text-[22px]">
-          You fit the shape where the data can see it.
+          You fit the shape, except where it is hardest.
         </h4>
         <p className="helper">
           FIT is not an admit probability. It is an equal-weight overlap across
@@ -1499,7 +1498,7 @@ function FitScorePanel({ fitScore }: { fitScore: FitScore }) {
       <div className="fit-score-layout">
         <FitRadar fitScore={fitScore} />
         <div className="fit-score-readout">
-          <FitPill fitScore={fitScore} />
+          <FitOverlapVenn fitScore={fitScore} />
           <span className="coverage-label">{fitScore.coverage.label}</span>
           {fitScore.coverage.reduced ? (
             <p className="helper">
@@ -1510,6 +1509,30 @@ function FitScorePanel({ fitScore }: { fitScore: FitScore }) {
       </div>
       <FitDimensionRows axes={fitScore.axes} />
     </section>
+  );
+}
+
+function FitOverlapVenn({ fitScore }: { fitScore: FitScore }) {
+  if (fitScore.score === null) {
+    return null;
+  }
+
+  return (
+    <figure
+      className="fit-overlap-venn"
+      role="img"
+      aria-label={`FIT ${fitScore.score}, profile overlap score, not an admit probability`}
+    >
+      <div className="venn-circles" aria-hidden="true">
+        <span className="venn-circle profile" />
+        <span className="venn-circle typical" />
+        <strong>{fitScore.score}</strong>
+      </div>
+      <figcaption>
+        Your profile in green over the admitted class in indigo. The overlap is
+        the score.
+      </figcaption>
+    </figure>
   );
 }
 
@@ -1601,6 +1624,8 @@ function FitDimensionRows({ axes }: { axes: FitScoreAxis[] }) {
         <li key={axis.key} data-status={axis.status}>
           <span className="dimension-status">
             {axis.status === "good" ? <Check size={14} /> : null}
+            {axis.status === "caution" ? <AlertTriangle size={14} /> : null}
+            {axis.status === "unknown" ? <CircleHelp size={14} /> : null}
             {axis.status === "good"
               ? "Good"
               : axis.status === "caution"
@@ -1643,15 +1668,20 @@ function ReachLadder({
       aria-label={`Reach ladder: interval ${formatChanceRange(low, high)}, tick ${formatPercentPrecise(point)}, interval-derived label ${label}.`}
     >
       <div className="micro-label">Reach ladder</div>
-      <div className="ladder-track">
-        <span className="ladder-zone reach">Reach</span>
-        <span className="ladder-zone target">Target</span>
-        <span className="ladder-zone likely">Likely</span>
+      <div className="ladder-track" aria-hidden="true">
+        <span className="ladder-zone reach" />
+        <span className="ladder-zone target" />
+        <span className="ladder-zone likely" />
         <span
           className="ladder-band"
           style={{ left: `${left}%`, width: `${width}%` }}
         />
         <span className="ladder-tick" style={{ left: `${pointLeft}%` }} />
+      </div>
+      <div className="ladder-labels" aria-hidden="true">
+        <span className="reach">Reach</span>
+        <span className="target">Target</span>
+        <span className="likely">Likely</span>
       </div>
       <p className="scale-caption">
         Ladder position follows the interval, not a label we picked.
@@ -2003,9 +2033,6 @@ function ResultCard({
           <div className="range-readout">
             <span className="range-value">
               {formatChanceRange(result.probability.low, result.probability.high)}
-            </span>
-            <span className="point-note">
-              tick ~{formatPercentPrecise(result.probability.calibrated)}
             </span>
             <span className="label-pill">{profileConfidence}</span>
           </div>
