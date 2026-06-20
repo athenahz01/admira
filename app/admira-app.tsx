@@ -1897,6 +1897,20 @@ function fallbackClimbLevers(): ClimbLever[] {
   ];
 }
 
+function formatTier(tier: string | null) {
+  if (!tier) {
+    return "Tier unknown";
+  }
+  return tier
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
+
+function schoolInitial(name: string) {
+  const cleaned = name.replace(/^The\s+/i, "").trim();
+  return (cleaned[0] ?? "?").toUpperCase();
+}
+
 function SchoolSearchPanel({
   query,
   setQuery,
@@ -1943,22 +1957,53 @@ function SchoolSearchPanel({
           {status !== "idle" ? (
             <div className="search-results" role="listbox">
               {status === "loading" ? (
-                <div className="search-result">
-                  <span className="muted">Searching public school table...</span>
+                <div className="search-loading">
+                  <div className="search-results-head">Searching_</div>
+                  {[0, 1, 2].map((row) => (
+                    <div className="search-skeleton-row" key={row} aria-hidden="true">
+                      <span className="search-skeleton-sigil" />
+                      <span className="search-skeleton-lines">
+                        <span />
+                        <span />
+                      </span>
+                    </div>
+                  ))}
                 </div>
               ) : null}
               {status === "error" ? (
-                <div className="search-result">
+                <div className="search-empty">
+                  <div className="search-empty-icon" aria-hidden="true">
+                    <AlertTriangle size={18} />
+                  </div>
+                  <strong>Search could not run</strong>
                   <span className="muted">{error}</span>
                 </div>
               ) : null}
               {status === "ready" && results.length === 0 ? (
-                <div className="search-result">
-                  <span className="muted">No matching schools found.</span>
+                <div className="search-empty">
+                  <div className="search-empty-icon" aria-hidden="true">
+                    <Search size={18} />
+                  </div>
+                  <strong>No match for &ldquo;{query}&rdquo;</strong>
+                  <span className="muted">
+                    Admira only covers accredited U.S. colleges with published
+                    admit data. Try a different name.
+                  </span>
+                  <button
+                    type="button"
+                    className="search-request"
+                    onClick={() => setQuery("")}
+                  >
+                    Request a school
+                  </button>
                 </div>
               ) : null}
-              {status === "ready"
-                ? results.map((school) => {
+              {status === "ready" && results.length > 0 ? (
+                <>
+                  <div className="search-results-head">
+                    {results.length} {results.length === 1 ? "school" : "schools"}
+                  </div>
+                  {results.map((school) => {
                     const alreadyAdded = addedUnitids.includes(school.unitid);
                     return (
                       <button
@@ -1968,16 +2013,28 @@ function SchoolSearchPanel({
                         disabled={alreadyAdded}
                         onClick={() => onAdd(school)}
                       >
-                        <strong>{school.name}</strong>
-                        <span className="helper">
-                          {school.state ?? "State unknown"} -{" "}
-                          {school.selectivity_tier ?? "tier unknown"}
-                          {alreadyAdded ? " - already added" : ""}
+                        <span className="search-sigil" aria-hidden="true">
+                          {schoolInitial(school.name)}
+                        </span>
+                        <span className="search-result-copy">
+                          <strong>{school.name}</strong>
+                          <span className="helper">
+                            {school.state ?? "State unknown"} &middot;{" "}
+                            {formatTier(school.selectivity_tier)}
+                          </span>
+                        </span>
+                        <span
+                          className="search-add"
+                          data-added={alreadyAdded ? "true" : undefined}
+                          aria-hidden="true"
+                        >
+                          {alreadyAdded ? <Check size={15} /> : <Plus size={15} />}
                         </span>
                       </button>
                     );
-                  })
-                : null}
+                  })}
+                </>
+              ) : null}
             </div>
           ) : null}
         </div>
