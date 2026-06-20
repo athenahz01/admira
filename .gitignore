@@ -47,3 +47,4 @@ next-env.d.ts
 
 # Redesign screenshot harness and scratch
 tmp/
+test-results/
