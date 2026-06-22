@@ -182,6 +182,8 @@ type FitResponse = {
   balance: Record<BandLabel, number> & {
     note: string;
   };
+  weak_program_match?: boolean;
+  top_program_fit?: number | null;
   disclaimers: string[];
 };
 
@@ -220,8 +222,18 @@ type FitScoreAxis = {
   note: string;
 };
 
+type FitProgramMatch = {
+  matched_concepts: number;
+  total_concepts: number;
+  matched_terms: string[];
+  strong: boolean;
+};
+
 type FitScore = {
   score: number | null;
+  program_fit?: number | null;
+  academic_fit?: number | null;
+  program_match?: FitProgramMatch;
   axes: FitScoreAxis[];
   coverage: {
     known: number;
@@ -1720,6 +1732,20 @@ function FitFinderResults({
   onAddSchool: (school: SchoolSearchRow) => void;
   addedUnitids: number[];
 }) {
+  const [openIds, setOpenIds] = useState<Set<number>>(new Set());
+
+  function toggle(unitid: number) {
+    setOpenIds((current) => {
+      const next = new Set(current);
+      if (next.has(unitid)) {
+        next.delete(unitid);
+      } else {
+        next.add(unitid);
+      }
+      return next;
+    });
+  }
+
   if (status === "idle") {
     return (
       <div className="fit-empty">
@@ -1751,7 +1777,7 @@ function FitFinderResults({
       <div className="fit-empty">
         <p className="helper">
           No schools matched those filters. Try loosening region, size, setting,
-          or published cost.
+          selectivity, graduation rate, or published cost.
         </p>
         <FitDisclaimers disclaimers={response.disclaimers} />
       </div>
@@ -1761,18 +1787,115 @@ function FitFinderResults({
   return (
     <div className="fit-results" data-testid="fit-results">
       <FitBalanceSummary response={response} />
-      {response.results.map((result) => (
-        <FitResultCard
-          key={result.school.unitid}
-          result={result}
-          explanation={explanations[result.school.unitid]}
-          onAddSchool={onAddSchool}
-          alreadyAdded={addedUnitids.includes(result.school.unitid)}
-          resultCount={response.results.length}
-        />
-      ))}
+      {response.weak_program_match ? (
+        <p className="fit-weak-banner" role="status" data-testid="fit-weak-banner">
+          <AlertTriangle size={15} aria-hidden="true" />
+          We do not have strong program matches for this search in the current
+          set. These are the closest schools on other factors. Open a row to see
+          where each one actually fits.
+        </p>
+      ) : null}
+      <ol className="fit-rank-list">
+        {response.results.map((result, index) => (
+          <FitRankRow
+            key={result.school.unitid}
+            result={result}
+            rank={index + 1}
+            open={openIds.has(result.school.unitid)}
+            onToggle={() => toggle(result.school.unitid)}
+            explanation={explanations[result.school.unitid]}
+            onAddSchool={onAddSchool}
+            alreadyAdded={addedUnitids.includes(result.school.unitid)}
+            resultCount={response.results.length}
+          />
+        ))}
+      </ol>
       <FitDisclaimers disclaimers={response.disclaimers} />
     </div>
+  );
+}
+
+function fitRowTone(result: FitResult) {
+  const score = result.fit_score?.program_fit ?? result.fit_score?.score ?? null;
+  if (score === null) {
+    return "Fit read";
+  }
+  if (score >= 80) {
+    return "Strong program fit";
+  }
+  if (score >= 60) {
+    return "Partial program fit";
+  }
+  return "Weak program fit";
+}
+
+function FitRankRow({
+  result,
+  rank,
+  open,
+  onToggle,
+  explanation,
+  onAddSchool,
+  alreadyAdded,
+  resultCount,
+}: {
+  result: FitResult;
+  rank: number;
+  open: boolean;
+  onToggle: () => void;
+  explanation?: FitExplanationState;
+  onAddSchool: (school: SchoolSearchRow) => void;
+  alreadyAdded: boolean;
+  resultCount: number;
+}) {
+  const meta = [result.school.region, result.school.size_band]
+    .filter(Boolean)
+    .join(" · ");
+  const weak = result.fit_score?.program_match
+    ? !result.fit_score.program_match.strong
+    : false;
+
+  return (
+    <li className="fit-rank-item" data-open={open ? "true" : undefined}>
+      <button
+        type="button"
+        className="fit-rank-row"
+        aria-expanded={open}
+        onClick={onToggle}
+      >
+        <span className="fit-rank-index mono">{rank}</span>
+        <span className="result-sigil" aria-hidden="true">
+          {schoolInitial(result.school.name)}
+        </span>
+        <span className="fit-rank-copy">
+          <strong>{result.school.name}</strong>
+          <span className="helper">
+            {[meta, fitRowTone(result)].filter(Boolean).join(" · ")}
+          </span>
+        </span>
+        <span className="fit-rank-pills">
+          <FitPill fitScore={result.fit_score} />
+          <BandPill label={result.band.label} />
+        </span>
+        <ChevronDown
+          className={open ? "fit-rank-chevron open" : "fit-rank-chevron"}
+          size={18}
+          aria-hidden="true"
+        />
+      </button>
+      {weak && !open ? (
+        <p className="fit-rank-weak">Weak program match. Open to see the radar.</p>
+      ) : null}
+      {open ? (
+        <FitResultCard
+          result={result}
+          explanation={explanation}
+          onAddSchool={onAddSchool}
+          alreadyAdded={alreadyAdded}
+          resultCount={resultCount}
+        />
+      ) : null}
+    </li>
   );
 }
 
@@ -1861,6 +1984,8 @@ function FitResultCard({
       </div>
 
       <p className="result-verdict">{verdict}</p>
+
+      {result.fit_score ? <FitScoreSplit fitScore={result.fit_score} /> : null}
 
       <div className="fit-card-flow">
         {result.fit_score ? <FitScorePanel fitScore={result.fit_score} /> : null}
@@ -2019,6 +2144,38 @@ function FitPill({ fitScore }: { fitScore?: FitScore | null }) {
     >
       FIT {fitScore.score}
     </span>
+  );
+}
+
+function FitScoreSplit({ fitScore }: { fitScore: FitScore }) {
+  const programFit = fitScore.program_fit ?? fitScore.score;
+  const academicFit = fitScore.academic_fit ?? null;
+  if (programFit === null && academicFit === null) {
+    return null;
+  }
+  const weak =
+    fitScore.program_match && !fitScore.program_match.strong && programFit !== null;
+
+  return (
+    <div className="fit-score-split">
+      <div className="fit-score-cell fit-score-cell-program" data-weak={weak ? "true" : undefined}>
+        <span className="micro-label">Program fit</span>
+        <strong className="mono">{programFit ?? "n/a"}</strong>
+        <span className="helper">
+          {weak
+            ? "Weak match to the programs you asked for."
+            : "How well the programs match what you asked for."}
+        </span>
+      </div>
+      <div className="fit-score-cell">
+        <span className="micro-label">Academic fit</span>
+        <strong className="mono">{academicFit ?? "n/a"}</strong>
+        <span className="helper">Your stats against this school&rsquo;s band.</span>
+      </div>
+      <p className="fit-score-split-note">
+        Both are profile overlap, not admit chances. The chance range is below.
+      </p>
+    </div>
   );
 }
 

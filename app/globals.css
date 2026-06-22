@@ -2034,6 +2034,198 @@ button {
   height: 72px;
 }
 
+/* Collapsible ranked Fit Finder list */
+.fit-weak-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0;
+  border-radius: var(--r-panel);
+  background: var(--chance-wash);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--chance-primary) 22%, transparent);
+  color: var(--chance-ink);
+  padding: 12px 14px;
+  text-wrap: pretty;
+}
+
+.fit-weak-banner svg {
+  flex: none;
+  margin-top: 2px;
+  color: var(--chance-primary);
+}
+
+.fit-rank-list {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.fit-rank-item {
+  border-radius: var(--r-panel);
+  background: var(--surface-soft);
+  box-shadow: inset 0 0 0 1px var(--rule);
+  overflow: hidden;
+}
+
+.fit-rank-item[data-open="true"] {
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--fit-teal) 32%, transparent);
+}
+
+.fit-rank-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+  padding: 12px 14px;
+  text-align: left;
+  transition-property: background-color;
+  transition-duration: 150ms;
+  transition-timing-function: ease-out;
+}
+
+.fit-rank-row:hover {
+  background: color-mix(in srgb, var(--fit-wash) 50%, transparent);
+}
+
+.fit-rank-index {
+  width: 22px;
+  flex: none;
+  color: var(--faint);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.fit-rank-row .result-sigil {
+  width: 36px;
+  height: 36px;
+  font-size: 16px;
+}
+
+.fit-rank-copy {
+  display: grid;
+  gap: 1px;
+  min-width: 0;
+  flex: 1;
+}
+
+.fit-rank-copy strong {
+  overflow: hidden;
+  font-size: 15px;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fit-rank-copy .helper {
+  overflow: hidden;
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fit-rank-pills {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  flex: none;
+  justify-content: flex-end;
+}
+
+.fit-rank-chevron {
+  flex: none;
+  color: var(--muted);
+  transition-property: rotate;
+  transition-duration: 180ms;
+  transition-timing-function: ease-out;
+}
+
+.fit-rank-chevron.open {
+  rotate: 180deg;
+}
+
+.fit-rank-weak {
+  margin: 0;
+  border-top: 1px solid var(--rule);
+  color: var(--chance-ink);
+  font-size: 12px;
+  padding: 8px 14px;
+}
+
+.fit-rank-item .fit-result-card {
+  margin: 0 8px 8px;
+}
+
+/* Program fit vs academic fit split */
+.fit-score-split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.fit-score-cell {
+  display: grid;
+  gap: 3px;
+  border-radius: var(--r-control);
+  background: var(--warm-card);
+  box-shadow: inset 0 0 0 1px var(--rule);
+  padding: 12px;
+}
+
+.fit-score-cell strong {
+  color: var(--ink);
+  font-size: 26px;
+  line-height: 1;
+}
+
+.fit-score-cell-program {
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--fit-teal) 30%, transparent);
+}
+
+.fit-score-cell-program strong {
+  color: var(--fit-ink);
+}
+
+.fit-score-cell[data-weak="true"] {
+  background: var(--chance-wash);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--chance-primary) 28%, transparent);
+}
+
+.fit-score-cell[data-weak="true"] strong {
+  color: var(--chance-ink);
+}
+
+.fit-score-split-note {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  text-wrap: pretty;
+}
+
+@media (max-width: 720px) {
+  .fit-score-split {
+    grid-template-columns: 1fr;
+  }
+
+  .fit-rank-row {
+    flex-wrap: wrap;
+  }
+
+  .fit-rank-pills {
+    width: 100%;
+    justify-content: flex-start;
+    padding-left: 34px;
+  }
+}
+
 .fit-result-head {
   display: flex;
   align-items: flex-start;

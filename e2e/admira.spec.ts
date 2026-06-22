@@ -525,6 +525,11 @@ async function fillFitFinderForm(page: Page) {
   await finder.getByLabel("Published cost ceiling").fill("30000");
   await finder.getByLabel("Learning notes").fill("project labs");
   await finder.getByRole("button", { name: "Find schools" }).click();
+  // Results render as a collapsed ranked list; expand the school to reveal the
+  // detailed card (radar, range, levers).
+  await finder
+    .getByRole("button", { name: /Massachusetts Institute of Technology/ })
+    .click();
   return finder;
 }
 
