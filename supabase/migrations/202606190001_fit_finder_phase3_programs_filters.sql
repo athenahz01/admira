@@ -14,6 +14,13 @@ alter table public.schools
 -- the public/private control field. Hard filters stay region/size/setting/cost;
 -- selectivity tier, graduation-rate floor, and control are applied in the API
 -- layer so the candidate pool is not starved before ranking by program fit.
+--
+-- Postgres cannot change a function's return type via CREATE OR REPLACE, so drop
+-- the prior (Phase 2) definition first. Same argument signature, new return rows.
+drop function if exists public.match_fit_schools(
+  vector, integer, text, text, text, numeric
+);
+
 create or replace function public.match_fit_schools(
   p_query_embedding vector(384),
   p_match_count integer default 60,
