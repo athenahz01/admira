@@ -196,6 +196,35 @@ describe("Fit Finder matching", () => {
     ).toBe(false);
   });
 
+  it("applies selectivity, control, and graduation-rate filters", () => {
+    const filtered = fitRequestSchema.parse({
+      interests: "computer science",
+      selectivity_tier: "elite",
+      control: "private",
+      min_grad_rate: 0.9,
+      gpa: 3.9,
+      application_round: "regular",
+    });
+
+    expect(schoolMatchesHardFilters(candidate(), filtered)).toBe(true);
+    expect(
+      schoolMatchesHardFilters(
+        candidate({ selectivity_tier: "selective" }),
+        filtered,
+      ),
+    ).toBe(false);
+    expect(
+      schoolMatchesHardFilters(candidate({ control: "public" }), filtered),
+    ).toBe(false);
+    expect(
+      schoolMatchesHardFilters(candidate({ completion_rate: 0.8 }), filtered),
+    ).toBe(false);
+    // Missing graduation data never silently drops a school.
+    expect(
+      schoolMatchesHardFilters(candidate({ completion_rate: null }), filtered),
+    ).toBe(true);
+  });
+
   it("returns chance bands, honest balance counts, and no legacy combined score", () => {
     const response = buildBalancedFitResponse(
       [

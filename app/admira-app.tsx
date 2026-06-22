@@ -165,6 +165,9 @@ type FitPreferences = {
   preferredSize: "" | "small" | "medium" | "large";
   preferredSetting: "" | "city" | "suburb" | "town" | "rural";
   preferredRegion: "" | "Northeast" | "Midwest" | "South" | "West";
+  selectivityTier: "" | "accessible" | "selective" | "highly_selective" | "elite";
+  control: "" | "public" | "private";
+  minGradRate: "" | "0.5" | "0.7" | "0.85";
   costCeiling: string;
   learningStyleNotes: string;
 };
@@ -258,6 +261,9 @@ const initialFitPreferences: FitPreferences = {
   preferredSize: "",
   preferredSetting: "",
   preferredRegion: "",
+  selectivityTier: "",
+  control: "",
+  minGradRate: "",
   costCeiling: "",
   learningStyleNotes: "",
 };
@@ -596,6 +602,13 @@ function buildFitBody(profile: Profile, preferences: FitPreferences) {
       : {}),
     ...(preferences.preferredRegion
       ? { preferred_region: preferences.preferredRegion }
+      : {}),
+    ...(preferences.selectivityTier
+      ? { selectivity_tier: preferences.selectivityTier }
+      : {}),
+    ...(preferences.control ? { control: preferences.control } : {}),
+    ...(preferences.minGradRate
+      ? { min_grad_rate: Number(preferences.minGradRate) }
       : {}),
     ...(costCeiling !== undefined ? { cost_ceiling: costCeiling } : {}),
     ...(preferences.learningStyleNotes.trim()
@@ -1513,6 +1526,39 @@ function FitFinderPanel({
             onChange={(value) => updatePreference("preferredRegion", value)}
           />
 
+          <FitChoiceGroup
+            label="Selectivity tier"
+            value={preferences.selectivityTier}
+            options={[
+              { value: "accessible", label: "Accessible" },
+              { value: "selective", label: "Selective" },
+              { value: "highly_selective", label: "Highly selective" },
+              { value: "elite", label: "Elite" },
+            ]}
+            onChange={(value) => updatePreference("selectivityTier", value)}
+          />
+
+          <FitChoiceGroup
+            label="Public or private"
+            value={preferences.control}
+            options={[
+              { value: "public", label: "Public" },
+              { value: "private", label: "Private" },
+            ]}
+            onChange={(value) => updatePreference("control", value)}
+          />
+
+          <FitChoiceGroup
+            label="Minimum graduation rate"
+            value={preferences.minGradRate}
+            options={[
+              { value: "0.5", label: "50%+" },
+              { value: "0.7", label: "70%+" },
+              { value: "0.85", label: "85%+" },
+            ]}
+            onChange={(value) => updatePreference("minGradRate", value)}
+          />
+
           <label className="control">
             <span className="field-label">Published cost ceiling</span>
             <input
@@ -1615,6 +1661,45 @@ function FitOptionGroup({
             onClick={() => onChange(option)}
           >
             {option}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function FitChoiceGroup({
+  label,
+  value,
+  options,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  options: { value: string; label: string }[];
+  onChange: (value: string) => void;
+}) {
+  return (
+    <div className="control">
+      <span className="field-label">{label}</span>
+      <div className="option-grid" role="group" aria-label={label}>
+        <button
+          className="option-button"
+          type="button"
+          data-active={value === ""}
+          onClick={() => onChange("")}
+        >
+          Any
+        </button>
+        {options.map((option) => (
+          <button
+            className="option-button"
+            type="button"
+            key={option.value}
+            data-active={value === option.value}
+            onClick={() => onChange(option.value)}
+          >
+            {option.label}
           </button>
         ))}
       </div>

@@ -22,11 +22,23 @@ const flattenedFitRequestSchema = z.object({
   preferred_size: z.enum(["small", "medium", "large"]).optional(),
   preferred_setting: z.enum(["city", "suburb", "town", "rural"]).optional(),
   preferred_region: z.enum(["Northeast", "Midwest", "South", "West"]).optional(),
+  selectivity_tier: z
+    .enum(["accessible", "selective", "highly_selective", "elite"])
+    .optional(),
+  control: z.enum(["public", "private"]).optional(),
   cost_ceiling: z
     .preprocess(
       (value) => (value === null || value === "" ? undefined : value),
       z.number().min(0, "cost_ceiling must be at least 0").optional(),
     ),
+  min_grad_rate: z.preprocess(
+    (value) => (value === null || value === "" ? undefined : value),
+    z
+      .number()
+      .min(0, "min_grad_rate must be at least 0")
+      .max(1, "min_grad_rate must be at most 1")
+      .optional(),
+  ),
   learning_style_notes: optionalText(800),
   ...fitProfileSchema.shape,
 });

@@ -167,6 +167,20 @@ export function schoolMatchesHardFilters(
       return false;
     }
   }
+  if (input.selectivity_tier && school.selectivity_tier !== input.selectivity_tier) {
+    return false;
+  }
+  if (input.control && school.control !== input.control) {
+    return false;
+  }
+  if (input.min_grad_rate !== undefined) {
+    const completion = toNumber(school.completion_rate);
+    // Only exclude when a graduation rate is published and falls below the
+    // floor; missing data is never used to silently drop a school.
+    if (completion !== null && completion < input.min_grad_rate) {
+      return false;
+    }
+  }
 
   return true;
 }
@@ -204,6 +218,19 @@ export function buildMatchReasons(
   const currentCostStatus = costStatus(school, input);
   if (currentCostStatus === "within_ceiling") {
     matched.push("cost within ceiling");
+  }
+
+  if (input.selectivity_tier && school.selectivity_tier === input.selectivity_tier) {
+    matched.push(`selectivity ${school.selectivity_tier.replace(/_/g, " ")}`);
+  }
+  if (input.control && school.control === input.control) {
+    matched.push(school.control);
+  }
+  if (input.min_grad_rate !== undefined) {
+    const completion = toNumber(school.completion_rate);
+    if (completion !== null && completion >= input.min_grad_rate) {
+      matched.push(`graduation rate ${Math.round(completion * 100)}%`);
+    }
   }
 
   for (const program of programMatches(input, school.program_areas)) {
