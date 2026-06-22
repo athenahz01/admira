@@ -1,6 +1,13 @@
 import { EMBEDDING_DIM, EMBEDDING_MODEL_ID } from "./embedding-model";
 import { embedFitDocuments } from "./embed-query";
 import type { FitSchoolCandidate } from "./matching";
+import {
+  PROGRAM_FIT_METHOD,
+  PROGRAM_FIT_WEAK_THRESHOLD,
+  academicFitFromAxes,
+  blendProgramFit,
+  keywordProgramScore,
+} from "./program-fit";
 import type { FitRequest } from "./schema";
 
 export const FIT_SCORE_AXIS_KEYS = [
@@ -10,7 +17,7 @@ export const FIT_SCORE_AXIS_KEYS = [
   "interest",
   "rigor",
 ] as const;
-export const FIT_SCORE_METHOD = "equal_weight_known_axis_mean";
+export const FIT_SCORE_METHOD = PROGRAM_FIT_METHOD;
 export const TYPICAL_ADMIT_RADAR_VALUE = 84;
 
 type FitAxisKey = (typeof FIT_SCORE_AXIS_KEYS)[number];
@@ -25,8 +32,18 @@ export type FitScoreAxis = {
   note: string;
 };
 
+export type FitProgramMatch = {
+  matched_concepts: number;
+  total_concepts: number;
+  matched_terms: string[];
+  strong: boolean;
+};
+
 export type FitScore = {
   score: number | null;
+  program_fit: number | null;
+  academic_fit: number | null;
+  program_match: FitProgramMatch;
   axes: FitScoreAxis[];
   coverage: {
     known: number;
@@ -345,16 +362,55 @@ export async function computeFitScore(
     typical: TYPICAL_ADMIT_RADAR_VALUE,
   }));
   const known = axes.filter((axis) => axis.value !== null);
+
+  const axisByKey = new Map(axes.map((axis) => [axis.key, axis.value]));
+
+  // Program/interest fit: the hybrid (keyword + semantic) signal the list is
+  // ranked by. The keyword side reads the school's program lists; the semantic
+  // side is the retrieval cosine (school document vs query).
+  const queryText = textParts(input.intended_major, input.interests).join(". ");
+  const keyword = keywordProgramScore(
+    queryText,
+    school.programs,
+    school.program_areas,
+  );
+  const hasProgramQuery = queryText.length > 0;
+  const programFit = hasProgramQuery
+    ? blendProgramFit(keyword.score, school.similarity)
+    : null;
+
+  // Academic fit: the stats-driven axes only, kept separate so strong stats
+  // can never inflate the headline program match.
+  const academicFit = academicFitFromAxes([
+    axisByKey.get("academics") ?? null,
+    axisByKey.get("selectivity") ?? null,
+    axisByKey.get("rigor") ?? null,
+  ]);
+
+  const programMatch: FitProgramMatch = {
+    matched_concepts: keyword.matchedConcepts,
+    total_concepts: keyword.totalConcepts,
+    matched_terms: keyword.matchedTerms,
+    strong: programFit !== null && programFit >= PROGRAM_FIT_WEAK_THRESHOLD,
+  };
+
+  // Headline FIT reflects program/interest alignment, not stats overlap. When
+  // no program/interest text was given, fall back to the known-axis mean.
   const score =
-    known.length === 0
-      ? null
-      : clampScore(
-          known.reduce((total, axis) => total + (axis.value ?? 0), 0) /
-            known.length,
-        );
+    programFit !== null
+      ? programFit
+      : known.length === 0
+        ? null
+        : clampScore(
+            known.reduce((total, axis) => total + (axis.value ?? 0), 0) /
+              known.length,
+          );
 
   return {
     score,
+    program_fit: programFit,
+    academic_fit: academicFit,
+    program_match: programMatch,
     axes,
     coverage: {
       known: known.length,
@@ -368,6 +424,6 @@ export async function computeFitScore(
       dim: EMBEDDING_DIM,
     },
     note:
-      "FIT is a profile-overlap score, not an admit probability. It is the equal-weight mean of known radar axes; unknown axes are excluded.",
+      "FIT is a profile-overlap score, not an admit probability. The headline is program and interest fit (hybrid keyword plus embedding); academic fit is reported separately and the radar shows every axis.",
   };
 }

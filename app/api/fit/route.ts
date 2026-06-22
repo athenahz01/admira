@@ -91,35 +91,42 @@ export async function POST(request: Request) {
     schoolMatchesHardFilters(school, parsed.data),
   );
   const unitids = candidates.map((candidate) => candidate.unitid);
-  const rateRowsByUnitid = new Map<
+  const extraRowsByUnitid = new Map<
     number,
-    Pick<FitSchoolCandidate, "ed_admit_rate" | "rd_admit_rate">
+    Pick<
+      FitSchoolCandidate,
+      "ed_admit_rate" | "rd_admit_rate" | "programs" | "control"
+    >
   >();
 
   if (unitids.length > 0) {
-    const { data: rateRows, error: rateError } = await supabase
+    const { data: extraRows, error: extraError } = await supabase
       .from("schools")
-      .select("unitid,ed_admit_rate,rd_admit_rate")
+      .select("unitid,ed_admit_rate,rd_admit_rate,programs,control")
       .in("unitid", unitids);
 
-    if (rateError) {
+    if (extraError) {
       return NextResponse.json(
         { error: "Unable to load school lever data." },
         { status: 500 },
       );
     }
 
-    for (const row of rateRows ?? []) {
-      rateRowsByUnitid.set(Number(row.unitid), {
+    for (const row of extraRows ?? []) {
+      extraRowsByUnitid.set(Number(row.unitid), {
         ed_admit_rate: row.ed_admit_rate,
         rd_admit_rate: row.rd_admit_rate,
+        programs: (row.programs as string[] | null) ?? null,
+        control: (row.control as "public" | "private" | null) ?? null,
       });
     }
   }
 
   const enrichedCandidates = candidates.map((candidate) => ({
     ...candidate,
-    ...(rateRowsByUnitid.get(candidate.unitid) ?? {}),
+    programs: candidate.programs ?? null,
+    control: candidate.control ?? null,
+    ...(extraRowsByUnitid.get(candidate.unitid) ?? {}),
   }));
   const candidatesByUnitid = new Map(
     enrichedCandidates.map((candidate) => [candidate.unitid, candidate]),
@@ -148,6 +155,8 @@ export async function POST(request: Request) {
     },
     results,
     balance: balanced.balance,
+    weak_program_match: balanced.weak_program_match,
+    top_program_fit: balanced.top_program_fit,
     disclaimers: FIT_DISCLAIMERS,
   });
 }

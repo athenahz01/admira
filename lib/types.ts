@@ -50,6 +50,8 @@ export type School = {
   c7_factors: C7Factors | null;
   selectivity_tier: SelectivityTier | null;
   program_areas: string[] | null;
+  programs: string[] | null;
+  control: "public" | "private" | null;
   size_band: SchoolSizeBand | null;
   region: SchoolRegion | null;
   net_price_avg: number | null;
@@ -126,6 +128,8 @@ export type Database = {
           School,
           | "updated_at"
           | "program_areas"
+          | "programs"
+          | "control"
           | "size_band"
           | "region"
           | "net_price_avg"
@@ -139,6 +143,8 @@ export type Database = {
             Pick<
               School,
               | "program_areas"
+              | "programs"
+              | "control"
               | "size_band"
               | "region"
               | "net_price_avg"
@@ -220,6 +226,8 @@ export type Database = {
             | "c7_factors"
             | "selectivity_tier"
             | "program_areas"
+            | "programs"
+            | "control"
             | "size_band"
             | "region"
             | "net_price_avg"

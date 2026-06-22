@@ -63,6 +63,8 @@ function candidate(
     net_price_avg: 22000,
     sticker_cost: 82000,
     program_areas: ["Computer and information sciences", "Engineering"],
+    programs: ["Computer Science", "Mechanical Engineering"],
+    control: "private",
     median_earnings_10yr: 95000,
     completion_rate: 0.94,
     ...overrides,

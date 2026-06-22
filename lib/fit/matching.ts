@@ -1,10 +1,15 @@
 import type { FitRequest } from "./schema";
 import { EMBEDDING_DIM } from "./embedding-model";
+import {
+  PROGRAM_FIT_WEAK_THRESHOLD,
+  blendProgramFit,
+  keywordProgramScore,
+} from "./program-fit";
 import type { InferenceSchool } from "../model/inference";
 import { buildChancePayload } from "../model/inference";
 import type { SchoolRegion, SchoolSizeBand, SelectivityTier } from "../types";
 
-export const FIT_CANDIDATE_POOL_SIZE = 30;
+export const FIT_CANDIDATE_POOL_SIZE = 60;
 export const FIT_RESULT_LIMIT = 12;
 
 type BandLabel = "reach" | "target" | "likely";
@@ -19,6 +24,8 @@ export type FitSchoolCandidate = InferenceSchool & {
   net_price_avg: number | null;
   sticker_cost: number | null;
   program_areas: string[] | null;
+  programs: string[] | null;
+  control: "public" | "private" | null;
   median_earnings_10yr: number | null;
   completion_rate: number | null;
   similarity?: number | null;
@@ -267,65 +274,106 @@ export function buildFitResult(
   };
 }
 
-export function balanceFitResults(results: FitResult[], limit = FIT_RESULT_LIMIT) {
-  const buckets = new Map<BandLabel, FitResult[]>(
-    BAND_ORDER.map((label) => [label, []]),
-  );
-
-  for (const result of results) {
-    buckets.get(result.band.label)?.push(result);
-  }
-
-  const selected: FitResult[] = [];
-  while (selected.length < limit) {
-    let added = false;
-    for (const label of BAND_ORDER) {
-      const next = buckets.get(label)?.shift();
-      if (next) {
-        selected.push(next);
-        added = true;
-        if (selected.length >= limit) {
-          break;
-        }
-      }
-    }
-    if (!added) {
-      break;
-    }
-  }
-
-  const counts = {
-    reach: selected.filter((result) => result.band.label === "reach").length,
-    target: selected.filter((result) => result.band.label === "target").length,
-    likely: selected.filter((result) => result.band.label === "likely").length,
-  };
-  const nonzero = BAND_ORDER.filter((label) => counts[label] > 0);
-
-  let note = "Returned a balanced list where the candidate pool allowed it.";
-  if (selected.length === 0) {
-    note = "No schools matched the filters and embedded candidate pool.";
-  } else if (nonzero.length === 1) {
-    note = `All returned schools landed in ${nonzero[0]} based on the chancing ranges.`;
-  } else if (nonzero.length < BAND_ORDER.length) {
-    note = "Some chance bands were not present after filters and ranking.";
-  }
-
-  return {
-    results: selected,
-    balance: {
-      ...counts,
-      note,
-    } satisfies FitBalance,
-  };
+export function fitQueryText(input: FitRequest) {
+  return [input.intended_major, input.interests]
+    .map((value) => value?.replace(/\s+/g, " ").trim())
+    .filter((value): value is string => Boolean(value))
+    .join(". ");
 }
 
+// Cheap program/interest fit used for ranking the candidate pool: the same
+// hybrid blend the full fit score reports, but without the extra radar
+// embedding, so the whole pool can be ordered before the detailed score is
+// computed for the survivors.
+export function programFitScore(
+  input: FitRequest,
+  candidate: FitSchoolCandidate,
+): number | null {
+  const query = fitQueryText(input);
+  if (!query) {
+    return null;
+  }
+  const keyword = keywordProgramScore(
+    query,
+    candidate.programs,
+    candidate.program_areas,
+  );
+  return blendProgramFit(keyword.score, candidate.similarity);
+}
+
+function balanceNote(counts: Record<BandLabel, number>, total: number) {
+  const nonzero = BAND_ORDER.filter((label) => counts[label] > 0);
+  if (total === 0) {
+    return "No schools matched the filters and embedded candidate pool.";
+  }
+  if (nonzero.length === 1) {
+    return `Every returned school landed in ${nonzero[0]} based on the chancing ranges.`;
+  }
+  if (nonzero.length < BAND_ORDER.length) {
+    return "Ranked by program fit. Some chance bands are not present after filters.";
+  }
+  return "Ranked by program fit, then labeled reach, target, or likely by the chance range.";
+}
+
+export type RankedFitResponse = {
+  results: FitResult[];
+  balance: FitBalance;
+  weak_program_match: boolean;
+  top_program_fit: number | null;
+};
+
+// Rank the candidate pool by program/interest fit (descending), keep the top
+// results, then label the set across reach/target/likely with the existing
+// chance band. A school the student merely overshoots on stats can no longer
+// outrank one that genuinely matches the requested programs.
 export function buildBalancedFitResponse(
   candidates: FitSchoolCandidate[],
   input: FitRequest,
-) {
-  const filtered = candidates.filter((candidate) =>
-    schoolMatchesHardFilters(candidate, input),
-  );
-  const ranked = filtered.map((candidate) => buildFitResult(candidate, input));
-  return balanceFitResults(ranked);
+  limit = FIT_RESULT_LIMIT,
+): RankedFitResponse {
+  const hasProgramQuery = fitQueryText(input).length > 0;
+  const scored = candidates
+    .filter((candidate) => schoolMatchesHardFilters(candidate, input))
+    .map((candidate) => ({
+      candidate,
+      programFit: programFitScore(input, candidate),
+    }))
+    .sort((left, right) => {
+      const leftFit = left.programFit ?? -1;
+      const rightFit = right.programFit ?? -1;
+      if (rightFit !== leftFit) {
+        return rightFit - leftFit;
+      }
+      const leftSim = left.candidate.similarity ?? -1;
+      const rightSim = right.candidate.similarity ?? -1;
+      if (rightSim !== leftSim) {
+        return rightSim - leftSim;
+      }
+      return left.candidate.unitid - right.candidate.unitid;
+    });
+
+  const selected = scored.slice(0, limit);
+  const results = selected.map((entry) => buildFitResult(entry.candidate, input));
+
+  const counts = {
+    reach: results.filter((result) => result.band.label === "reach").length,
+    target: results.filter((result) => result.band.label === "target").length,
+    likely: results.filter((result) => result.band.label === "likely").length,
+  };
+
+  const topProgramFit = selected.length > 0 ? selected[0].programFit : null;
+  const weakProgramMatch =
+    hasProgramQuery &&
+    selected.length > 0 &&
+    (topProgramFit ?? 0) < PROGRAM_FIT_WEAK_THRESHOLD;
+
+  return {
+    results,
+    balance: {
+      ...counts,
+      note: balanceNote(counts, results.length),
+    } satisfies FitBalance,
+    weak_program_match: weakProgramMatch,
+    top_program_fit: topProgramFit,
+  };
 }
