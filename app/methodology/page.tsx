@@ -28,6 +28,44 @@ const tierLabels: Record<string, string> = {
   elite: "Elite",
 };
 
+type CalibrationBinRow = {
+  bin: string;
+  mean_predicted: number | null;
+  admitted_count: number;
+  outcome_count: number;
+};
+
+type CalibrationTierRow = {
+  tier: string;
+  mean_predicted: number | null;
+  admitted_count: number;
+  outcome_count: number;
+};
+
+type IntervalWidthRow = {
+  tier: string;
+  real_mean_interval_width: number | null;
+  phase2_prior_interval_width: number | null;
+};
+
+type RealCalibrationReport = {
+  status: string;
+  source: string;
+  calibration_by_bin: CalibrationBinRow[];
+  calibration_by_tier: CalibrationTierRow[];
+  interval_width_comparison: IntervalWidthRow[];
+  change_course: {
+    status: string;
+    recommendation: string;
+  };
+};
+
+const calibrationReport = realCalibration as RealCalibrationReport;
+
+function hasPublishedRealCalibration(report: RealCalibrationReport) {
+  return report.status === "trained" && report.source !== "fixture";
+}
+
 function formatPredictionRange(value: string) {
   const [low, high] = value.split("-").map((part) => Number(part));
   return `${Math.max(0, Math.round(low * 100))}-${Math.round(high * 100)} on the 0-100 scale`;
@@ -50,6 +88,8 @@ function formatSpan(value: number | null) {
 }
 
 export default function MethodologyPage() {
+  const showPublishedCalibration = hasPublishedRealCalibration(calibrationReport);
+
   return (
     <main className="admira-shell">
       <MethodologyAnalytics />
@@ -67,9 +107,14 @@ export default function MethodologyPage() {
               </p>
             </div>
           </div>
-          <Link className="method-link" href="/">
-            Back to Admira
-          </Link>
+          <div className="topbar-actions">
+            <Link className="method-link" href="/">
+              Back to Admira
+            </Link>
+            <Link className="method-link" href="/privacy">
+              Privacy
+            </Link>
+          </div>
         </header>
 
         <section className="methodology-hero" aria-labelledby="methodology-title">
@@ -208,93 +253,116 @@ export default function MethodologyPage() {
             <div>
               <div className="section-kicker">Published calibration</div>
               <h2 id="calibration-record" className="section-title">
-                Real-outcome calibration record.
+                {showPublishedCalibration
+                  ? "Real-outcome calibration record."
+                  : "Calibration: not yet published."}
               </h2>
               <p className="method-copy">
-                Status: <strong>{realCalibration.status}</strong>. Source:{" "}
-                <strong>{realCalibration.source}</strong>. Fixture rows prove
-                the contract; production claims require consented Supabase
-                outcomes.
+                {showPublishedCalibration ? (
+                  <>
+                    Status: <strong>{calibrationReport.status}</strong>. Source:{" "}
+                    <strong>{calibrationReport.source}</strong>. Production claims
+                    require consented Supabase outcomes.
+                  </>
+                ) : (
+                  <>
+                    Admira has not yet validated against real, consented student
+                    outcomes. The calibration record will appear here once it has.
+                  </>
+                )}
               </p>
+              {!showPublishedCalibration ? (
+                <p className="method-copy">
+                  Current status: <strong>{calibrationReport.status}</strong>.
+                  Source: <strong>{calibrationReport.source}</strong>. The current
+                  model remains a synthetic public-data prior.
+                </p>
+              ) : null}
             </div>
-            <div className="methodology-stamp compact">
-              <span>Change-course check</span>
-              <strong>{realCalibration.change_course.status}</strong>
-              <small>{realCalibration.change_course.recommendation}</small>
-            </div>
+            {showPublishedCalibration ? (
+              <div className="methodology-stamp compact">
+                <span>Change-course check</span>
+                <strong>{calibrationReport.change_course.status}</strong>
+                <small>{calibrationReport.change_course.recommendation}</small>
+              </div>
+            ) : null}
           </div>
 
-          <div className="calibration-table-wrap">
-            <table className="calibration-table">
-              <caption>Calibration by predicted range</caption>
-              <thead>
-                <tr>
-                  <th scope="col">Predicted range</th>
-                  <th scope="col">Mean marker</th>
-                  <th scope="col">Observed outcomes</th>
-                </tr>
-              </thead>
-              <tbody>
-                {realCalibration.calibration_by_bin.map((row) => (
-                  <tr key={row.bin}>
-                    <td>{formatPredictionRange(row.bin)}</td>
-                    <td>{formatMarker(row.mean_predicted)}</td>
-                    <td>
-                      {row.admitted_count} admitted of {row.outcome_count}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          {showPublishedCalibration ? (
+            <>
+              <div className="calibration-table-wrap">
+                <table className="calibration-table">
+                  <caption>Calibration by predicted range</caption>
+                  <thead>
+                    <tr>
+                      <th scope="col">Predicted range</th>
+                      <th scope="col">Mean marker</th>
+                      <th scope="col">Observed outcomes</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {calibrationReport.calibration_by_bin.map((row) => (
+                      <tr key={row.bin}>
+                        <td>{formatPredictionRange(row.bin)}</td>
+                        <td>{formatMarker(row.mean_predicted)}</td>
+                        <td>
+                          {row.admitted_count} admitted of {row.outcome_count}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
 
-          <div className="calibration-table-wrap">
-            <table className="calibration-table">
-              <caption>Calibration by selectivity tier</caption>
-              <thead>
-                <tr>
-                  <th scope="col">Tier</th>
-                  <th scope="col">Held-out outcomes</th>
-                  <th scope="col">Mean marker</th>
-                  <th scope="col">Observed outcomes</th>
-                </tr>
-              </thead>
-              <tbody>
-                {realCalibration.calibration_by_tier.map((row) => (
-                  <tr key={row.tier}>
-                    <td>{tierLabels[row.tier] ?? row.tier}</td>
-                    <td>{row.outcome_count}</td>
-                    <td>{formatMarker(row.mean_predicted)}</td>
-                    <td>
-                      {row.admitted_count} admitted of {row.outcome_count}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+              <div className="calibration-table-wrap">
+                <table className="calibration-table">
+                  <caption>Calibration by selectivity tier</caption>
+                  <thead>
+                    <tr>
+                      <th scope="col">Tier</th>
+                      <th scope="col">Held-out outcomes</th>
+                      <th scope="col">Mean marker</th>
+                      <th scope="col">Observed outcomes</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {calibrationReport.calibration_by_tier.map((row) => (
+                      <tr key={row.tier}>
+                        <td>{tierLabels[row.tier] ?? row.tier}</td>
+                        <td>{row.outcome_count}</td>
+                        <td>{formatMarker(row.mean_predicted)}</td>
+                        <td>
+                          {row.admitted_count} admitted of {row.outcome_count}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
 
-          <div className="calibration-table-wrap">
-            <table className="calibration-table">
-              <caption>Real-data span compared with the Phase 2 prior</caption>
-              <thead>
-                <tr>
-                  <th scope="col">Tier</th>
-                  <th scope="col">Real held-out span</th>
-                  <th scope="col">Phase 2 prior span</th>
-                </tr>
-              </thead>
-              <tbody>
-                {realCalibration.interval_width_comparison.map((row) => (
-                  <tr key={row.tier}>
-                    <td>{tierLabels[row.tier] ?? row.tier}</td>
-                    <td>{formatSpan(row.real_mean_interval_width)}</td>
-                    <td>{formatSpan(row.phase2_prior_interval_width)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+              <div className="calibration-table-wrap">
+                <table className="calibration-table">
+                  <caption>Real-data span compared with the Phase 2 prior</caption>
+                  <thead>
+                    <tr>
+                      <th scope="col">Tier</th>
+                      <th scope="col">Real held-out span</th>
+                      <th scope="col">Phase 2 prior span</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {calibrationReport.interval_width_comparison.map((row) => (
+                      <tr key={row.tier}>
+                        <td>{tierLabels[row.tier] ?? row.tier}</td>
+                        <td>{formatSpan(row.real_mean_interval_width)}</td>
+                        <td>{formatSpan(row.phase2_prior_interval_width)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </>
+          ) : null}
         </section>
       </div>
     </main>

@@ -213,6 +213,7 @@ export function OutcomeDataControlsPanel() {
   return (
     <section
       className="capture-panel data-controls-panel"
+      id="data-controls"
       aria-label="Data controls"
       data-testid="outcome-data-controls"
       data-reset-version={resetVersion}

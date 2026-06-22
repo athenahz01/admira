@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { CheckCircle2, LockKeyhole, LogOut, Search, ShieldCheck } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 
@@ -74,9 +75,11 @@ type OutcomeResponse = {
 const useLocalSchoolFixture =
   process.env.NEXT_PUBLIC_ADMIRA_USE_LOCAL_SCHOOL_FIXTURE === "true";
 
-const consentVersion = "phase-7-capture-ui-v1";
+const privacyPolicyEffectiveDate = "June 22, 2026";
+const privacyPolicyVersion = "privacy-consent-2026-06-22";
+const consentVersion = "phase-7-capture-ui-v2-privacy-consent-2026-06-22";
 const outcomeConsentText =
-  "I agree to let Admira store the applicant profile fields I enter here: cycle year, GPA, course rigor, SAT, ACT, test submission status, activities tier, intended major, application round, and demonstrated interest. I also agree to let Admira store the school application outcomes I enter here: school, outcome, application round, and cycle year. Admira uses this optional data to improve admission-chance calibration. I can use Admira without sharing it, and I can export or delete this data later.";
+  `Privacy & Consent Policy version ${privacyPolicyVersion}, effective ${privacyPolicyEffectiveDate}. I agree to let Admira store the applicant profile fields I enter here: cycle year, GPA, course rigor, SAT, ACT, test submission status, activities tier, intended major, application round, and demonstrated interest. I also agree to let Admira store the school application outcomes I enter here: school, outcome, application round, and cycle year. Admira uses this optional data to improve admission-chance calibration. I can use Admira without sharing it, and I can export or delete this data later.`;
 
 const currentCycleYear = String(new Date().getFullYear());
 
@@ -473,7 +476,11 @@ export function OutcomeCapturePanel() {
 
   if (captureStatus === "loading") {
     return (
-      <section className="capture-panel" aria-label="Outcome capture status">
+      <section
+        className="capture-panel"
+        id="outcome-capture"
+        aria-label="Outcome capture status"
+      >
         <div className="panel-inner">
           <div className="section-kicker">Outcome capture</div>
           <p className="helper mt-2">Checking whether outcome capture is open.</p>
@@ -486,6 +493,7 @@ export function OutcomeCapturePanel() {
     return (
       <section
         className="capture-panel"
+        id="outcome-capture"
         aria-label="Outcome capture status"
         data-testid="outcome-capture-closed"
       >
@@ -505,7 +513,11 @@ export function OutcomeCapturePanel() {
 
   if (captureStatus === "error") {
     return (
-      <section className="capture-panel" aria-label="Outcome capture status">
+      <section
+        className="capture-panel"
+        id="outcome-capture"
+        aria-label="Outcome capture status"
+      >
         <div className="panel-inner">
           <div className="section-kicker">Outcome capture</div>
           <p className="error-copy mt-2" role="alert">
@@ -519,6 +531,7 @@ export function OutcomeCapturePanel() {
   return (
     <section
       className="capture-panel"
+      id="outcome-capture"
       aria-label="Outcome capture"
       data-testid="outcome-capture-flow"
     >
@@ -609,6 +622,13 @@ function ConsentStep({
       </div>
       <p className="consent-copy" data-testid="outcome-consent-text">
         {outcomeConsentText}
+      </p>
+      <p className="helper">
+        See our{" "}
+        <Link className="inline-link" href="/privacy">
+          privacy & consent policy
+        </Link>
+        .
       </p>
       <label className="checkbox-row">
         <input

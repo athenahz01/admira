@@ -138,6 +138,47 @@ const mitChanceResponse = {
   },
 };
 
+const mitWhatIfResponse = {
+  ...mitChanceResponse,
+  probability: {
+    point: 0.091,
+    calibrated: 0.081,
+    low: 0.03,
+    high: 0.58,
+    width: 0.55,
+    coverage: 0.8,
+  },
+  band: {
+    ...mitChanceResponse.band,
+    note: "Public data still keeps this interval wide after the modeled score change.",
+  },
+  rubric: {
+    ...mitChanceResponse.rubric,
+    gaps: {
+      ...mitChanceResponse.rubric.gaps,
+      sat: { score: 1590, mid: 1550, gap: 0.402 },
+    },
+  },
+};
+
+const testBlindChanceResponse = {
+  ...mitChanceResponse,
+  school: {
+    ...mitChanceResponse.school,
+    test_policy: "blind",
+  },
+  climb_levers: mitChanceResponse.climb_levers.map((lever) =>
+    lever.id === "test_score"
+      ? {
+          ...lever,
+          direction: "This school does not use submitted scores in the model.",
+          note: "Test-blind policy means the test-score scenario is disabled.",
+          delta: { low: 0, high: 0, tick: 0 },
+        }
+      : lever,
+  ),
+};
+
 const fitFinderResponse = {
   query: {
     embedded: true,
@@ -312,13 +353,14 @@ const consentRecordId = "11111111-1111-4111-8111-111111111111";
 const profileRecordId = "22222222-2222-4222-8222-222222222222";
 const outcomeRecordId = "33333333-3333-4333-8333-333333333333";
 const revokedAt = "2026-06-18T01:00:00.000Z";
+const consentVersion = "phase-7-capture-ui-v2-privacy-consent-2026-06-22";
 
 const exportedOutcomeData = {
   consent_records: [
     {
       id: consentRecordId,
       subject_id: authUser.id,
-      consent_version: "phase-7-capture-ui-v1",
+      consent_version: consentVersion,
       consent_text: "Test consent text long enough for export coverage.",
       purpose: "real_outcome_modeling",
       consented_at: "2026-06-18T00:00:00.000Z",
@@ -486,6 +528,25 @@ async function fillFitFinderForm(page: Page) {
   return finder;
 }
 
+async function addMitResult(page: Page) {
+  await page.goto("/");
+  await page.getByLabel("GPA").fill("3.95");
+  await page.getByLabel("SAT").fill("1540");
+  await page.getByRole("textbox", { exact: true, name: "ACT" }).fill("35");
+  await page.getByLabel("Intended major").fill("Computer science");
+  await page.getByRole("button", { name: "Save profile" }).click();
+  await page.getByLabel("Search by school name").fill("Massachusetts");
+  await page
+    .getByRole("button", { name: /Massachusetts Institute of Technology/ })
+    .click();
+
+  const resultCard = page.getByTestId("result-card");
+  await expect(resultCard).toContainText(
+    "Massachusetts Institute of Technology",
+  );
+  return resultCard;
+}
+
 test.beforeEach(async ({ page }) => {
   await page.route("**/api/chance", async (route) => {
     const body = JSON.parse(route.request().postData() ?? "{}");
@@ -566,6 +627,148 @@ test("keeps Fit Finder dark when the server flag is disabled", async ({
     return { fit: fit.status, explain: explain.status };
   });
   expect(statuses).toEqual({ fit: 404, explain: 404 });
+});
+
+test("moves the what-if range while keeping the current range visible", async ({
+  page,
+}) => {
+  const chanceBodies: Record<string, unknown>[] = [];
+
+  await mockOutcomeStatus(page, false);
+  await mockFitStatus(page, false);
+  await page.unroute("**/api/chance");
+  await page.route("**/api/chance", async (route) => {
+    const body = JSON.parse(route.request().postData() ?? "{}") as Record<
+      string,
+      unknown
+    >;
+    chanceBodies.push(body);
+    expectNoForbiddenKeys(body);
+    expect(body).not.toHaveProperty("activityNote");
+    expect(body).not.toHaveProperty("homeState");
+    expect(body).not.toHaveProperty("intendedMajor");
+
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify(
+        body.sat_score === 1590 ? mitWhatIfResponse : mitChanceResponse,
+      ),
+    });
+  });
+
+  const resultCard = await addMitResult(page);
+  const panel = resultCard.getByTestId("what-if-panel");
+  await expect(panel).toContainText("Current 0-49%");
+  await expect(panel.getByTestId("scenario-range")).toHaveAttribute(
+    "aria-label",
+    /Current 0-49%/,
+  );
+  await expect(panel.getByLabel(/GPA/i)).toHaveCount(0);
+  await expect(panel.getByLabel(/essay|interest|rec/i)).toHaveCount(0);
+
+  const satSlider = panel.getByLabel("What-if SAT score");
+  await satSlider.focus();
+  for (let step = 0; step < 5; step += 1) {
+    await page.keyboard.press("ArrowRight");
+  }
+
+  await expect(panel).toContainText("What-if: SAT 1540 -> 1590");
+  await expect(panel).toContainText("What-if 3-58%");
+  await expect(panel).toContainText("Current 0-49%");
+  await expect(panel).toContainText("marker +5 pts");
+  await expect(panel.getByText(/^8%$/)).toHaveCount(0);
+  await expect(panel.getByTestId("scenario-range")).toHaveAttribute(
+    "aria-label",
+    /what-if 3-58%/,
+  );
+  expect(
+    chanceBodies.some(
+      (body) =>
+        body.unitid === 166683 &&
+        body.sat_score === 1590 &&
+        body.application_round === "regular",
+    ),
+  ).toBe(true);
+});
+
+test("disables the test-score what-if control for test-blind schools", async ({
+  page,
+}) => {
+  const chanceBodies: Record<string, unknown>[] = [];
+
+  await mockOutcomeStatus(page, false);
+  await mockFitStatus(page, false);
+  await page.unroute("**/api/chance");
+  await page.route("**/api/chance", async (route) => {
+    const body = JSON.parse(route.request().postData() ?? "{}") as Record<
+      string,
+      unknown
+    >;
+    chanceBodies.push(body);
+    expectNoForbiddenKeys(body);
+
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify(testBlindChanceResponse),
+    });
+  });
+
+  const resultCard = await addMitResult(page);
+  const panel = resultCard.getByTestId("what-if-panel");
+  await expect(panel.getByLabel("What-if SAT score")).toBeDisabled();
+  await expect(panel.getByLabel("What-if ACT score")).toBeDisabled();
+  await expect(panel).toContainText("test-blind: scores not used");
+  await page.waitForTimeout(300);
+  expect(chanceBodies).toHaveLength(1);
+});
+
+test("renders privacy policy and links it from the consent flow", async ({
+  page,
+}) => {
+  await page.goto("/privacy");
+
+  await expect(page).toHaveTitle(/Privacy & Consent \| Admira/);
+  await expect(
+    page.getByRole("heading", { name: "Privacy & Consent Policy" }),
+  ).toBeVisible();
+  const policyPage = page.locator("body");
+  await expect(policyPage).toContainText("Effective date");
+  await expect(policyPage).toContainText("June 22, 2026");
+  await expect(policyPage).toContainText(
+    "Race and ethnicity are never collected or used",
+  );
+  await expect(policyPage).toContainText(
+    "Browsing, searching schools, and getting chance ranges do not collect personal data",
+  );
+  await expect(policyPage).toContainText("Analytics are off by default");
+  await expect(policyPage).toContainText(
+    "Users under 13 are not permitted to share outcome data without verifiable parental consent",
+  );
+  await expect(page.getByRole("heading", { name: "Terms for using Admira." })).toBeVisible();
+
+  await mockOutcomeStatus(page, true);
+  await mockFitStatus(page, false);
+  await mockSupabaseAuth(page);
+  await page.goto("/");
+  await expect(page.getByRole("link", { name: "Privacy" }).first()).toHaveAttribute(
+    "href",
+    "/privacy",
+  );
+  await expect(page.getByRole("link", { name: "Terms" })).toHaveAttribute(
+    "href",
+    "/privacy#terms",
+  );
+
+  const captureFlow = await signInOutcomePanel(page);
+  await expect(captureFlow.getByTestId("outcome-consent-text")).toContainText(
+    "privacy-consent-2026-06-22",
+  );
+  const policyLink = captureFlow.getByRole("link", {
+    name: /privacy & consent policy/i,
+  });
+  await expect(policyLink).toHaveAttribute("href", "/privacy");
+  await policyLink.click();
+  await expect(page).toHaveURL(/\/privacy$/);
 });
 
 test("records consent, profile, and one outcome through the enabled capture flow", async ({
@@ -660,7 +863,7 @@ test("records consent, profile, and one outcome through the enabled capture flow
   await expect(captureFlow).not.toContainText(/race|ethnicity/i);
 
   expect(captureBodies.consent).toEqual({
-    consent_version: "phase-7-capture-ui-v1",
+    consent_version: consentVersion,
     consent_text: consentCopy,
     purpose: "real_outcome_modeling",
   });
@@ -751,7 +954,7 @@ test("exports, revokes, and deletes signed-in outcome data with confirmation", a
   const download = await downloadPromise;
   expect(download.suggestedFilename()).toBe("admira-my-data.json");
   expect(exportRequests).toBe(1);
-  await expect(controls).toContainText("phase-7-capture-ui-v1");
+  await expect(controls).toContainText(consentVersion);
 
   await controls.getByRole("button", { name: "Revoke" }).click();
   expect(revokeBody).toEqual({ consent_record_id: consentRecordId });
@@ -968,7 +1171,10 @@ test("renders an honest elite-school result and methodology disclosure", async (
     page.getByRole("button", { name: "Switch to light mode" }),
   ).toBeVisible();
 
-  await page.getByRole("link", { exact: true, name: "Methodology" }).click();
+  await page
+    .locator("header")
+    .getByRole("link", { exact: true, name: "Methodology" })
+    .click();
   await expect(page).toHaveURL(/\/methodology$/);
   await expect(page).toHaveTitle(/Methodology \| Admira/);
   await expect(
@@ -983,7 +1189,11 @@ test("renders an honest elite-school result and methodology disclosure", async (
   await expect(page.getByText("Profile overlap, not admission odds.")).toBeVisible();
   await expect(page.getByText(/campus culture, social fit, teaching quality/i)).toBeVisible();
   await expect(page.getByText(/Merit aid is not predicted/i)).toBeVisible();
-  await expect(page.getByText("Real-outcome calibration record.")).toBeVisible();
+  await expect(page.getByText("Calibration: not yet published.")).toBeVisible();
+  await expect(page.getByText(/not yet validated against real, consented/)).toBeVisible();
   await expect(page.getByText("fixture_contract_check")).toBeVisible();
-  await expect(page.getByText("Change-course check")).toBeVisible();
+  await expect(page.getByText("Calibration by predicted range")).toHaveCount(0);
+  await expect(page.getByText("Calibration by selectivity tier")).toHaveCount(0);
+  await expect(page.getByText("Real-data span compared with the Phase 2 prior")).toHaveCount(0);
+  await expect(page.getByText("Change-course check")).toHaveCount(0);
 });

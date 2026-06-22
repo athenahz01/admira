@@ -145,6 +145,14 @@ type GapValue = {
   gap: number | null;
 };
 
+type ChanceRequestBody = {
+  unitid: number;
+  sat_score?: number;
+  act_score?: number;
+  gpa?: number;
+  application_round: ApplicationRound;
+};
+
 type AddedSchool = {
   school: SchoolSearchRow;
   status: "loading" | "ready" | "error";
@@ -283,6 +291,18 @@ function formatDeltaPoints(value: number) {
   return `${rounded > 0 ? "+" : ""}${rounded} pts`;
 }
 
+function formatSignedPoints(value: number) {
+  const rounded = Math.round(value * 100);
+  if (rounded === 0) {
+    return "0 pts";
+  }
+  return `${rounded > 0 ? "+" : ""}${rounded} pts`;
+}
+
+function formatRoundLabel(round: ApplicationRound) {
+  return round === "early" ? "Early" : "Regular";
+}
+
 function bandPhrase(label: BandLabel) {
   switch (label) {
     case "reach":
@@ -406,9 +426,26 @@ function visibleLevers(levers: ClimbLever[]) {
   return source.slice(0, 3);
 }
 
+function leverImpactPts(lever: ClimbLever) {
+  if (!lever.delta) {
+    return null;
+  }
+  return Math.round(
+    Math.max(
+      Math.abs(lever.delta.low),
+      Math.abs(lever.delta.high),
+      Math.abs(lever.delta.tick),
+    ) * 100,
+  );
+}
+
 function formatLeverDelta(lever: ClimbLever) {
   if (!lever.delta) {
     return "not in the model yet";
+  }
+
+  if (leverImpactPts(lever) === 0) {
+    return "no measurable move here";
   }
 
   if (lever.kind === "published_delta") {
@@ -425,6 +462,10 @@ function leverImpactWidth(lever: ClimbLever) {
     return 18;
   }
 
+  if (leverImpactPts(lever) === 0) {
+    return 0;
+  }
+
   const impact = Math.max(
     Math.abs(lever.delta.low),
     Math.abs(lever.delta.high),
@@ -438,6 +479,10 @@ function leverKindLabel(lever: ClimbLever) {
     return "Not in model";
   }
 
+  if (leverImpactPts(lever) === 0) {
+    return "No effect";
+  }
+
   return lever.kind === "published_delta" ? "School data" : "Modeled move";
 }
 
@@ -448,6 +493,24 @@ function filteredDisclaimers(disclaimers: string[]) {
         disclaimer,
       ),
   );
+}
+
+function testPolicyControlReason(policy: string | null, hasTestScore: boolean) {
+  const normalized = (policy ?? "").toLowerCase();
+
+  if (normalized.includes("blind")) {
+    return "test-blind: scores not used";
+  }
+
+  if (normalized.includes("optional")) {
+    return "test-optional: scores not used here";
+  }
+
+  if (!hasTestScore) {
+    return "No submitted test score to adjust";
+  }
+
+  return "";
 }
 
 function validateProfile(profile: Profile) {
@@ -492,7 +555,7 @@ function profileFieldErrors(profile: Profile) {
   return out;
 }
 
-function buildChanceBody(profile: Profile, unitid: number) {
+function buildChanceBody(profile: Profile, unitid: number): ChanceRequestBody {
   const gpa = numberOrUndefined(profile.gpa);
   const sat = profile.notSubmittingTests ? undefined : numberOrUndefined(profile.sat);
   const act = profile.notSubmittingTests ? undefined : numberOrUndefined(profile.act);
@@ -811,6 +874,9 @@ export function AdmiraApp() {
             <Link className="method-link" href="/methodology">
               Methodology
             </Link>
+            <Link className="method-link" href="/privacy">
+              Privacy
+            </Link>
             <button
               className="theme-switch"
               type="button"
@@ -875,6 +941,7 @@ export function AdmiraApp() {
                   <ResultState
                     key={entry.school.unitid}
                     entry={entry}
+                    profile={profile}
                     onRemove={() => removeSchool(entry.school.unitid)}
                   />
                 ))}
@@ -896,6 +963,24 @@ export function AdmiraApp() {
           <OutcomeCapturePanel />
           <OutcomeDataControlsPanel />
         </OutcomeSessionProvider>
+
+        <footer className="app-footer">
+          <p>
+            Admira is planning support. Ranges are not guarantees, and FIT is
+            not admission chance.
+          </p>
+          <nav className="footer-links" aria-label="Admira policy links">
+            <Link className="footer-link" href="/methodology">
+              Methodology
+            </Link>
+            <Link className="footer-link" href="/privacy">
+              Privacy
+            </Link>
+            <Link className="footer-link" href="/privacy#terms">
+              Terms
+            </Link>
+          </nav>
+        </footer>
       </div>
     </main>
   );
@@ -2064,7 +2149,15 @@ function ReachLadder({
   );
 }
 
-function ClimbLeversPanel({ levers }: { levers: ClimbLever[] }) {
+function ClimbLeversPanel({
+  levers,
+  profile,
+  result,
+}: {
+  levers: ClimbLever[];
+  profile?: Profile;
+  result?: ChanceResponse;
+}) {
   return (
     <section className="climb-panel" data-testid="climb-levers">
       <div className="climb-panel-head">
@@ -2100,7 +2193,408 @@ function ClimbLeversPanel({ levers }: { levers: ClimbLever[] }) {
           </div>
         ))}
       </div>
+      {profile && result ? (
+        <WhatIfRangeMover
+          levers={levers}
+          profile={profile}
+          result={result}
+        />
+      ) : null}
     </section>
+  );
+}
+
+function WhatIfRangeMover({
+  levers,
+  profile,
+  result,
+}: {
+  levers: ClimbLever[];
+  profile: Profile;
+  result: ChanceResponse;
+}) {
+  const baselineSat = profile.notSubmittingTests
+    ? undefined
+    : numberOrUndefined(profile.sat);
+  const baselineAct = profile.notSubmittingTests
+    ? undefined
+    : numberOrUndefined(profile.act);
+  const baselineRound = profile.applicationRound;
+  const hasTestScore = baselineSat !== undefined || baselineAct !== undefined;
+  const testLever = levers.find((lever) => lever.id === "test_score");
+  const roundLever = levers.find((lever) => lever.id === "application_round");
+  const policyReason = testPolicyControlReason(
+    result.school.test_policy,
+    hasTestScore,
+  );
+  const testReason =
+    policyReason || (!testLever ? "No modeled test lever returned" : "");
+  const testDisabled = Boolean(testReason);
+  const roundDisabled =
+    !roundLever ||
+    !roundLever.delta ||
+    leverImpactPts(roundLever) === 0;
+  const roundReason = roundDisabled
+    ? "No modeled effect: no published round spread"
+    : "";
+  const [sat, setSat] = useState(baselineSat ?? 400);
+  const [act, setAct] = useState(baselineAct ?? 1);
+  const [round, setRound] = useState<ApplicationRound>(baselineRound);
+  const [scenario, setScenario] = useState<ChanceResponse | null>(null);
+  const [status, setStatus] = useState<"idle" | "loading" | "ready" | "error">(
+    "idle",
+  );
+  const [error, setError] = useState("");
+  const [retryTick, setRetryTick] = useState(0);
+  const requestRef = useRef(0);
+
+  const satChanged =
+    !testDisabled && baselineSat !== undefined && sat !== baselineSat;
+  const actChanged =
+    !testDisabled && baselineAct !== undefined && act !== baselineAct;
+  const roundChanged = !roundDisabled && round !== baselineRound;
+  const hasScenarioChange = satChanged || actChanged || roundChanged;
+  const scenarioParts = [
+    satChanged ? `SAT ${baselineSat} -> ${sat}` : "",
+    actChanged ? `ACT ${baselineAct} -> ${act}` : "",
+    roundChanged
+      ? `${formatRoundLabel(baselineRound)} -> ${formatRoundLabel(round)}`
+      : "",
+  ].filter(Boolean);
+  const scenarioLabel =
+    scenarioParts.length > 0
+      ? `What-if: ${scenarioParts.join(", ")}`
+      : "What-if";
+  const liveSummary = scenario
+    ? `${scenarioLabel}. Current ${formatChanceRange(
+        result.probability.low,
+        result.probability.high,
+      )}. What-if ${formatChanceRange(
+        scenario.probability.low,
+        scenario.probability.high,
+      )}.`
+    : "Current range unchanged.";
+
+  useEffect(() => {
+    setSat(baselineSat ?? 400);
+    setAct(baselineAct ?? 1);
+    setRound(baselineRound);
+    setScenario(null);
+    setStatus("idle");
+    setError("");
+    requestRef.current += 1;
+  }, [baselineSat, baselineAct, baselineRound, result.school.unitid]);
+
+  useEffect(() => {
+    if (!hasScenarioChange) {
+      requestRef.current += 1;
+      setScenario(null);
+      setStatus("idle");
+      setError("");
+      return;
+    }
+
+    const requestId = requestRef.current + 1;
+    const controller = new AbortController();
+    requestRef.current = requestId;
+    setStatus("loading");
+    setError("");
+
+    const timeout = window.setTimeout(async () => {
+      try {
+        const body = buildChanceBody(profile, result.school.unitid);
+
+        if (!testDisabled && baselineSat !== undefined) {
+          body.sat_score = sat;
+        }
+        if (!testDisabled && baselineAct !== undefined) {
+          body.act_score = act;
+        }
+        if (!roundDisabled) {
+          body.application_round = round;
+        }
+
+        const response = await fetch("/api/chance", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+          signal: controller.signal,
+        });
+        const payload = await response.json();
+
+        if (!response.ok) {
+          throw new Error(payload?.error ?? "What-if request failed.");
+        }
+        if (requestId !== requestRef.current) {
+          return;
+        }
+
+        setScenario(payload as ChanceResponse);
+        setStatus("ready");
+      } catch (caught) {
+        if (requestId !== requestRef.current || controller.signal.aborted) {
+          return;
+        }
+        setScenario(null);
+        setStatus("error");
+        setError(
+          caught instanceof Error ? caught.message : "What-if request failed.",
+        );
+      }
+    }, 220);
+
+    return () => {
+      window.clearTimeout(timeout);
+      controller.abort();
+    };
+  }, [
+    act,
+    baselineAct,
+    baselineRound,
+    baselineSat,
+    hasScenarioChange,
+    profile,
+    result.school.unitid,
+    retryTick,
+    round,
+    roundDisabled,
+    sat,
+    testDisabled,
+  ]);
+
+  function resetScenario() {
+    setSat(baselineSat ?? 400);
+    setAct(baselineAct ?? 1);
+    setRound(baselineRound);
+    setScenario(null);
+    setStatus("idle");
+    setError("");
+    requestRef.current += 1;
+  }
+
+  return (
+    <section className="what-if-panel" data-testid="what-if-panel">
+      <div className="what-if-head">
+        <div>
+          <div className="section-kicker">Modeled scenario</div>
+          <h5>Try the levers you can still control</h5>
+        </div>
+        <button
+          type="button"
+          className="what-if-reset"
+          onClick={resetScenario}
+          disabled={!hasScenarioChange && status !== "ready"}
+        >
+          Reset to current
+        </button>
+      </div>
+      <p className="what-if-copy">
+        This is a what-if of modeled levers only. Essays, recs, and interest
+        still are not in the model.
+      </p>
+
+      <div className="what-if-controls">
+        {baselineSat !== undefined ? (
+          <label className="what-if-control">
+            <span className="what-if-control-head">
+              <span>What-if SAT score</span>
+              <strong className="what-if-value">{sat}</strong>
+            </span>
+            <input
+              type="range"
+              min="400"
+              max="1600"
+              step="10"
+              value={sat}
+              disabled={testDisabled}
+              onChange={(event) => setSat(Number(event.target.value))}
+            />
+            {testReason ? <span className="what-if-note">{testReason}</span> : null}
+          </label>
+        ) : null}
+
+        {baselineAct !== undefined ? (
+          <label className="what-if-control">
+            <span className="what-if-control-head">
+              <span>What-if ACT score</span>
+              <strong className="what-if-value">{act}</strong>
+            </span>
+            <input
+              type="range"
+              min="1"
+              max="36"
+              step="1"
+              value={act}
+              disabled={testDisabled}
+              onChange={(event) => setAct(Number(event.target.value))}
+            />
+            {testReason ? <span className="what-if-note">{testReason}</span> : null}
+          </label>
+        ) : null}
+
+        {!hasTestScore ? (
+          <div className="what-if-control is-muted">
+            <span className="what-if-control-head">
+              <span>What-if test score</span>
+            </span>
+            <span className="what-if-note">{testReason}</span>
+          </div>
+        ) : null}
+
+        <div className="what-if-control">
+          <span className="what-if-control-head">
+            <span>What-if application round</span>
+            <strong className="what-if-value">{formatRoundLabel(round)}</strong>
+          </span>
+          <div
+            className="round-toggle"
+            role="group"
+            aria-label="What-if application round"
+          >
+            {(["regular", "early"] as ApplicationRound[]).map((option) => (
+              <button
+                key={option}
+                type="button"
+                data-active={round === option}
+                disabled={roundDisabled}
+                onClick={() => setRound(option)}
+              >
+                {formatRoundLabel(option)}
+              </button>
+            ))}
+          </div>
+          {roundReason ? <span className="what-if-note">{roundReason}</span> : null}
+        </div>
+      </div>
+
+      <ScenarioRangeBand
+        baseline={result.probability}
+        scenario={scenario?.probability ?? null}
+        label={scenarioLabel}
+      />
+
+      <div className="what-if-summary" aria-live="polite">
+        <span>
+          Current{" "}
+          <strong>
+            {formatChanceRange(result.probability.low, result.probability.high)}
+          </strong>
+        </span>
+        {scenario ? (
+          <>
+            <span aria-hidden="true">-&gt;</span>
+            <span>
+              What-if{" "}
+              <strong>
+                {formatChanceRange(
+                  scenario.probability.low,
+                  scenario.probability.high,
+                )}
+              </strong>
+            </span>
+            <span className="what-if-delta">
+              marker {formatSignedPoints(
+                scenario.probability.calibrated -
+                  result.probability.calibrated,
+              )}
+            </span>
+          </>
+        ) : null}
+      </div>
+
+      <div className="what-if-actions">
+        {status === "loading" ? (
+          <span className="what-if-status">
+            <Loader2 size={14} aria-hidden="true" />
+            Recomputing modeled range...
+          </span>
+        ) : null}
+        {status === "error" ? (
+          <span className="what-if-error">
+            Could not recompute. Showing current range.
+            {error ? ` ${error}` : ""}
+            <button
+              type="button"
+              className="what-if-retry"
+              onClick={() => setRetryTick((current) => current + 1)}
+            >
+              Retry
+            </button>
+          </span>
+        ) : null}
+      </div>
+      <span className="sr-only" aria-live="polite">
+        {liveSummary}
+      </span>
+    </section>
+  );
+}
+
+function ScenarioRangeBand({
+  baseline,
+  scenario,
+  label,
+}: {
+  baseline: ChanceResponse["probability"];
+  scenario: ChanceResponse["probability"] | null;
+  label: string;
+}) {
+  const currentLeft = clampPercent(baseline.low);
+  const currentRight = clampPercent(baseline.high);
+  const currentWidth = Math.max(1, currentRight - currentLeft);
+  const currentPoint = clampPercent(baseline.calibrated);
+  const scenarioLeft = scenario ? clampPercent(scenario.low) : currentLeft;
+  const scenarioRight = scenario ? clampPercent(scenario.high) : currentRight;
+  const scenarioWidth = Math.max(1, scenarioRight - scenarioLeft);
+  const scenarioPoint = scenario ? clampPercent(scenario.calibrated) : currentPoint;
+  const aria = scenario
+    ? `${label}: current ${formatChanceRange(
+        baseline.low,
+        baseline.high,
+      )}, what-if ${formatChanceRange(scenario.low, scenario.high)}.`
+    : `Current ${formatChanceRange(baseline.low, baseline.high)}.`;
+
+  return (
+    <div
+      className="what-if-range-card"
+      data-testid="scenario-range"
+      role="img"
+      tabIndex={0}
+      aria-label={aria}
+    >
+      <div className="what-if-range-head">
+        <span>Current</span>
+        <strong>{scenario ? label : "What-if waits for a change"}</strong>
+      </div>
+      <div className="what-if-range-scale" aria-hidden="true">
+        <div className="what-if-range-rail">
+          <span
+            className="what-if-band current"
+            style={{ left: `${currentLeft}%`, width: `${currentWidth}%` }}
+          />
+          <span
+            className="what-if-tick current"
+            style={{ left: `${currentPoint}%` }}
+          />
+          {scenario ? (
+            <>
+              <span
+                className="what-if-band scenario"
+                style={{ left: `${scenarioLeft}%`, width: `${scenarioWidth}%` }}
+              />
+              <span
+                className="what-if-tick scenario"
+                style={{ left: `${scenarioPoint}%` }}
+              />
+            </>
+          ) : null}
+        </div>
+        <div className="what-if-range-labels">
+          <span>0%</span>
+          <span>100%</span>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -2409,9 +2903,11 @@ function BalancePanel({ results }: { results: ChanceResponse[] }) {
 
 function ResultState({
   entry,
+  profile,
   onRemove,
 }: {
   entry: AddedSchool;
+  profile: Profile;
   onRemove: () => void;
 }) {
   if (entry.status === "loading") {
@@ -2436,7 +2932,7 @@ function ResultState({
   }
 
   return entry.result ? (
-    <ResultCard result={entry.result} onRemove={onRemove} />
+    <ResultCard result={entry.result} profile={profile} onRemove={onRemove} />
   ) : null;
 }
 
@@ -2468,9 +2964,11 @@ function LoadingCard({
 
 function ResultCard({
   result,
+  profile,
   onRemove,
 }: {
   result: ChanceResponse;
+  profile: Profile;
   onRemove: () => void;
 }) {
   const profileConfidence =
@@ -2544,7 +3042,11 @@ function ResultCard({
         ) : null}
       </section>
 
-      <ClimbLeversPanel levers={displayLevers} />
+      <ClimbLeversPanel
+        levers={displayLevers}
+        profile={profile}
+        result={result}
+      />
       <CannotSeePanel />
 
       <details className="result-details">
