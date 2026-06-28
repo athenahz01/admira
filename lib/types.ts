@@ -236,6 +236,15 @@ export type CompassCareerRow = {
   ingested_at: string;
 };
 
+export type ReportShareRow = {
+  id: string;
+  subject_id: string;
+  token_hash: string;
+  report_payload: Record<string, unknown>;
+  revoked_at: string | null;
+  created_at: string;
+};
+
 export type Database = {
   public: {
     Tables: {
@@ -255,6 +264,16 @@ export type Database = {
           ingested_at?: string;
         };
         Update: Partial<Omit<CompassCareerRow, "id">>;
+        Relationships: [];
+      };
+      report_shares: {
+        Row: ReportShareRow;
+        Insert: Omit<ReportShareRow, "id" | "created_at" | "revoked_at"> & {
+          id?: string;
+          created_at?: string;
+          revoked_at?: string | null;
+        };
+        Update: Partial<Omit<ReportShareRow, "id" | "subject_id" | "created_at">>;
         Relationships: [];
       };
       schools: {

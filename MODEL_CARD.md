@@ -261,6 +261,34 @@ fabricated. **ROI / net price is a clearly-labeled deferred stub** (`ROI_STUB`,
 no number) — it arrives with the Money module (Phase 4). No essay or cohort data
 is fed back into the admit score (leakage stays off).
 
+## Phase 7 Admira Copilot + Reports
+
+Phase 7 is feature-flagged by `ADMIRA_COPILOT_ENABLED` and
+`ADMIRA_REPORTS_ENABLED` (both default false). It adds an orchestration layer, not
+a new admissions model.
+
+`lib/copilot` registers tool wrappers around the existing modules:
+`buildUsAdmitIntelligence`, `generateList`, `studentsLikeYouResponse`,
+`buildClimbRoadmap`, `assembleCommandCenter`, and `generateCompass`. Tool output
+is the module output; the agent layer does not reimplement scoring, list balance,
+k-anonymity, roadmap deltas, command-center task assembly, or compass major fit.
+The only write receipt is command-center requirement status, which is reversible
+(`todo`, `in_progress`, `done`) and persists through the same owner-scoped
+service-role pattern as the Phase 5 command-center routes.
+
+Every number in the Copilot answer is rendered from tool receipts. Optional
+Anthropic prose is qualitative only: the server prompt forbids numerals and the
+stream is sanitized before it reaches the UI. Money planning remains out of scope
+for this phase; Copilot does not register a money tool, and report rendering
+omits list-builder net-cost fields plus Compass ROI/earnings fields. Report
+figures are copied from the tool receipts that produced them.
+
+Report shares are stored in `report_shares` behind RLS (`subject_id =
+auth.uid()`). Share creation requires a signed-in owner bearer token. Public
+lookup uses an unguessable token whose SHA-256 hash is stored in the database;
+the returned payload is sanitized and contains no subject/profile/consent ids,
+token hashes, storage paths, or raw similar-student rows.
+
 ## Intended Use
 
 This model is for decision support and product-contract validation. It can say, in a public-data-prior sense, where a student sits relative to a school's published bands and how much uncertainty remains. It must not be used as an oracle or as a claim that Admira can predict real individual outcomes from public data alone.

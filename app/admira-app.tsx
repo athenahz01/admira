@@ -467,6 +467,8 @@ type AdmitIntelligenceStatus = "checking" | "enabled" | "disabled";
 type StudentsLikeYouStatus = "checking" | "enabled" | "disabled";
 type ClimbStatus = "checking" | "enabled" | "disabled";
 type CommandCenterStatus = "checking" | "enabled" | "disabled";
+type CopilotStatus = "checking" | "enabled" | "disabled";
+type ReportsStatus = "checking" | "enabled" | "disabled";
 
 const initialProfile: Profile = {
   gpa: "3.85",
@@ -995,6 +997,41 @@ function buildCommandCenterBody(schools: AddedSchool[]) {
   };
 }
 
+function buildCopilotProfile(profile: Profile) {
+  const chanceBody = buildChanceBody(profile, 0);
+  const intendedMajor = intendedMajorForRequest(profile);
+  const activityContext = profile.activityNote.trim();
+
+  return {
+    ...(chanceBody.sat_score !== undefined
+      ? { sat_score: chanceBody.sat_score }
+      : {}),
+    ...(chanceBody.act_score !== undefined
+      ? { act_score: chanceBody.act_score }
+      : {}),
+    ...(chanceBody.gpa !== undefined ? { gpa: chanceBody.gpa } : {}),
+    application_round: chanceBody.application_round,
+    ...(intendedMajor ? { intended_major: intendedMajor } : {}),
+    ...(activityContext ? { activity_context: activityContext } : {}),
+  };
+}
+
+function buildCopilotSchools(schools: AddedSchool[]) {
+  return schools.map((entry) => ({
+    unitid: entry.school.unitid,
+    name: entry.school.name,
+    country: entry.school.country,
+    sat_25: entry.result?.school.sat_25 ?? entry.school.sat_25,
+    sat_75: entry.result?.school.sat_75 ?? entry.school.sat_75,
+    act_25: entry.result?.school.act_25 ?? entry.school.act_25,
+    act_75: entry.result?.school.act_75 ?? entry.school.act_75,
+    gpa_avg: entry.result?.school.gpa_avg ?? null,
+    test_policy: entry.result?.school.test_policy ?? entry.school.test_policy,
+    selectivity_tier:
+      entry.result?.school.selectivity_tier ?? entry.school.selectivity_tier,
+  }));
+}
+
 function clampPercent(value: number) {
   return Math.max(0, Math.min(100, value * 100));
 }
@@ -1047,6 +1084,10 @@ export function AdmiraApp() {
   const [climbStatus, setClimbStatus] = useState<ClimbStatus>("checking");
   const [commandCenterStatus, setCommandCenterStatus] =
     useState<CommandCenterStatus>("checking");
+  const [copilotStatus, setCopilotStatus] =
+    useState<CopilotStatus>("checking");
+  const [reportsStatus, setReportsStatus] =
+    useState<ReportsStatus>("checking");
   const [listBuilderStatus, setListBuilderStatus] = useState<
     "checking" | "enabled" | "disabled"
   >("checking");
@@ -1145,6 +1186,36 @@ export function AdmiraApp() {
       }
     }
 
+    async function loadCopilotStatus() {
+      try {
+        const response = await fetch("/api/copilot/status");
+        const payload = await response.json();
+        if (!active) {
+          return;
+        }
+        setCopilotStatus(payload?.enabled === true ? "enabled" : "disabled");
+      } catch {
+        if (active) {
+          setCopilotStatus("disabled");
+        }
+      }
+    }
+
+    async function loadReportsStatus() {
+      try {
+        const response = await fetch("/api/reports/status");
+        const payload = await response.json();
+        if (!active) {
+          return;
+        }
+        setReportsStatus(payload?.enabled === true ? "enabled" : "disabled");
+      } catch {
+        if (active) {
+          setReportsStatus("disabled");
+        }
+      }
+    }
+
     async function loadListBuilderStatus() {
       try {
         const response = await fetch("/api/list/status");
@@ -1167,6 +1238,8 @@ export function AdmiraApp() {
     void loadStudentsLikeYouStatus();
     void loadClimbStatus();
     void loadCommandCenterStatus();
+    void loadCopilotStatus();
+    void loadReportsStatus();
     void loadListBuilderStatus();
 
     return () => {
@@ -1431,6 +1504,12 @@ export function AdmiraApp() {
             ) : null}
             {commandCenterStatus === "enabled" ? (
               <CommandCenterPanel schools={addedSchools} />
+            ) : null}
+            {copilotStatus === "enabled" ? (
+              <CopilotPanel profile={profile} schools={addedSchools} />
+            ) : null}
+            {reportsStatus === "enabled" ? (
+              <ReportsPanel profile={profile} schools={addedSchools} />
             ) : null}
             <SchoolSearchPanel
               query={schoolQuery}
@@ -2564,6 +2643,396 @@ function TaskColumn({
           </div>
         </article>
       ))}
+    </section>
+  );
+}
+
+type CopilotReceipt = {
+  name: string;
+  output: Record<string, unknown>;
+};
+
+function toolLabel(name: string) {
+  return name
+    .split("_")
+    .map((part) => part.slice(0, 1).toUpperCase() + part.slice(1))
+    .join(" ");
+}
+
+function CopilotPanel({
+  profile,
+  schools,
+}: {
+  profile: Profile;
+  schools: AddedSchool[];
+}) {
+  const [message, setMessage] = useState("What should I focus on next?");
+  const [answer, setAnswer] = useState("");
+  const [modelText, setModelText] = useState("");
+  const [receipts, setReceipts] = useState<CopilotReceipt[]>([]);
+  const [status, setStatus] = useState<"idle" | "loading" | "ready" | "error">(
+    "idle",
+  );
+  const [error, setError] = useState("");
+  const readySchools = schools.filter((entry) => entry.status === "ready");
+
+  function applyFrame(eventName: string, payload: Record<string, unknown>) {
+    if (eventName === "tool_result") {
+      setReceipts((current) => [
+        ...current,
+        payload as unknown as CopilotReceipt,
+      ]);
+    }
+    if (eventName === "answer" && typeof payload.text === "string") {
+      setAnswer(payload.text);
+    }
+    if (eventName === "delta" && typeof payload.text === "string") {
+      setModelText((current) => `${current}${payload.text}`);
+    }
+    if (eventName === "model_notice" && typeof payload.message === "string") {
+      setModelText((current) =>
+        current ? current : String(payload.message),
+      );
+    }
+  }
+
+  async function runCopilot(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const cleanMessage = message.trim();
+    if (!cleanMessage) {
+      return;
+    }
+
+    setStatus("loading");
+    setError("");
+    setAnswer("");
+    setModelText("");
+    setReceipts([]);
+
+    try {
+      const httpResponse = await fetch("/api/copilot", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message: cleanMessage,
+          profile: buildCopilotProfile(profile),
+          schools: buildCopilotSchools(readySchools),
+          interests: profile.intendedMajor,
+        }),
+      });
+
+      if (!httpResponse.ok) {
+        const payload = await httpResponse.json();
+        throw new Error(payload?.error ?? "Copilot request failed.");
+      }
+
+      if (!httpResponse.body) {
+        const payload = await httpResponse.json();
+        if (typeof payload?.answer?.text === "string") {
+          setAnswer(payload.answer.text);
+        }
+        setStatus("ready");
+        return;
+      }
+
+      const reader = httpResponse.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+      let eventName = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) {
+          break;
+        }
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop() ?? "";
+
+        for (const line of lines) {
+          if (line.startsWith("event:")) {
+            eventName = line.slice("event:".length).trim();
+          }
+          if (line.startsWith("data:")) {
+            const raw = line.slice("data:".length).trim();
+            if (raw) {
+              applyFrame(eventName, JSON.parse(raw) as Record<string, unknown>);
+            }
+            eventName = "";
+          }
+        }
+      }
+
+      setStatus("ready");
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : "Copilot request failed.");
+      setStatus("error");
+    }
+  }
+
+  return (
+    <section className="copilot-panel" data-testid="copilot-panel">
+      <div className="phase5-head">
+        <div>
+          <div className="section-kicker">Admira Copilot</div>
+          <h3 className="section-title">Ask with receipts.</h3>
+        </div>
+        <MessageCircle size={22} aria-hidden="true" />
+      </div>
+
+      <form className="copilot-form" onSubmit={runCopilot}>
+        <label className="control">
+          <span className="field-label">Message</span>
+          <textarea
+            className="activity-control"
+            data-testid="copilot-input"
+            value={message}
+            onChange={(event) => setMessage(event.target.value)}
+          />
+        </label>
+        <button
+          type="submit"
+          className="add-button"
+          disabled={status === "loading"}
+          data-testid="copilot-send"
+        >
+          {status === "loading" ? (
+            <Loader2 className="spin" size={16} />
+          ) : (
+            <Sparkles size={16} />
+          )}
+          Ask Copilot
+        </button>
+      </form>
+
+      {readySchools.length === 0 ? (
+        <div className="phase5-empty">
+          <CircleHelp size={18} aria-hidden="true" />
+          <span>Add a scored school for grounded planning receipts.</span>
+        </div>
+      ) : null}
+
+      {status === "error" ? (
+        <p className="error-copy" role="alert">
+          {error}
+        </p>
+      ) : null}
+
+      {receipts.length > 0 ? (
+        <div className="receipt-row" aria-label="Copilot tool receipts">
+          {receipts.map((receipt, index) => (
+            <span key={`${receipt.name}-${index}`} data-testid="copilot-receipt">
+              {toolLabel(receipt.name)}
+            </span>
+          ))}
+        </div>
+      ) : null}
+
+      {answer ? (
+        <div className="copilot-answer" data-testid="copilot-answer">
+          <span className="micro-label">Grounded answer</span>
+          <p>{answer}</p>
+          {modelText ? <p className="helper">{modelText}</p> : null}
+        </div>
+      ) : null}
+    </section>
+  );
+}
+
+type ReportPayload = {
+  title?: string;
+  summary?: string;
+  sections?: {
+    admit?: Array<{ tier: string; score: number; confidence: number }>;
+    list?: Array<{ name: string; tier: string; bucket: string; fit: number | null }>;
+    climb?: Array<{
+      school_name: string;
+      lever: string;
+      before: number;
+      after: number;
+      delta: number;
+    }>;
+    command?: {
+      progress: { total: number; done: number; percent: number } | null;
+      tasks: Array<{ title: string; status: string; due_date: string | null }>;
+    };
+    compass?: Array<{ major_name: string; fit: number | null }>;
+    similar?: Array<{ school_name: string; cohort_size: number }>;
+  };
+};
+
+function ReportsPanel({
+  profile,
+  schools,
+}: {
+  profile: Profile;
+  schools: AddedSchool[];
+}) {
+  const [status, setStatus] = useState<"idle" | "loading" | "ready" | "error">(
+    "idle",
+  );
+  const [report, setReport] = useState<ReportPayload | null>(null);
+  const [error, setError] = useState("");
+  const [exportNotice, setExportNotice] = useState("");
+  const readySchools = schools.filter((entry) => entry.status === "ready");
+
+  async function generateReport() {
+    setStatus("loading");
+    setError("");
+    setExportNotice("");
+
+    try {
+      const httpResponse = await fetch("/api/reports/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: "Admira school plan",
+          profile: buildCopilotProfile(profile),
+          schools: buildCopilotSchools(readySchools),
+          interests: profile.intendedMajor,
+          share: false,
+        }),
+      });
+      const payload = await httpResponse.json();
+
+      if (!httpResponse.ok) {
+        throw new Error(payload?.error ?? "Report request failed.");
+      }
+
+      setReport(payload.report as ReportPayload);
+      setStatus("ready");
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : "Report request failed.");
+      setStatus("error");
+    }
+  }
+
+  async function exportReport() {
+    if (!report) {
+      return;
+    }
+
+    try {
+      const httpResponse = await fetch("/api/reports/export", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ report }),
+      });
+
+      if (!httpResponse.ok) {
+        throw new Error("PDF export failed.");
+      }
+
+      const blob = await httpResponse.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "admira-report.pdf";
+      link.click();
+      window.URL.revokeObjectURL(url);
+      setExportNotice("PDF ready.");
+    } catch (caught) {
+      setExportNotice(caught instanceof Error ? caught.message : "PDF export failed.");
+    }
+  }
+
+  const admit = report?.sections?.admit?.[0];
+  const list = report?.sections?.list ?? [];
+  const climb = report?.sections?.climb ?? [];
+  const commandProgress = report?.sections?.command?.progress;
+  const compass = report?.sections?.compass ?? [];
+
+  return (
+    <section className="reports-panel" data-testid="reports-panel">
+      <div className="phase5-head">
+        <div>
+          <div className="section-kicker">Stunning Reports</div>
+          <h3 className="section-title">Package the plan.</h3>
+        </div>
+        <button
+          type="button"
+          className="add-button"
+          onClick={generateReport}
+          disabled={status === "loading" || readySchools.length === 0}
+          data-testid="reports-generate"
+        >
+          {status === "loading" ? (
+            <Loader2 className="spin" size={16} />
+          ) : (
+            <FileText size={16} />
+          )}
+          Generate
+        </button>
+      </div>
+
+      {readySchools.length === 0 ? (
+        <div className="phase5-empty">
+          <FileText size={18} aria-hidden="true" />
+          <span>Add a scored school before generating a report.</span>
+        </div>
+      ) : null}
+
+      {status === "error" ? (
+        <p className="error-copy" role="alert">
+          {error}
+        </p>
+      ) : null}
+
+      {report ? (
+        <div className="report-output" data-testid="reports-output">
+          <div className="report-summary">
+            <span className="micro-label">{report.title ?? "Admira report"}</span>
+            <p>{report.summary}</p>
+          </div>
+          <div className="report-grid">
+            {admit ? (
+              <div>
+                <span className="micro-label">Admit</span>
+                <strong>{admit.tier}</strong>
+                <span className="mono">Score {admit.score}</span>
+              </div>
+            ) : null}
+            {commandProgress ? (
+              <div>
+                <span className="micro-label">Tasks</span>
+                <strong>{commandProgress.done} done</strong>
+                <span className="mono">{commandProgress.percent} progress</span>
+              </div>
+            ) : null}
+            {list[0] ? (
+              <div>
+                <span className="micro-label">List</span>
+                <strong>{list[0].name}</strong>
+                <span>{list[0].tier}</span>
+              </div>
+            ) : null}
+            {climb[0] ? (
+              <div>
+                <span className="micro-label">Climb</span>
+                <strong>{climb[0].lever}</strong>
+                <span className="mono">
+                  {climb[0].before} to {climb[0].after}
+                </span>
+              </div>
+            ) : null}
+            {compass[0] ? (
+              <div>
+                <span className="micro-label">Compass</span>
+                <strong>{compass[0].major_name}</strong>
+                <span>
+                  {compass[0].fit === null ? "Fit unscored" : `Fit ${compass[0].fit}`}
+                </span>
+              </div>
+            ) : null}
+          </div>
+          <button type="button" className="add-button" onClick={exportReport}>
+            <Share2 size={16} />
+            Export PDF
+          </button>
+          {exportNotice ? <p className="helper">{exportNotice}</p> : null}
+        </div>
+      ) : null}
     </section>
   );
 }

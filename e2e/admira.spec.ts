@@ -624,6 +624,24 @@ async function mockCommandCenterStatus(page: Page, enabled: boolean) {
   });
 }
 
+async function mockCopilotStatus(page: Page, enabled: boolean) {
+  await page.route("**/api/copilot/status", async (route) => {
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify({ enabled }),
+    });
+  });
+}
+
+async function mockReportsStatus(page: Page, enabled: boolean) {
+  await page.route("**/api/reports/status", async (route) => {
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify({ enabled }),
+    });
+  });
+}
+
 async function mockSupabaseAuth(page: Page) {
   const corsHeaders = {
     "access-control-allow-headers": "authorization, x-client-info, apikey, content-type",
@@ -757,6 +775,8 @@ test.beforeEach(async ({ page }) => {
   await mockStudentsLikeYouStatus(page, false);
   await mockClimbStatus(page, false);
   await mockCommandCenterStatus(page, false);
+  await mockCopilotStatus(page, false);
+  await mockReportsStatus(page, false);
 
   await page.route("**/api/chance", async (route) => {
     const body = JSON.parse(route.request().postData() ?? "{}");
@@ -1761,6 +1781,179 @@ test("renders Command Center requirements and deadline-not-loaded state", async 
   await expect(panel.getByTestId("command-center-results")).toContainText(
     "0 uploaded",
   );
+});
+
+test("streams a mocked Copilot answer with tool receipts and an action receipt", async ({
+  page,
+}) => {
+  let copilotRequests = 0;
+
+  await mockOutcomeStatus(page, false);
+  await mockFitStatus(page, false);
+  await mockAdmitIntelligenceStatus(page, false);
+  await mockCopilotStatus(page, true);
+  await page.route("**/api/copilot", async (route) => {
+    expect(route.request().method()).toBe("POST");
+    const body = JSON.parse(route.request().postData() ?? "{}");
+    expect(body.message).toContain("supplement");
+    expect(body.profile).toMatchObject({
+      sat_score: 1540,
+      act_score: 35,
+      gpa: 3.95,
+      application_round: "regular",
+      intended_major: "Computer science",
+    });
+    expect(body.schools[0]).toMatchObject({
+      unitid: 166683,
+      name: "Massachusetts Institute of Technology",
+    });
+    expectNoForbiddenKeys(body);
+    copilotRequests += 1;
+
+    const stream = [
+      "event: tool_result",
+      `data: ${JSON.stringify({
+        name: "command_center",
+        output: {
+          progress: { total: 2, done: 1, percent: 50 },
+          schools: [],
+          documents: [],
+        },
+      })}`,
+      "",
+      "event: tool_result",
+      `data: ${JSON.stringify({
+        name: "update_command_center_status",
+        output: {
+          type: "requirement_status",
+          requirement_key: "supplement",
+          status: "done",
+          reversible: true,
+        },
+      })}`,
+      "",
+      "event: answer",
+      `data: ${JSON.stringify({
+        text: "Command Center updated supplement to done.",
+      })}`,
+      "",
+      "event: done",
+      "data: {\"ok\":true}",
+      "",
+    ].join("\n");
+
+    await route.fulfill({
+      contentType: "text/event-stream",
+      body: stream,
+    });
+  });
+
+  await addMitResult(page);
+  const panel = page.getByTestId("copilot-panel");
+  await expect(panel).toContainText("Admira Copilot");
+  await panel.getByTestId("copilot-input").fill("Mark the supplement done.");
+  await panel.getByTestId("copilot-send").click();
+
+  await expect(panel.getByTestId("copilot-receipt").first()).toContainText(
+    "Command Center",
+  );
+  await expect(panel).toContainText("Update Command Center Status");
+  await expect(panel.getByTestId("copilot-answer")).toContainText(
+    "supplement to done",
+  );
+  await expect(panel.getByTestId("copilot-answer")).not.toContainText("$");
+  expect(copilotRequests).toBe(1);
+});
+
+test("generates and exports a mocked report without deferred-money fields", async ({
+  page,
+}) => {
+  let reportRequests = 0;
+  let exportRequests = 0;
+
+  await mockOutcomeStatus(page, false);
+  await mockFitStatus(page, false);
+  await mockAdmitIntelligenceStatus(page, false);
+  await mockReportsStatus(page, true);
+  await page.route("**/api/reports/generate", async (route) => {
+    expect(route.request().method()).toBe("POST");
+    const body = JSON.parse(route.request().postData() ?? "{}");
+    expect(body.profile).toMatchObject({
+      sat_score: 1540,
+      act_score: 35,
+      gpa: 3.95,
+      intended_major: "Computer science",
+    });
+    expect(JSON.stringify(body).toLowerCase()).not.toContain("net_cost");
+    expectNoForbiddenKeys(body);
+    reportRequests += 1;
+
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify({
+        report: {
+          version: "admira_report",
+          title: "Admira school plan",
+          summary:
+            "Admit Intelligence reads this as Reach with score 3 and confidence 0.51.",
+          sections: {
+            admit: [{ tier: "Reach", score: 3, confidence: 0.51 }],
+            list: [
+              {
+                name: "Massachusetts Institute of Technology",
+                tier: "Reach",
+                bucket: "reach",
+                fit: 82,
+              },
+            ],
+            climb: [
+              {
+                school_name: "Massachusetts Institute of Technology",
+                lever: "Test score",
+                before: 3,
+                after: 6,
+                delta: 3,
+              },
+            ],
+            command: {
+              progress: { total: 2, done: 1, percent: 50 },
+              tasks: [],
+            },
+            compass: [{ major_name: "Computer Science", fit: 91 }],
+            similar: [],
+          },
+          sources: [],
+          notes: [],
+        },
+      }),
+    });
+  });
+  await page.route("**/api/reports/export", async (route) => {
+    expect(route.request().method()).toBe("POST");
+    exportRequests += 1;
+    await route.fulfill({
+      contentType: "application/pdf",
+      body: "%PDF-1.4\n%mock\n",
+    });
+  });
+
+  await addMitResult(page);
+  const panel = page.getByTestId("reports-panel");
+  await panel.getByTestId("reports-generate").click();
+
+  await expect(panel.getByTestId("reports-output")).toContainText(
+    "Admira school plan",
+  );
+  await expect(panel.getByTestId("reports-output")).toContainText(
+    "Computer Science",
+  );
+  await expect(panel.getByTestId("reports-output")).not.toContainText(
+    /net price|merit|ROI|\$/i,
+  );
+  await panel.getByRole("button", { name: "Export PDF" }).click();
+  await expect(panel).toContainText("PDF ready.");
+  expect(reportRequests).toBe(1);
+  expect(exportRequests).toBe(1);
 });
 
 test("renders an honest elite-school result and methodology disclosure", async ({

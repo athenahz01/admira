@@ -238,6 +238,7 @@ async function main() {
   let commandTaskId = "";
   let requirementStatusId = "";
   let documentId = "";
+  let reportShareId = "";
   let fatalError: Error | null = null;
   let cleanupFailed = false;
 
@@ -366,6 +367,14 @@ async function main() {
       });
     });
 
+    await runCheck(results, "Anonymous cannot insert report shares", async () => {
+      await expectRejected(anonymousDb, "report_shares", {
+        subject_id: randomUUID(),
+        token_hash: randomUUID().replace(/-/g, "").padEnd(64, "0"),
+        report_payload: { title: "blocked anonymous report" },
+      });
+    });
+
     await runCheck(results, "Anonymous cannot list document vault", async () => {
       const result = await createClient<Database>(supabaseUrl, anonKey, {
         auth: {
@@ -422,6 +431,23 @@ async function main() {
       size_bytes: 128,
     });
     documentId = String(document.id);
+
+    const reportShare = await insertSingle(dbA, "report_shares", {
+      subject_id: userAId,
+      token_hash: runId.replace(/-/g, "").padEnd(64, "0"),
+      report_payload: {
+        title: "Admira RLS harness report",
+        sections: {
+          admit: [],
+          list: [],
+          similar: [],
+          climb: [],
+          command: { progress: null, tasks: [] },
+          compass: [],
+        },
+      },
+    });
+    reportShareId = String(reportShare.id);
 
     const consent = await insertSingle(dbA, "consent_records", {
       subject_id: userAId,
@@ -627,6 +653,13 @@ async function main() {
       }
     });
 
+    await runCheck(results, "User B cannot select User A report share", async () => {
+      const rows = await selectById(dbB, "report_shares", reportShareId);
+      if (rows.length !== 0) {
+        throw new Error(`expected 0 rows, got ${rows.length}`);
+      }
+    });
+
     await runCheck(
       results,
       "User B cannot insert profile carrying User A subject_id",
@@ -705,6 +738,18 @@ async function main() {
       },
     );
 
+    await runCheck(
+      results,
+      "User B cannot insert report share carrying User A subject_id",
+      async () => {
+        await expectRejected(dbB, "report_shares", {
+          subject_id: userAId,
+          token_hash: randomUUID().replace(/-/g, "").padEnd(64, "1"),
+          report_payload: { title: "blocked cross-user report" },
+        });
+      },
+    );
+
     await runCheck(results, "User B cannot delete User A consent row", async () => {
       const result = await deleteById(dbB, "consent_records", consentId);
       if (!result.error && result.count !== 0) {
@@ -772,6 +817,17 @@ async function main() {
       const rows = await selectById(dbA, "documents", documentId);
       if (rows.length !== 1) {
         throw new Error("User A document row was not preserved");
+      }
+    });
+
+    await runCheck(results, "User B cannot delete User A report share", async () => {
+      const result = await deleteById(dbB, "report_shares", reportShareId);
+      if (!result.error && result.count !== 0) {
+        throw new Error(`expected 0 deleted rows, got ${result.count}`);
+      }
+      const rows = await selectById(dbA, "report_shares", reportShareId);
+      if (rows.length !== 1) {
+        throw new Error("User A report share was not preserved");
       }
     });
 
@@ -856,6 +912,7 @@ async function main() {
     const scopedDeletes: Array<Promise<void>> = [];
 
     if (userAId) {
+      scopedDeletes.push(deleteByColumn(serviceDb, "report_shares", "subject_id", userAId));
       scopedDeletes.push(deleteByColumn(serviceDb, "documents", "subject_id", userAId));
       scopedDeletes.push(deleteByColumn(serviceDb, "requirement_status", "subject_id", userAId));
       scopedDeletes.push(deleteByColumn(serviceDb, "tasks", "subject_id", userAId));
@@ -865,6 +922,7 @@ async function main() {
       scopedDeletes.push(deleteByColumn(serviceDb, "data_access_logs", "subject_id", userAId));
     }
     if (userBId) {
+      scopedDeletes.push(deleteByColumn(serviceDb, "report_shares", "subject_id", userBId));
       scopedDeletes.push(deleteByColumn(serviceDb, "documents", "subject_id", userBId));
       scopedDeletes.push(deleteByColumn(serviceDb, "requirement_status", "subject_id", userBId));
       scopedDeletes.push(deleteByColumn(serviceDb, "tasks", "subject_id", userBId));

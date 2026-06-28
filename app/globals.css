@@ -1450,13 +1450,76 @@ button {
 }
 
 .climb-panel,
-.command-panel {
+.command-panel,
+.copilot-panel,
+.reports-panel {
   display: grid;
   gap: 16px;
   border-radius: var(--r-card);
   background: var(--warm-card);
   box-shadow: var(--paper-shadow);
   padding: 20px;
+}
+
+.copilot-form {
+  display: grid;
+  gap: 12px;
+}
+
+.receipt-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.receipt-row span {
+  border-radius: 999px;
+  background: var(--school-indigo-wash);
+  color: var(--school-indigo);
+  font-family: var(--font-data), monospace;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 7px 10px;
+}
+
+.copilot-answer,
+.report-output {
+  display: grid;
+  gap: 12px;
+  border-radius: var(--r-panel);
+  background: var(--surface-soft);
+  box-shadow: inset 0 0 0 1px var(--rule);
+  padding: 16px;
+}
+
+.copilot-answer p,
+.report-summary p {
+  margin: 0;
+  color: var(--ink);
+  line-height: 1.5;
+  text-wrap: pretty;
+}
+
+.report-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.report-grid div {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  border-radius: var(--r-control);
+  background: var(--warm-card);
+  box-shadow: inset 0 0 0 1px var(--rule);
+  padding: 12px;
+}
+
+.report-grid strong {
+  overflow-wrap: anywhere;
+  color: var(--ink);
+  line-height: 1.2;
 }
 
 .phase5-head {
@@ -4061,6 +4124,7 @@ button {
   .capture-steps,
   .sly-outcome-grid,
   .sly-card-grid,
+  .report-grid,
   .deadline-strip,
   .kanban-grid {
     grid-template-columns: 1fr;
