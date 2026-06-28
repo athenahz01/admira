@@ -28,6 +28,14 @@
   --rule: rgba(42, 31, 24, 0.14);
   --rule-strong: rgba(42, 31, 24, 0.28);
   --focus-ring: rgba(194, 65, 12, 0.44);
+  --shadow-border:
+    0 0 0 1px rgba(42, 31, 24, 0.07),
+    0 1px 2px -1px rgba(42, 31, 24, 0.08),
+    0 8px 24px rgba(42, 31, 24, 0.06);
+  --shadow-border-hover:
+    0 0 0 1px rgba(42, 31, 24, 0.11),
+    0 2px 4px -2px rgba(42, 31, 24, 0.1),
+    0 14px 34px rgba(42, 31, 24, 0.08);
   --paper-shadow:
     0 0 0 1px rgba(42, 31, 24, 0.06),
     0 12px 34px rgba(42, 31, 24, 0.08);
@@ -40,6 +48,10 @@
   --error-ring: rgba(220, 38, 38, 0.32);
   --sigil-grad: linear-gradient(155deg, #fb923c 0%, #ea580c 52%, #c2410c 100%);
   --sigil-on: #fff8f2;
+  --motion-fast: 150ms;
+  --motion-medium: 240ms;
+  --motion-slow: 420ms;
+  --ease-out-quart: cubic-bezier(0.2, 0, 0, 1);
   --r-card: 20px;
   --r-panel: 14px;
   --r-inner: 12px;
@@ -76,6 +88,8 @@
   --rule: rgba(246, 239, 231, 0.13);
   --rule-strong: rgba(246, 239, 231, 0.26);
   --focus-ring: rgba(251, 146, 60, 0.48);
+  --shadow-border: 0 0 0 1px rgba(246, 239, 231, 0.08);
+  --shadow-border-hover: 0 0 0 1px rgba(246, 239, 231, 0.14);
   --paper-shadow: 0 0 0 1px rgba(246, 239, 231, 0.08);
   --paper-shadow-hover: 0 0 0 1px rgba(246, 239, 231, 0.14);
   --tick: rgba(246, 239, 231, 0.42);
@@ -311,7 +325,7 @@ button {
 .fit-finder-panel {
   border-radius: var(--r-card);
   background: var(--warm-card);
-  box-shadow: var(--paper-shadow);
+  box-shadow: var(--shadow-border);
 }
 
 .profile-card,
@@ -323,8 +337,40 @@ button {
 .capture-panel,
 .fit-finder-panel {
   transition-property: box-shadow;
-  transition-duration: 180ms;
-  transition-timing-function: ease-out;
+  transition-duration: var(--motion-medium);
+  transition-timing-function: var(--ease-out-quart);
+}
+
+.profile-card,
+.result-card,
+.balance-panel,
+.search-panel,
+.empty-state-card,
+.loading-card,
+.capture-panel,
+.fit-finder-panel,
+.sly-panel,
+.climb-panel[data-testid="climb-panel"],
+.command-panel,
+.copilot-panel,
+.reports-panel {
+  animation: dashboard-reveal var(--motion-slow) var(--ease-out-quart) both;
+}
+
+.results-column > *:nth-child(2),
+.fit-results > *:nth-child(2),
+.sly-results > *:nth-child(2),
+.climb-results > *:nth-child(2),
+.command-results > *:nth-child(2) {
+  animation-delay: 60ms;
+}
+
+.results-column > *:nth-child(3),
+.fit-results > *:nth-child(3),
+.sly-results > *:nth-child(3),
+.climb-results > *:nth-child(3),
+.command-results > *:nth-child(3) {
+  animation-delay: 110ms;
 }
 
 .profile-card:hover,
@@ -333,7 +379,7 @@ button {
 .search-panel:hover,
 .capture-panel:hover,
 .fit-finder-panel:hover {
-  box-shadow: var(--paper-shadow-hover);
+  box-shadow: var(--shadow-border-hover);
 }
 
 .panel-inner {
@@ -858,6 +904,8 @@ button {
 .balance-seg {
   min-width: 14px;
   border-radius: 999px;
+  transform-origin: left center;
+  animation: data-bar-grow var(--motion-slow) var(--ease-out-quart) both;
 }
 
 .balance-seg[data-band="reach"] {
@@ -1181,6 +1229,7 @@ button {
 
 .confidence-bars i[data-active="true"] {
   background: var(--fit-teal);
+  animation: meter-rise var(--motion-medium) var(--ease-out-quart) both;
 }
 
 .admit-drivers,
@@ -1295,8 +1344,15 @@ button {
   gap: 16px;
   border-radius: var(--r-card);
   background: var(--warm-card);
-  box-shadow: var(--paper-shadow);
+  box-shadow: var(--shadow-border);
   padding: 20px;
+  transition:
+    box-shadow var(--motion-medium) var(--ease-out-quart),
+    translate var(--motion-fast) var(--ease-out-quart);
+}
+
+.sly-panel:hover {
+  box-shadow: var(--shadow-border-hover);
 }
 
 .sly-head {
@@ -1367,6 +1423,13 @@ button {
   border-radius: 999px;
   background: var(--control-bg);
   box-shadow: inset 0 0 0 1px var(--rule);
+}
+
+.sly-bars span {
+  display: block;
+  min-width: 0;
+  transform-origin: left center;
+  animation: data-bar-grow var(--motion-slow) var(--ease-out-quart) both;
 }
 
 .sly-bars span[data-outcome="admitted"] {
@@ -1457,8 +1520,18 @@ button {
   gap: 16px;
   border-radius: var(--r-card);
   background: var(--warm-card);
-  box-shadow: var(--paper-shadow);
+  box-shadow: var(--shadow-border);
   padding: 20px;
+  transition:
+    box-shadow var(--motion-medium) var(--ease-out-quart),
+    translate var(--motion-fast) var(--ease-out-quart);
+}
+
+.climb-panel:hover,
+.command-panel:hover,
+.copilot-panel:hover,
+.reports-panel:hover {
+  box-shadow: var(--shadow-border-hover);
 }
 
 .copilot-form {
@@ -1473,12 +1546,14 @@ button {
 }
 
 .receipt-row span {
+  min-width: 0;
   border-radius: 999px;
   background: var(--school-indigo-wash);
   color: var(--school-indigo);
   font-family: var(--font-data), monospace;
   font-size: 12px;
   font-weight: 700;
+  overflow-wrap: anywhere;
   padding: 7px 10px;
 }
 
@@ -1532,12 +1607,13 @@ button {
 
 .phase5-empty {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 10px;
   border-radius: var(--r-panel);
   background: var(--surface-soft);
   color: var(--muted);
   padding: 14px;
+  text-wrap: pretty;
 }
 
 .climb-results,
@@ -1663,6 +1739,8 @@ button {
   height: 100%;
   border-radius: inherit;
   background: var(--fit-green);
+  transform-origin: left center;
+  animation: data-bar-grow var(--motion-slow) var(--ease-out-quart) both;
 }
 
 .deadline-strip {
@@ -1824,6 +1902,8 @@ button {
   border-radius: 999px;
   background: color-mix(in srgb, var(--chance-primary) 30%, transparent);
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--chance-primary) 48%, transparent);
+  transform-origin: left center;
+  animation: data-bar-grow var(--motion-slow) var(--ease-out-quart) both;
 }
 
 .scale-point {
@@ -1931,6 +2011,8 @@ button {
   border-radius: 999px;
   background: var(--chance-primary);
   opacity: 0.7;
+  transform-origin: left center;
+  animation: data-bar-grow var(--motion-medium) var(--ease-out-quart) both;
 }
 
 .mini-range-point {
@@ -2229,6 +2311,8 @@ button {
   height: 100%;
   border-radius: 999px;
   background: linear-gradient(90deg, var(--chance-soft), var(--chance-bright));
+  transform-origin: left center;
+  animation: data-bar-grow var(--motion-slow) var(--ease-out-quart) both;
 }
 
 .profile-rail-hint {
@@ -4048,6 +4132,39 @@ button {
   }
 }
 
+@keyframes dashboard-reveal {
+  from {
+    opacity: 0;
+    translate: 0 8px;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+
+@keyframes data-bar-grow {
+  from {
+    opacity: 0.72;
+    transform: scaleX(0.01);
+  }
+  to {
+    opacity: 1;
+    transform: scaleX(1);
+  }
+}
+
+@keyframes meter-rise {
+  from {
+    opacity: 0.52;
+    transform: scaleY(0.72);
+  }
+  to {
+    opacity: 1;
+    transform: scaleY(1);
+  }
+}
+
 @keyframes fit-spin {
   to {
     rotate: 360deg;
@@ -4062,6 +4179,33 @@ button {
     animation-iteration-count: 1 !important;
     scroll-behavior: auto !important;
     transition-duration: 0.01ms !important;
+  }
+
+  .profile-card,
+  .result-card,
+  .balance-panel,
+  .search-panel,
+  .empty-state-card,
+  .loading-card,
+  .capture-panel,
+  .fit-finder-panel,
+  .sly-panel,
+  .climb-panel[data-testid="climb-panel"],
+  .command-panel,
+  .copilot-panel,
+  .reports-panel,
+  .balance-seg,
+  .confidence-bars i[data-active="true"],
+  .sly-bars span,
+  .command-meter span,
+  .scale-band,
+  .mini-range-band,
+  .profile-meter-track span,
+  .search-skeleton-lines span,
+  .skeleton-band {
+    animation: none !important;
+    transform: none !important;
+    translate: none !important;
   }
 }
 
@@ -4104,6 +4248,29 @@ button {
 
   .result-pill-stack {
     justify-content: flex-start;
+  }
+
+  .phase5-head,
+  .sly-head {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .phase5-head > .add-button,
+  .phase5-head > button,
+  .copilot-form .add-button,
+  .sly-run {
+    width: 100%;
+  }
+
+  .receipt-row span {
+    max-width: 100%;
+  }
+
+  .phase5-empty svg,
+  .sly-empty svg {
+    flex: none;
+    margin-top: 2px;
   }
 
   .fit-add-button {

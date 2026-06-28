@@ -859,6 +859,142 @@ test("keeps Fit Finder dark when the server flag is disabled", async ({
   expect(statuses).toEqual({ fit: 404, explain: 404 });
 });
 
+test("keeps admission loading skeleton honest while chance request is pending", async ({
+  page,
+}) => {
+  let releaseChance: () => void = () => undefined;
+  const chanceGate = new Promise<void>((resolve) => {
+    releaseChance = resolve;
+  });
+
+  await mockOutcomeStatus(page, false);
+  await mockFitStatus(page, false);
+  await mockAdmitIntelligenceStatus(page, false);
+  await page.unroute("**/api/chance");
+  await page.route("**/api/chance", async (route) => {
+    const body = JSON.parse(route.request().postData() ?? "{}");
+    expect(body).toMatchObject({
+      act_score: 35,
+      application_round: "regular",
+      gpa: 3.95,
+      sat_score: 1540,
+      unitid: 166683,
+    });
+
+    await chanceGate;
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify(mitChanceResponse),
+    });
+  });
+
+  await page.goto("/");
+  await page.getByLabel("GPA").fill("3.95");
+  await page.getByLabel("SAT").fill("1540");
+  await page.getByRole("textbox", { exact: true, name: "ACT" }).fill("35");
+  await page.getByLabel("Intended major").fill("Computer science");
+  await page.getByRole("button", { name: "Save profile" }).click();
+  await page.getByLabel("Search by school name").fill("Massachusetts");
+  await page
+    .getByRole("button", { name: /Massachusetts Institute of Technology/ })
+    .click();
+
+  const loadingCard = page.locator(".loading-card");
+  await expect(loadingCard).toContainText("No temporary number is shown.");
+  await expect(loadingCard).not.toContainText(/\d+%|FIT \d|Score \d|\$/);
+
+  releaseChance();
+  await expect(page.getByTestId("result-card")).toContainText(
+    "Massachusetts Institute of Technology",
+  );
+});
+
+test("disables polish animation when reduced motion is requested", async ({
+  page,
+}) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await mockOutcomeStatus(page, false);
+  await mockFitStatus(page, false);
+  await mockAdmitIntelligenceStatus(page, false);
+
+  const resultCard = await addMitResult(page);
+  const cardAnimation = await resultCard.evaluate(
+    (element) => getComputedStyle(element).animationName,
+  );
+  const bandAnimation = await page.locator(".scale-band").evaluate(
+    (element) => getComputedStyle(element).animationName,
+  );
+
+  expect(cardAnimation).toBe("none");
+  expect(bandAnimation).toBe("none");
+});
+
+test("keeps Phase 7 empty states usable on a mobile viewport", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await mockOutcomeStatus(page, false);
+  await mockFitStatus(page, false);
+  await mockAdmitIntelligenceStatus(page, false);
+  await mockClimbStatus(page, true);
+  await mockCommandCenterStatus(page, true);
+  await mockCopilotStatus(page, true);
+  await mockReportsStatus(page, true);
+
+  await page.goto("/");
+
+  await expect(page.getByTestId("climb-panel")).toContainText(
+    "Add at least one scored school to generate moves.",
+  );
+  await expect(page.getByTestId("command-center-panel")).toContainText(
+    "Add schools first; requirements are generated from the list.",
+  );
+  await expect(page.getByTestId("copilot-panel")).toContainText(
+    "Add a scored school for grounded planning receipts.",
+  );
+  await expect(page.getByTestId("reports-panel")).toContainText(
+    "Add a scored school before generating a report.",
+  );
+
+  const noHorizontalOverflow = await page.evaluate(
+    () => document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1,
+  );
+  const sendWidth = await page
+    .getByTestId("copilot-send")
+    .evaluate((element) => element.getBoundingClientRect().width);
+  const inputWidth = await page
+    .getByTestId("copilot-input")
+    .evaluate((element) => element.getBoundingClientRect().width);
+
+  expect(noHorizontalOverflow).toBe(true);
+  expect(Math.abs(sendWidth - inputWidth)).toBeLessThan(2);
+});
+
+test("renders a Reports error state without deferred-money copy", async ({
+  page,
+}) => {
+  await mockOutcomeStatus(page, false);
+  await mockFitStatus(page, false);
+  await mockAdmitIntelligenceStatus(page, false);
+  await mockReportsStatus(page, true);
+  await page.route("**/api/reports/generate", async (route) => {
+    await route.fulfill({
+      contentType: "application/json",
+      status: 503,
+      body: JSON.stringify({ error: "Report service unavailable." }),
+    });
+  });
+
+  await addMitResult(page);
+  const panel = page.getByTestId("reports-panel");
+  await panel.getByTestId("reports-generate").click();
+
+  await expect(panel.getByRole("alert")).toContainText(
+    "Report service unavailable.",
+  );
+  await expect(panel).not.toContainText(/net price|merit|ROI|\$/i);
+});
+
 test("moves the what-if range while keeping the current range visible", async ({
   page,
 }) => {

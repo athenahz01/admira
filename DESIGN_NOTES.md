@@ -31,6 +31,14 @@ Light mode uses the uploaded warm paper palette. Dark mode keeps the same hue ro
 
 Oxide is reserved for chance. Teal and green are reserved for FIT. Indigo is reserved for the school or typical-admit reference.
 
+## Polish Pass Tokens
+
+Shared product surfaces use `--shadow-border` and `--shadow-border-hover` so dashboard cards, loading cards, and Phase 5 panels sit on the same visual plane in light and dark mode. Legacy `--paper-shadow` remains for older controls and secondary pages.
+
+Motion is centralized with `--motion-fast`, `--motion-medium`, `--motion-slow`, and `--ease-out-quart`. `dashboard-reveal` is used for card entrance, while `data-bar-grow` and `meter-rise` only animate bars that are already sized by real model or list data. Loading skeletons continue to use `band-scan` and never display temporary scores, percentages, costs, or counts.
+
+Reduced-motion users get instant surfaces: the polish animations, data-bar transforms, and skeleton scans are disabled inside `prefers-reduced-motion: reduce`.
+
 ## Type
 
 - Display and headings: Bricolage Grotesque, weight 800.
