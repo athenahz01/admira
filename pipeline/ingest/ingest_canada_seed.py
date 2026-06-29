@@ -6,6 +6,8 @@ and can optionally upsert through the service-role Supabase client.
 """
 
 from __future__ import annotations
+from dotenv import load_dotenv
+
 
 import argparse
 import json
@@ -247,6 +249,7 @@ def parse_args() -> argparse.Namespace:
 
 
 def main() -> int:
+    load_dotenv()
     args = parse_args()
     data = load_seed(args.seed)
     payload = build_payload(data, args.ingested_at)
