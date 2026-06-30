@@ -3,10 +3,10 @@ import Link from "next/link";
 
 export const metadata: Metadata = {
   title: {
-    absolute: "Honest, confident college chances | Admira",
+    absolute: "Your College Chances, School by School | Admira",
   },
   description:
-    "Admira separates school fit from honest admissions ranges for US and Canadian college applicants.",
+    "See your admissions chances at every school and find the ones that fit — for US and Canadian college applicants.",
 };
 
 export default function Home() {
@@ -19,7 +19,7 @@ export default function Home() {
           </div>
           <div className="brand-copy">
             <h1>Admira</h1>
-            <p>honest college intelligence</p>
+            <p>your college chances</p>
           </div>
         </Link>
         <div className="topbar-actions">
@@ -38,24 +38,24 @@ export default function Home() {
       <section className="marketing-hero">
         <div className="marketing-copy">
           <span className="section-kicker">For the US &amp; Canada</span>
-          <h2>Honest, confident college chances.</h2>
+          <h2>Know your chances at every college.</h2>
           <p>
-            Admira reads one shared profile and answers two separate questions
-            for every school: is it a good fit, and what is the honest
-            admissions range.
+            Set up your profile once, and Admira shows your admissions chances
+            at any school, finds the ones that fit you, and helps you build a
+            balanced list.
           </p>
           <div className="marketing-actions">
             <Link className="add-button" href="/start">
               Get your read
             </Link>
             <Link className="method-link" href="/methodology">
-              See the methodology
+              See how it works
             </Link>
           </div>
-          <div className="marketing-strip" aria-label="Admira principles">
-            <span>Range, never a point</span>
-            <span>FIT is not admit odds</span>
-            <span>We name what we cannot see</span>
+          <div className="marketing-strip" aria-label="What Admira does">
+            <span>Chances at every school</span>
+            <span>Schools that fit you</span>
+            <span>A balanced college list</span>
           </div>
         </div>
 
@@ -65,7 +65,7 @@ export default function Home() {
           <h3>A target. Strong academics, fierce field.</h3>
           <div className="sample-read-grid">
             <div>
-              <span className="micro-label">Honest chance range</span>
+              <span className="micro-label">Your chance range</span>
               <strong className="sample-range mono">24-38%</strong>
             </div>
             <span className="result-pill target">Target</span>
@@ -75,8 +75,8 @@ export default function Home() {
             <i />
           </div>
           <p className="helper">
-            These figures are illustrative only. A real read is generated from
-            the module layer after the profile and school are selected.
+            These figures are illustrative only. Your real numbers appear once
+            you set up your profile and pick a school.
           </p>
           <div className="sample-fit">
             <span className="micro-label">Fit overlap</span>

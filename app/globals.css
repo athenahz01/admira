@@ -2883,6 +2883,42 @@ button {
   padding: 7px 10px;
 }
 
+.profile-spine {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 18px;
+}
+
+.profile-spine .profile-spine-copy {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+  flex: 1;
+}
+
+.profile-spine-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: none;
+}
+
+.profile-spine-ready {
+  font-size: 12px;
+  color: var(--faint);
+}
+
+@media (max-width: 620px) {
+  .profile-spine {
+    flex-wrap: wrap;
+  }
+  .profile-spine-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+}
+
 .profile-scope-note {
   display: flex;
   align-items: flex-start;
