@@ -3,14 +3,6 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
-  PolarAngleAxis,
-  PolarGrid,
-  PolarRadiusAxis,
-  Radar,
-  RadarChart,
-  ResponsiveContainer,
-} from "recharts";
-import {
   AlertTriangle,
   BookOpen,
   Check,
@@ -48,6 +40,14 @@ import { useAdmiraProfile } from "./admira-profile";
 import { OutcomeDataControlsPanel } from "./outcome-data-controls";
 import { OutcomeCapturePanel } from "./outcome-capture-panel";
 import { OutcomeSessionProvider } from "./outcome-session";
+import {
+  FitRadar as SignatureRadar,
+  RangeBar,
+  VerdictBlock,
+  mapDriverDirection,
+  type RadarAxis,
+  type VerdictDriver,
+} from "./signature";
 
 type BandLabel = "reach" | "target" | "likely";
 type AdmitTier = "Reach" | "Target" | "Likely" | "Safety";
@@ -2112,9 +2112,24 @@ function DashboardHome({
           <span className="section-kicker">Top read</span>
           {primary ? (
             <>
-              <h3>{schoolVerdictLine(primary)}</h3>
-              <p>{primary.school.name}</p>
-              <strong className="mono">{schoolVerdictMetric(primary)}</strong>
+              <p className="dashboard-topread-school">{primary.school.name}</p>
+              <VerdictBlock
+                tone={dashboardVerdictTone(primary)}
+                chipLabel={dashboardVerdictChip(primary)}
+                headline={schoolVerdictLine(primary)}
+                metric={schoolVerdictMetric(primary)}
+              />
+              {dashboardRange(primary) ? (
+                <RangeBar
+                  low={dashboardRange(primary)!.low}
+                  high={dashboardRange(primary)!.high}
+                  point={dashboardRange(primary)!.point}
+                  label={`${primary.school.name} chance range`}
+                />
+              ) : null}
+              <Link className="add-button split-cta" href="/schools">
+                View full read
+              </Link>
             </>
           ) : (
             <>
@@ -2339,6 +2354,50 @@ function schoolVerdictMetric(entry: AddedSchool) {
     return formatChanceRange(entry.result.probability.low, entry.result.probability.high);
   }
   return "Pending";
+}
+
+function dashboardVerdictTone(entry: AddedSchool) {
+  if (entry.intelligence) {
+    return entry.intelligence.tier.toLowerCase();
+  }
+  if (entry.result) {
+    return entry.result.band.label;
+  }
+  return "target";
+}
+
+function dashboardVerdictChip(entry: AddedSchool) {
+  if (entry.intelligence) {
+    return formatAdmitTier(entry.intelligence.tier);
+  }
+  if (entry.result) {
+    return formatBandLabel(entry.result.band.label);
+  }
+  return "Pending";
+}
+
+function dashboardRange(
+  entry: AddedSchool,
+): { low: number; high: number; point: number } | null {
+  if (
+    entry.intelligence &&
+    typeof entry.intelligence.probability.low === "number" &&
+    typeof entry.intelligence.probability.high === "number"
+  ) {
+    return {
+      low: entry.intelligence.probability.low,
+      high: entry.intelligence.probability.high,
+      point: entry.intelligence.probability.calibrated,
+    };
+  }
+  if (entry.result) {
+    return {
+      low: entry.result.probability.low,
+      high: entry.result.probability.high,
+      point: entry.result.probability.calibrated,
+    };
+  }
+  return null;
 }
 
 function profileReadiness(profile: Profile) {
@@ -3167,12 +3226,26 @@ function ClimbRoadmapPanel({
         <div className="climb-results" data-testid="climb-results">
           <div className="climb-hero">
             <span className="micro-label">Highest computed move</span>
-            <strong>{topMove.lever.label}</strong>
-            <span>{topMove.school.name}</span>
-            <b className="impact-badge mono">
-              {topMove.delta_score >= 0 ? "+" : ""}
-              {topMove.delta_score}
-            </b>
+            <VerdictBlock
+              tone={topMove.after.tier.toLowerCase()}
+              chipLabel={`${formatAdmitTier(topMove.before.tier)} → ${formatAdmitTier(topMove.after.tier)}`}
+              headline={topMove.lever.label}
+              metric={`${topMove.delta_score >= 0 ? "+" : ""}${topMove.delta_score}`}
+              drivers={[
+                {
+                  label: topMove.school.name,
+                  direction: topMove.delta_score > 0 ? "up" : "neutral",
+                },
+              ]}
+            />
+            <RangeBar
+              low={Math.min(topMove.before.score, topMove.after.score) / 100}
+              high={Math.max(topMove.before.score, topMove.after.score) / 100}
+              point={topMove.after.score / 100}
+              label={`${topMove.school.name} score move`}
+              scale="score"
+              testId="climb-range-band"
+            />
           </div>
           <ul className="climb-move-list">
             {response.ranked_moves.slice(0, 5).map((move) => (
@@ -4566,13 +4639,11 @@ function FitResultCard({
               {formatChanceRange(result.probability.low, result.probability.high)}
             </span>
           </div>
-          <RangeBand
+          <RangeBar
             low={result.probability.low}
             high={result.probability.high}
             point={result.probability.calibrated}
             label={`${result.school.name} chance range`}
-            coverage={result.probability.coverage}
-            showMarkerValue={false}
           />
           <ReachLadder
             low={result.probability.low}
@@ -4713,14 +4784,6 @@ function formatAxisStatus(status: AdmitProfileAxis["status"]) {
     case "stretch":
       return "Stretch";
   }
-}
-
-function TierPill({ tier }: { tier: AdmitTier }) {
-  return (
-    <span className="label-pill tier-pill" data-tier={tier.toLowerCase()}>
-      {formatAdmitTier(tier)}
-    </span>
-  );
 }
 
 function BandPill({ label }: { label: BandLabel }) {
@@ -5827,6 +5890,13 @@ function AdmitIntelligenceCard({
   const programCopy = result.program
     ? `${result.program.name} - cutoff ${formatCutoff(result.program.cutoff)}`
     : formatTier(school.selectivity_tier);
+  const verdictDrivers: VerdictDriver[] = result.drivers.slice(0, 4).map((driver) => ({
+    label: driver.label,
+    direction: mapDriverDirection(driver.direction),
+  }));
+  const hasRange =
+    typeof result.probability.low === "number" &&
+    typeof result.probability.high === "number";
 
   return (
     <article className="result-card admit-card" data-testid="admit-card">
@@ -5844,7 +5914,6 @@ function AdmitIntelligenceCard({
           </div>
         </div>
         <div className="result-head-actions">
-          <TierPill tier={result.tier} />
           <button
             className="icon-button"
             type="button"
@@ -5856,62 +5925,42 @@ function AdmitIntelligenceCard({
         </div>
       </div>
 
-      <section
-        className="admit-score-reveal"
-        aria-label={`${school.name} Admit Intelligence score ${result.score} out of 100, ${result.tier}`}
-      >
-        <div className="admit-score-main">
-          <span className="micro-label">Headline score</span>
-          <strong className="admit-score-value mono">{result.score}</strong>
-          <span className="admit-score-scale">/100</span>
-        </div>
-        <div className="admit-score-copy">
-          <p className="result-verdict">
-            {result.tier} at {result.score}/100.
-          </p>
-          <div className="confidence-texture">
-            <span className="micro-label">Model certainty</span>
-            <span className="confidence-bars" aria-hidden="true">
-              {Array.from({ length: 8 }).map((_, index) => (
-                <i
-                  key={index}
-                  data-active={
-                    index < Math.round(result.confidence * 8)
-                      ? "true"
-                      : undefined
-                  }
-                />
-              ))}
-            </span>
-            <strong className="mono">{Math.round(result.confidence * 100)}%</strong>
-          </div>
-        </div>
-      </section>
+      <VerdictBlock
+        tone={result.tier.toLowerCase()}
+        chipLabel={formatAdmitTier(result.tier)}
+        headline={`${result.tier} at ${result.score}/100.`}
+        metric={`${result.score}/100`}
+        drivers={verdictDrivers}
+      />
 
-      <section className="admit-drivers" aria-labelledby={`drivers-${school.unitid}`}>
-        <div className="section-kicker" id={`drivers-${school.unitid}`}>
-          Score drivers
-        </div>
-        <ul>
-          {result.drivers.map((driver) => (
-            <li key={`${driver.label}-${driver.direction}`} data-direction={driver.direction}>
-              <span className="driver-icon" aria-hidden="true">
-                {driver.direction === "positive" ? <Check size={14} /> : null}
-                {driver.direction === "negative" ? <AlertTriangle size={14} /> : null}
-                {driver.direction === "neutral" ? <CircleHelp size={14} /> : null}
-              </span>
-              <span>
-                <strong>{driver.label}</strong>
-                <span className="helper">{driver.detail}</span>
-              </span>
-              <span className="mono driver-impact">
-                {driver.direction === "negative" ? "-" : driver.direction === "positive" ? "+" : ""}
-                {driver.impact}
-              </span>
-            </li>
+      {hasRange ? (
+        <section className="range-section" aria-labelledby={`admit-range-${school.unitid}`}>
+          <div className="band-label" id={`admit-range-${school.unitid}`}>
+            Modeled chance range
+          </div>
+          <RangeBar
+            low={result.probability.low as number}
+            high={result.probability.high as number}
+            point={result.probability.calibrated}
+            label={`${school.name} chance range`}
+          />
+        </section>
+      ) : null}
+
+      <div className="confidence-texture admit-confidence">
+        <span className="micro-label">Model certainty</span>
+        <span className="confidence-bars" aria-hidden="true">
+          {Array.from({ length: 8 }).map((_, index) => (
+            <i
+              key={index}
+              data-active={
+                index < Math.round(result.confidence * 8) ? "true" : undefined
+              }
+            />
           ))}
-        </ul>
-      </section>
+        </span>
+        <strong className="mono">{Math.round(result.confidence * 100)}%</strong>
+      </div>
 
       <ProfileStudioPanel profile={result.profile} />
     </article>
@@ -5923,6 +5972,13 @@ function ProfileStudioPanel({
 }: {
   profile: AdmitIntelligenceResponse["profile"];
 }) {
+  const radarAxes: RadarAxis[] = profile.axes.map((axis) => ({
+    key: axis.key,
+    label: shortAxisLabel(axis.label),
+    value: axis.value,
+    reference: axis.admitted,
+  }));
+
   return (
     <section className="profile-studio" data-testid="profile-studio">
       <div className="profile-studio-head">
@@ -5930,58 +5986,14 @@ function ProfileStudioPanel({
           <div className="section-kicker">Profile Studio</div>
           <h4 className="section-title text-[22px]">Five-axis profile read</h4>
         </div>
-        <span className="label-pill">Recharts radar</span>
+        <span className="label-pill">You vs. typical admit</span>
       </div>
       <div className="profile-studio-grid">
-        <ProfileStudioRadar axes={profile.axes} />
+        <SignatureRadar axes={radarAxes} label="Five-axis profile read" />
         <ProfileStudioRows axes={profile.axes} />
       </div>
       <p className="helper profile-method">{profile.method}</p>
     </section>
-  );
-}
-
-function ProfileStudioRadar({ axes }: { axes: AdmitProfileAxis[] }) {
-  const data = axes.map((axis) => ({
-    axis: shortAxisLabel(axis.label),
-    value: axis.value,
-    admitted: axis.admitted,
-  }));
-
-  return (
-    <div
-      className="profile-studio-radar"
-      role="img"
-      aria-label={axes
-        .map((axis) => `${axis.label} ${axis.value} out of 100`)
-        .join(", ")}
-    >
-      <ResponsiveContainer width="100%" height={260}>
-        <RadarChart data={data} outerRadius="72%">
-          <PolarGrid />
-          <PolarAngleAxis dataKey="axis" tick={{ fontSize: 12 }} />
-          <PolarRadiusAxis angle={90} domain={[0, 100]} tick={false} axisLine={false} />
-          <Radar
-            name="School reference"
-            dataKey="admitted"
-            stroke="var(--school-indigo)"
-            fill="transparent"
-            strokeDasharray="5 5"
-          />
-          <Radar
-            name="Profile"
-            dataKey="value"
-            stroke="var(--fit-teal)"
-            fill="var(--fit-green)"
-            fillOpacity={0.28}
-          />
-        </RadarChart>
-      </ResponsiveContainer>
-      <div className="radar-legend">
-        <span><i className="legend-dot student" />Profile</span>
-        <span><i className="legend-dot typical" />Reference</span>
-      </div>
-    </div>
   );
 }
 
@@ -6034,7 +6046,6 @@ function ResultCard({
           </div>
         </div>
         <div className="result-head-actions">
-          <BandPill label={result.band.label} />
           <button
             className="icon-button"
             type="button"
@@ -6046,7 +6057,11 @@ function ResultCard({
         </div>
       </div>
 
-      <p className="result-verdict">{verdict}</p>
+      <VerdictBlock
+        tone={result.band.label}
+        chipLabel={formatBandLabel(result.band.label)}
+        headline={verdict}
+      />
 
       <section className="range-section" aria-labelledby={`range-${result.school.unitid}`}>
         <div>
@@ -6060,13 +6075,12 @@ function ResultCard({
             <span className="label-pill">{profileConfidence}</span>
           </div>
         </div>
-          <RangeBand
+          <RangeBar
             low={result.probability.low}
             high={result.probability.high}
             point={result.probability.calibrated}
-          label={`${result.school.name} chance range`}
-          coverage={result.probability.coverage}
-        />
+            label={`${result.school.name} chance range`}
+          />
         <ReachLadder
           low={result.probability.low}
           high={result.probability.high}
@@ -6110,50 +6124,6 @@ function ResultCard({
         </div>
       </details>
     </article>
-  );
-}
-
-function RangeBand({
-  low,
-  high,
-  point,
-  label,
-  coverage,
-  showMarkerValue = true,
-}: {
-  low: number;
-  high: number;
-  point: number;
-  label: string;
-  coverage: number;
-  showMarkerValue?: boolean;
-}) {
-  const left = clampPercent(low);
-  const right = clampPercent(high);
-  const width = Math.max(1, right - left);
-  const pointLeft = clampPercent(point);
-  const aria = showMarkerValue
-    ? `${label}: ${Math.round(coverage * 100)} percent chance range from ${formatPercentPrecise(low)} to ${formatPercentPrecise(high)}; marker at ${formatPercentPrecise(point)}.`
-    : `${label}: ${Math.round(coverage * 100)} percent chance range from ${formatPercentPrecise(low)} to ${formatPercentPrecise(high)} with an interior marker.`;
-
-  return (
-    <div
-      className="range-scale"
-      data-testid="range-band"
-      role="img"
-      aria-label={aria}
-      tabIndex={0}
-    >
-      <div className="scale-rail" aria-hidden="true">
-        <div
-          className="scale-band"
-          style={{ left: `${left}%`, width: `${width}%` }}
-        />
-        <div className="scale-point" style={{ left: `${pointLeft}%` }} />
-      </div>
-      <span className="scale-end left">0%</span>
-      <span className="scale-end right">100%</span>
-    </div>
   );
 }
 

@@ -1071,7 +1071,7 @@ test("disables polish animation when reduced motion is requested", async ({
   const cardAnimation = await resultCard.evaluate(
     (element) => getComputedStyle(element).animationName,
   );
-  const bandAnimation = await page.locator(".scale-band").evaluate(
+  const bandAnimation = await page.locator(".rangebar-fill").first().evaluate(
     (element) => getComputedStyle(element).animationName,
   );
 
@@ -1682,7 +1682,7 @@ test("renders Admit Intelligence for a US school when the flag is enabled", asyn
   await expect(card.getByTestId("profile-studio")).toContainText(
     "Five-axis profile read",
   );
-  await expect(card.locator(".profile-studio-radar svg")).toBeVisible();
+  await expect(card.locator("[data-testid=profile-studio] svg")).toBeVisible();
   await expect(page.getByTestId("result-card")).toHaveCount(0);
   expect(admitRequests).toBe(1);
 });
@@ -1734,7 +1734,7 @@ test("renders Admit Intelligence for a Canadian program when the flag is enabled
   await expect(card).toContainText("Computer Science - cutoff 90-93 percentage");
   await expect(card).toContainText("Admission average");
   await expect(card).toContainText("Prerequisites");
-  await expect(card.locator(".profile-studio-radar svg")).toBeVisible();
+  await expect(card.locator("[data-testid=profile-studio] svg")).toBeVisible();
   expect(admitRequests).toBe(1);
 });
 
@@ -1987,6 +1987,27 @@ test("renders Climb Roadmap computed deltas when the flag is enabled", async ({
   await expect(panel.getByTestId("climb-results")).toContainText(
     "Essays: context only",
   );
+  // The shared signature set renders on the Climb move: verdict block + range bar.
+  await expect(panel.getByTestId("verdict-block")).toBeVisible();
+  await expect(panel.getByTestId("climb-range-band")).toBeVisible();
+});
+
+test("renders the shared signature components on the dashboard top-read", async ({
+  page,
+}) => {
+  await mockOutcomeStatus(page, false);
+  await mockFitStatus(page, false);
+  await mockAdmitIntelligenceStatus(page, false);
+
+  await addMitResult(page);
+  await page.goto("/dashboard");
+
+  const rail = page.locator(".verdict-rail");
+  await expect(rail.getByTestId("verdict-block")).toBeVisible();
+  await expect(rail.getByTestId("range-band")).toBeVisible();
+  await expect(
+    rail.getByRole("link", { name: "View full read" }),
+  ).toHaveAttribute("href", "/schools");
 });
 
 test("renders Command Center requirements and deadline-not-loaded state", async ({
@@ -2273,7 +2294,8 @@ test("renders an honest elite-school result and methodology disclosure", async (
   await expect(resultCard).toContainText(
     "Massachusetts Institute of Technology",
   );
-  await expect(resultCard).toContainText(
+  // The shared verdict block carries the one-line verdict on the school read.
+  await expect(resultCard.getByTestId("verdict-block")).toContainText(
     "Strong academic read, but a genuine reach.",
   );
   await expect(page.getByTestId("range-band")).toBeVisible();

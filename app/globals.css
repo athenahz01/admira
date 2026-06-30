@@ -5321,12 +5321,210 @@ button {
   .search-skeleton-lines span,
   .skeleton-band,
   .copilot-scrim,
-  .copilot-drawer {
+  .copilot-drawer,
+  .rangebar-fill {
     animation: none !important;
     transform: none !important;
     translate: none !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+/* ── Signature data-viz: RangeBar · VerdictBlock · FitRadar ─────────────────── */
+.rangebar {
+  display: grid;
+  gap: 9px;
+  border-radius: 6px;
+  outline: none;
+}
+
+.rangebar:focus-visible {
+  box-shadow: 0 0 0 3px var(--focus-ring);
+}
+
+.rangebar-track {
+  position: relative;
+  height: 20px;
+  border-radius: 999px;
+  background: var(--control-bg);
+  box-shadow: inset 0 0 0 1px var(--rule);
+  overflow: visible;
+}
+
+/* Tier-tinted zones behind the track (decorative, low opacity tier washes). */
+.rangebar-zones {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(
+    90deg,
+    var(--reach-wash) 0 30%,
+    var(--target-wash) 30% 55%,
+    var(--likely-wash) 55% 100%
+  );
+  opacity: 0.7;
+}
+
+.rangebar-mid {
+  position: absolute;
+  top: -3px;
+  bottom: -3px;
+  left: 50%;
+  width: 1px;
+  background: var(--rule-strong);
+}
+
+.rangebar-fill {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--chance-soft), var(--chance-primary));
+  box-shadow: 0 1px 3px color-mix(in srgb, var(--chance-primary) 28%, transparent);
+  transform-origin: left center;
+  animation: rangebar-grow var(--motion-medium) var(--ease-out-quart) both;
+}
+
+.rangebar-tick {
+  position: absolute;
+  top: -4px;
+  bottom: -4px;
+  width: 3px;
+  border-radius: 2px;
+  background: var(--ink);
+  transform: translateX(-50%);
+  box-shadow: 0 0 0 2px var(--warm-card);
+}
+
+.rangebar-tooltip {
+  position: absolute;
+  bottom: calc(100% + 9px);
+  transform: translateX(-50%);
+  white-space: nowrap;
+  border-radius: 8px;
+  background: var(--rail-bg);
+  color: var(--sigil-on);
+  font-size: 11px;
+  padding: 6px 9px;
+  box-shadow: var(--shadow-border-hover);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--motion-fast) var(--ease-out-quart);
+  z-index: 4;
+}
+
+.rangebar-tooltip::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-top-color: var(--rail-bg);
+}
+
+.rangebar:hover .rangebar-tooltip,
+.rangebar:focus .rangebar-tooltip,
+.rangebar:focus-within .rangebar-tooltip {
+  opacity: 1;
+}
+
+.rangebar-axis {
+  display: flex;
+  justify-content: space-between;
+  color: var(--faint);
+  font-size: 10.5px;
+}
+
+@keyframes rangebar-grow {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+.verdict-block {
+  display: grid;
+  gap: 12px;
+}
+
+.verdict-block-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.verdict-block-metric {
+  margin-left: auto;
+  color: var(--chance-ink);
+  font-size: 26px;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.verdict-block-line {
+  margin: 0;
+  font-family: var(--font-display), Georgia, serif;
+  font-weight: 800;
+  font-size: clamp(22px, 2.6vw, 30px);
+  line-height: 1.04;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+  color: inherit;
+}
+
+.verdict-driver-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.verdict-driver-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border-radius: 999px;
+  background: var(--surface-soft);
+  box-shadow: inset 0 0 0 1px var(--rule);
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 5px 11px;
+}
+
+.verdict-driver-chip[data-direction="up"] {
+  background: var(--fit-wash);
+  color: var(--fit-teal);
+  box-shadow: none;
+}
+
+.verdict-driver-chip[data-direction="down"] {
+  background: var(--chance-wash);
+  color: var(--chance-ink);
+  box-shadow: none;
+}
+
+.fit-radar-block {
+  display: grid;
+  gap: 8px;
+}
+
+.fit-radar-chart {
+  width: 100%;
+}
+
+.fit-radar-read {
+  margin: 0;
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 600;
+  text-align: center;
 }
 
 @media (max-width: 1020px) {
