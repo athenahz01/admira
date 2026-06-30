@@ -921,6 +921,32 @@ test("splits each route to one job with a profile spine everywhere but /start", 
   await expect(page.getByLabel("GPA")).toHaveCount(0);
 });
 
+test("never shows the words honest or confident in user-facing copy", async ({
+  page,
+}) => {
+  await mockOutcomeStatus(page, false);
+  await mockFitStatus(page, false);
+  await mockAdmitIntelligenceStatus(page, false);
+
+  const routes = [
+    "/",
+    "/start",
+    "/schools",
+    "/fit",
+    "/settings",
+    "/dashboard",
+    "/money",
+    "/methodology",
+    "/privacy",
+  ];
+  for (const route of routes) {
+    await page.goto(route);
+    const text = (await page.locator("body").innerText()).toLowerCase();
+    expect(text, `${route} must not say "honest"`).not.toContain("honest");
+    expect(text, `${route} must not say "confiden"`).not.toContain("confiden");
+  }
+});
+
 test("keeps outcome capture closed when the server flag is disabled", async ({
   page,
 }) => {

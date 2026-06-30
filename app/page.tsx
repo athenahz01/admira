@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Compass, ListChecks, Search, Target } from "lucide-react";
 
 export const metadata: Metadata = {
   title: {
@@ -8,6 +9,47 @@ export const metadata: Metadata = {
   description:
     "See your admissions chances at every school and find the ones that fit — for US and Canadian college applicants.",
 };
+
+const steps = [
+  {
+    n: "1",
+    title: "Build your profile",
+    body: "Enter your grades, scores, and what you're looking for — once. Every school read and plan uses it.",
+  },
+  {
+    n: "2",
+    title: "See your chances",
+    body: "Look up any school for a chance range, your fit, and what's driving the number — grounded in public data.",
+  },
+  {
+    n: "3",
+    title: "Build a balanced list",
+    body: "Mix reach, target, and likely schools, then turn the list into requirements, tasks, and deadlines.",
+  },
+];
+
+const features = [
+  {
+    icon: Target,
+    title: "Chances at every school",
+    body: "A clear chance range for any US or Canadian school, shown as an interval — never false precision.",
+  },
+  {
+    icon: Compass,
+    title: "Schools that fit you",
+    body: "Fit Finder surfaces schools that match your interests, size, setting, and budget — fit kept separate from odds.",
+  },
+  {
+    icon: ListChecks,
+    title: "A balanced list",
+    body: "Build a list with a healthy spread across reach, target, and likely, all tied to your real reads.",
+  },
+  {
+    icon: Search,
+    title: "Where similar students got in",
+    body: "See outcomes from students with profiles like yours, shown only when the group stays anonymous.",
+  },
+];
 
 export default function Home() {
   return (
@@ -84,6 +126,81 @@ export default function Home() {
           </div>
         </aside>
       </section>
+
+      <section className="marketing-section" aria-labelledby="how-it-works">
+        <div className="marketing-section-head">
+          <span className="section-kicker">How it works</span>
+          <h2 id="how-it-works">From your grades to a real plan.</h2>
+        </div>
+        <ol className="marketing-steps">
+          {steps.map((step) => (
+            <li key={step.n} className="marketing-step">
+              <span className="marketing-step-num" aria-hidden="true">
+                {step.n}
+              </span>
+              <div>
+                <h3>{step.title}</h3>
+                <p>{step.body}</p>
+              </div>
+            </li>
+          ))}
+        </ol>
+      </section>
+
+      <section className="marketing-section" aria-labelledby="what-you-get">
+        <div className="marketing-section-head">
+          <span className="section-kicker">What you get</span>
+          <h2 id="what-you-get">One profile. Every answer.</h2>
+        </div>
+        <div className="marketing-features">
+          {features.map((feature) => {
+            const Icon = feature.icon;
+            return (
+              <article key={feature.title} className="marketing-feature">
+                <span className="marketing-feature-icon" aria-hidden="true">
+                  <Icon size={20} />
+                </span>
+                <h3>{feature.title}</h3>
+                <p>{feature.body}</p>
+              </article>
+            );
+          })}
+        </div>
+      </section>
+
+      <section className="marketing-band" aria-labelledby="coverage">
+        <div>
+          <span className="section-kicker">For the US &amp; Canada</span>
+          <h2 id="coverage">Built for both sides of the border.</h2>
+          <p>
+            Chances come from public data — College Scorecard, IPEDS, and Common
+            Data Set for US schools; published admission averages and program
+            requirements for Canadian programs. Canadian grades are compared in
+            their own basis, never converted away.
+          </p>
+        </div>
+        <Link className="add-button" href="/start">
+          Get your read
+        </Link>
+      </section>
+
+      <footer className="marketing-footer">
+        <Link className="brand-mark" href="/">
+          <div className="brand-sigil" aria-hidden="true">
+            A
+          </div>
+          <div className="brand-copy">
+            <h1>Admira</h1>
+            <p>your college chances</p>
+          </div>
+        </Link>
+        <nav className="marketing-footer-links" aria-label="Admira policy links">
+          <Link href="/methodology">Methodology</Link>
+          <Link href="/privacy">Privacy</Link>
+          <Link href="/privacy#terms">Terms</Link>
+        </nav>
+        <span className="marketing-footer-note">All sample figures are illustrative.</span>
+      </footer>
     </main>
   );
 }
