@@ -39,6 +39,14 @@ Motion is centralized with `--motion-fast`, `--motion-medium`, `--motion-slow`, 
 
 Reduced-motion users get instant surfaces: the polish animations, data-bar transforms, and skeleton scans are disabled inside `prefers-reduced-motion: reduce`.
 
+## Depth & atmosphere tokens (Polish B)
+
+Elevation is a named scale — `--elev-1/2/3` — of warm, layered shadows (warm-ink shadow color in light, a brightening ring plus a deep drop in dark so cards still read on near-black). `--shadow-border`/`--paper-shadow` now alias `--elev-2/3` so every card deepens consistently. `--rail-shadow` is the long soft shadow that lifts the ink `--rail-bg` surfaces above the paper; `--card-highlight` is the faint inner top highlight on raised cards. `--tier-target-text` consolidates the target-tier amber that was previously scattered inline.
+
+The `--canvas` carries one whisper-quiet warm-paper grain (a fixed, non-interactive `body::before` fractal-noise layer at `--grain-opacity`, ~5% light / ~3.5% dark) so the cream is never dead-flat; it is a static texture, not motion.
+
+Motion budget adds `card-enter` (a ≤240ms fade/translate reveal as content mounts) and hover/active lift on cards and buttons (transform + elevation), plus a `useCountUp` hook for the headline score (counts up on first mount, ease-out-quart). All of it is ≤250ms on `--ease-out-quart` and disabled under `prefers-reduced-motion`; the count-up's initial and reduced-motion render is always the real final number (no hydration mismatch, no invented figure).
+
 ## Type
 
 - Display and headings: Bricolage Grotesque, weight 800.

@@ -28,20 +28,31 @@
   --rule: rgba(42, 31, 24, 0.14);
   --rule-strong: rgba(42, 31, 24, 0.28);
   --focus-ring: rgba(194, 65, 12, 0.44);
-  --shadow-border:
-    0 0 0 1px rgba(42, 31, 24, 0.07),
-    0 1px 2px -1px rgba(42, 31, 24, 0.08),
-    0 8px 24px rgba(42, 31, 24, 0.06);
-  --shadow-border-hover:
-    0 0 0 1px rgba(42, 31, 24, 0.11),
-    0 2px 4px -2px rgba(42, 31, 24, 0.1),
-    0 14px 34px rgba(42, 31, 24, 0.08);
-  --paper-shadow:
+  /* Warm layered elevation scale (Polish B). Cards read as raised paper, not
+     outlined boxes. Shadow color is the warm ink, never a cool gray. */
+  --elev-1:
+    0 0 0 1px rgba(42, 31, 24, 0.05),
+    0 1px 2px rgba(42, 31, 24, 0.05),
+    0 3px 8px -2px rgba(42, 31, 24, 0.06);
+  --elev-2:
     0 0 0 1px rgba(42, 31, 24, 0.06),
-    0 12px 34px rgba(42, 31, 24, 0.08);
-  --paper-shadow-hover:
+    0 2px 4px -1px rgba(42, 31, 24, 0.06),
+    0 12px 28px -8px rgba(42, 31, 24, 0.12);
+  --elev-3:
+    0 0 0 1px rgba(42, 31, 24, 0.08),
+    0 4px 8px -2px rgba(42, 31, 24, 0.08),
+    0 24px 50px -12px rgba(42, 31, 24, 0.16);
+  /* Long soft shadow so the ink rail floats above the paper. */
+  --rail-shadow:
     0 0 0 1px rgba(42, 31, 24, 0.1),
-    0 16px 38px rgba(42, 31, 24, 0.1);
+    0 20px 48px -16px rgba(42, 31, 24, 0.32);
+  /* Faint inner top highlight on raised cards. */
+  --card-highlight: inset 0 1px 0 rgba(255, 248, 242, 0.5);
+  --grain-opacity: 0.05;
+  --shadow-border: var(--elev-2);
+  --shadow-border-hover: var(--elev-3);
+  --paper-shadow: var(--elev-2);
+  --paper-shadow-hover: var(--elev-3);
   --tick: rgba(42, 31, 24, 0.38);
   --error: #dc2626;
   --error-wash: #fef2f2;
@@ -52,6 +63,8 @@
      canonical ink/dark-cover values) so light-on-dark rails never invert. */
   --rail-bg: #2a1f18;
   --rail-accent: #fdba74;
+  /* Target-tier amber text (consolidates the amber used on target pills). */
+  --tier-target-text: #854d0e;
   --motion-fast: 150ms;
   --motion-medium: 240ms;
   --motion-slow: 420ms;
@@ -92,16 +105,33 @@
   --rule: rgba(246, 239, 231, 0.13);
   --rule-strong: rgba(246, 239, 231, 0.26);
   --focus-ring: rgba(251, 146, 60, 0.48);
-  --shadow-border: 0 0 0 1px rgba(246, 239, 231, 0.08);
-  --shadow-border-hover: 0 0 0 1px rgba(246, 239, 231, 0.14);
-  --paper-shadow: 0 0 0 1px rgba(246, 239, 231, 0.08);
-  --paper-shadow-hover: 0 0 0 1px rgba(246, 239, 231, 0.14);
+  /* Dark elevation: shadows are near-invisible on near-black, so lean on a
+     brightening ring plus a deep drop so cards still read as raised. */
+  --elev-1:
+    0 0 0 1px rgba(246, 239, 231, 0.06),
+    0 2px 8px rgba(0, 0, 0, 0.45);
+  --elev-2:
+    0 0 0 1px rgba(246, 239, 231, 0.08),
+    0 4px 14px rgba(0, 0, 0, 0.5);
+  --elev-3:
+    0 0 0 1px rgba(246, 239, 231, 0.12),
+    0 12px 32px rgba(0, 0, 0, 0.6);
+  --rail-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.5),
+    0 20px 48px -12px rgba(0, 0, 0, 0.7);
+  --card-highlight: inset 0 1px 0 rgba(246, 239, 231, 0.06);
+  --grain-opacity: 0.035;
+  --shadow-border: var(--elev-2);
+  --shadow-border-hover: var(--elev-3);
+  --paper-shadow: var(--elev-2);
+  --paper-shadow-hover: var(--elev-3);
   --tick: rgba(246, 239, 231, 0.42);
   --error: #f87171;
   --error-wash: #3a1515;
   --error-ring: rgba(248, 113, 113, 0.36);
   --rail-bg: #0d0a08;
   --rail-accent: #fdba74;
+  --tier-target-text: #fde68a;
   --background: var(--canvas);
   --foreground: var(--ink);
 }
@@ -132,6 +162,19 @@ body {
   background-attachment: fixed;
   color: var(--ink);
   font-family: var(--font-body), system-ui, sans-serif;
+}
+
+/* Whisper-quiet warm-paper grain so the canvas is not dead-flat. Fixed, behind
+   all content, non-interactive; a static texture (no motion). */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: var(--grain-opacity);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 160px 160px;
 }
 
 button,
@@ -462,7 +505,7 @@ button {
   width: min(1180px, 100%);
   border-radius: var(--r-card);
   background: var(--rail-bg);
-  box-shadow: var(--shadow-border-hover);
+  box-shadow: var(--rail-shadow);
   padding: 36px;
 }
 
@@ -565,7 +608,7 @@ button {
   margin-top: 18px;
   border-radius: var(--r-card);
   overflow: hidden;
-  box-shadow: var(--shadow-border-hover);
+  box-shadow: var(--rail-shadow);
 }
 
 .uni-rail {
@@ -1098,7 +1141,7 @@ button {
   overflow: hidden;
   border-radius: var(--r-card);
   background: var(--warm-card);
-  box-shadow: var(--shadow-border);
+  box-shadow: var(--rail-shadow);
 }
 
 .verdict-rail {
@@ -5288,6 +5331,82 @@ button {
   }
 }
 
+/* ── Polish B: depth + motion applied consistently across routes ───────────── */
+@keyframes card-enter {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Faint inner top highlight on the primary warm cards (depth, not outline). */
+.route-hero,
+.route-card,
+.profile-card,
+.result-card,
+.uni-card,
+.marketing-feature,
+.marketing-step,
+.dashboard-link-card {
+  box-shadow: var(--card-highlight), var(--shadow-border);
+}
+
+/* Content fades/translates in once as a route mounts. */
+.route-hero,
+.route-grid > *,
+.route-stack > *,
+.dashboard-grid > *,
+.marketing-hero > *,
+.marketing-section,
+.marketing-band,
+.uni-anchor,
+.uni-section {
+  animation: card-enter var(--motion-medium) var(--ease-out-quart) both;
+}
+
+/* Hover/active lift on module cards and buttons. */
+.route-card,
+.result-card {
+  transition:
+    box-shadow var(--motion-fast) var(--ease-out-quart),
+    transform var(--motion-fast) var(--ease-out-quart);
+}
+
+.route-card:hover,
+.result-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--card-highlight), var(--shadow-border-hover);
+}
+
+.add-button,
+.profile-save,
+.capture-primary,
+.recalc-button,
+.theme-switch {
+  transition:
+    box-shadow var(--motion-fast) var(--ease-out-quart),
+    transform var(--motion-fast) var(--ease-out-quart),
+    background-color var(--motion-fast) var(--ease-out-quart);
+}
+
+.add-button:hover,
+.profile-save:hover,
+.capture-primary:hover,
+.recalc-button:hover {
+  transform: translateY(-1px);
+}
+
+.add-button:active,
+.profile-save:active,
+.capture-primary:active,
+.recalc-button:active {
+  transform: translateY(0) scale(0.98);
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -5296,6 +5415,18 @@ button {
     animation-iteration-count: 1 !important;
     scroll-behavior: auto !important;
     transition-duration: 0.01ms !important;
+  }
+
+  .route-hero,
+  .route-grid > *,
+  .route-stack > *,
+  .dashboard-grid > *,
+  .marketing-hero > *,
+  .marketing-section,
+  .marketing-band,
+  .uni-anchor,
+  .uni-section {
+    animation: none !important;
   }
 
   .profile-card,
@@ -5434,6 +5565,35 @@ button {
   justify-content: space-between;
   color: var(--faint);
   font-size: 10.5px;
+}
+
+/* Tier ladder legend under the track: labels sit over their tinted zones so a
+   single bar carries the reach/target/likely ladder (no separate bar needed). */
+.rangebar-tiers {
+  display: grid;
+  grid-template-columns: 30fr 25fr 45fr;
+  margin-top: 3px;
+  font-family: var(--font-data), monospace;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.rangebar-tier {
+  text-align: center;
+}
+
+.rangebar-tier.reach {
+  color: var(--chance-primary);
+}
+
+.rangebar-tier.target {
+  color: var(--tier-target-text);
+}
+
+.rangebar-tier.likely {
+  color: var(--fit-teal);
 }
 
 @keyframes rangebar-grow {

@@ -7,7 +7,7 @@
 // the radar's plain-language read. Tokens only; reduced-motion honored.
 
 import { ArrowDown, ArrowUp } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   PolarAngleAxis,
   PolarGrid,
@@ -39,6 +39,41 @@ function clampPercent(value: number) {
   return Math.max(0, Math.min(100, value * 100));
 }
 
+// Count a whole number up to `target` on first mount (ease-out, ~240ms). SSR and
+// the first client render both show `target`, so there is no hydration mismatch
+// and the final DOM value is always the real number; the animation only runs
+// client-side and is skipped when `enabled` is false (reduced motion).
+export function useCountUp(target: number, enabled: boolean): number {
+  const [value, setValue] = useState(target);
+  const started = useRef(false);
+  useEffect(() => {
+    if (!enabled || started.current) {
+      setValue(target);
+      return;
+    }
+    started.current = true;
+    const duration = 240;
+    let raf = 0;
+    let startTs = 0;
+    const step = (ts: number) => {
+      if (!startTs) {
+        startTs = ts;
+      }
+      const progress = Math.min(1, (ts - startTs) / duration);
+      const eased = 1 - Math.pow(1 - progress, 4);
+      setValue(Math.round(target * eased));
+      if (progress < 1) {
+        raf = requestAnimationFrame(step);
+      } else {
+        setValue(target);
+      }
+    };
+    raf = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(raf);
+  }, [enabled, target]);
+  return value;
+}
+
 export type RangeScale = "percent" | "score";
 
 function formatPoint(value: number, scale: RangeScale) {
@@ -56,6 +91,7 @@ export function RangeBar({
   point,
   label,
   scale = "percent",
+  tierLegend = false,
   testId = "range-band",
 }: {
   low: number;
@@ -63,6 +99,9 @@ export function RangeBar({
   point: number;
   label: string;
   scale?: RangeScale;
+  // Labels the reach/target/likely zones under the track so a single bar carries
+  // the tier ladder too (replaces the old separate Reach Ladder).
+  tierLegend?: boolean;
   testId?: string;
 }) {
   const reduced = usePrefersReducedMotion();
@@ -110,6 +149,13 @@ export function RangeBar({
         <span>{axis[1]}</span>
         <span>{axis[2]}</span>
       </div>
+      {tierLegend ? (
+        <div className="rangebar-tiers" aria-hidden="true">
+          <span className="rangebar-tier reach">Reach</span>
+          <span className="rangebar-tier target">Target</span>
+          <span className="rangebar-tier likely">Likely</span>
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -136,6 +182,7 @@ export function VerdictBlock({
   chipLabel,
   headline,
   metric,
+  countUp,
   drivers,
   sample,
 }: {
@@ -143,9 +190,14 @@ export function VerdictBlock({
   chipLabel: string;
   headline: string;
   metric?: string;
+  // Optional score count-up on reveal: renders `${value}${suffix}` and animates
+  // the number up on first mount (instant under reduced motion).
+  countUp?: { value: number; suffix?: string };
   drivers?: VerdictDriver[];
   sample?: boolean;
 }) {
+  const reduced = usePrefersReducedMotion();
+  const counted = useCountUp(countUp?.value ?? 0, Boolean(countUp) && !reduced);
   return (
     <div className="verdict-block" data-testid="verdict-block">
       <div className="verdict-block-head">
@@ -153,7 +205,14 @@ export function VerdictBlock({
           {chipLabel}
         </span>
         {sample ? <span className="tag">Illustration</span> : null}
-        {metric ? <strong className="verdict-block-metric mono">{metric}</strong> : null}
+        {countUp ? (
+          <strong className="verdict-block-metric mono">
+            {counted}
+            {countUp.suffix ?? ""}
+          </strong>
+        ) : metric ? (
+          <strong className="verdict-block-metric mono">{metric}</strong>
+        ) : null}
       </div>
       <p className="verdict-block-line">{headline}</p>
       {drivers && drivers.length > 0 ? (

@@ -588,10 +588,6 @@ function formatBandLabel(label: BandLabel) {
   return label.charAt(0).toUpperCase() + label.slice(1);
 }
 
-function formatPercentPrecise(value: number) {
-  return `${(value * 100).toFixed(value < 0.1 ? 1 : 0)}%`;
-}
-
 function formatDeltaPoints(value: number) {
   const rounded = Math.round(value * 100);
   if (rounded === 0) {
@@ -4644,12 +4640,7 @@ function FitResultCard({
             high={result.probability.high}
             point={result.probability.calibrated}
             label={`${result.school.name} chance range`}
-          />
-          <ReachLadder
-            low={result.probability.low}
-            high={result.probability.high}
-            point={result.probability.calibrated}
-            label={result.band.label}
+            tierLegend
           />
         </section>
         {displayLevers.length > 0 ? (
@@ -5006,51 +4997,6 @@ function FitDimensionRows({ axes }: { axes: FitScoreAxis[] }) {
         </li>
       ))}
     </ul>
-  );
-}
-
-function ReachLadder({
-  low,
-  high,
-  point,
-  label,
-}: {
-  low: number;
-  high: number;
-  point: number;
-  label: BandLabel;
-}) {
-  const left = clampPercent(low);
-  const right = clampPercent(high);
-  const width = Math.max(1, right - left);
-  const pointLeft = clampPercent(point);
-
-  return (
-    <section
-      className="reach-ladder"
-      data-testid="reach-ladder"
-      aria-label={`Reach ladder: range ${formatChanceRange(low, high)}, marker ${formatPercentPrecise(point)}, label ${label}.`}
-    >
-      <div className="micro-label">Reach ladder</div>
-      <div className="ladder-track" aria-hidden="true">
-        <span className="ladder-zone reach" />
-        <span className="ladder-zone target" />
-        <span className="ladder-zone likely" />
-        <span
-          className="ladder-band"
-          style={{ left: `${left}%`, width: `${width}%` }}
-        />
-        <span className="ladder-tick" style={{ left: `${pointLeft}%` }} />
-      </div>
-      <div className="ladder-labels" aria-hidden="true">
-        <span className="reach">Reach</span>
-        <span className="target">Target</span>
-        <span className="likely">Likely</span>
-      </div>
-      <p className="scale-caption">
-        The ladder follows the range.
-      </p>
-    </section>
   );
 }
 
@@ -5929,7 +5875,7 @@ function AdmitIntelligenceCard({
         tone={result.tier.toLowerCase()}
         chipLabel={formatAdmitTier(result.tier)}
         headline={`${result.tier} at ${result.score}/100.`}
-        metric={`${result.score}/100`}
+        countUp={{ value: result.score, suffix: "/100" }}
         drivers={verdictDrivers}
       />
 
@@ -6080,12 +6026,7 @@ function ResultCard({
             high={result.probability.high}
             point={result.probability.calibrated}
             label={`${result.school.name} chance range`}
-          />
-        <ReachLadder
-          low={result.probability.low}
-          high={result.probability.high}
-          point={result.probability.calibrated}
-            label={result.band.label}
+            tierLegend
           />
         {isHighUncertaintyTier(result.school.selectivity_tier) ? (
           <p className="limitation-note" data-testid="sub20-note">

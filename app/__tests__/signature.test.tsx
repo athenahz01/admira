@@ -89,6 +89,19 @@ describe("VerdictBlock", () => {
     );
     expect(html).toContain("Illustration");
   });
+
+  it("count-up renders the real target value in the initial (SSR/reduced-motion) render", () => {
+    const html = renderToStaticMarkup(
+      createElement(VerdictBlock, {
+        tone: "reach",
+        chipLabel: "Reach",
+        headline: "A reach.",
+        countUp: { value: 34, suffix: "/100" },
+      }),
+    );
+    // The final/real number is always present; the count-up only animates client-side.
+    expect(html).toContain("34/100");
+  });
 });
 
 describe("radarOneLineRead", () => {

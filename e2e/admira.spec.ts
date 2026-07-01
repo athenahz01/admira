@@ -1074,9 +1074,14 @@ test("disables polish animation when reduced motion is requested", async ({
   const bandAnimation = await page.locator(".rangebar-fill").first().evaluate(
     (element) => getComputedStyle(element).animationName,
   );
+  // Polish B card-enter reveal is also off under reduced motion.
+  const heroAnimation = await page.locator(".route-hero").first().evaluate(
+    (element) => getComputedStyle(element).animationName,
+  );
 
   expect(cardAnimation).toBe("none");
   expect(bandAnimation).toBe("none");
+  expect(heroAnimation).toBe("none");
 });
 
 test("keeps Phase 7 empty states usable on a mobile viewport", async ({
@@ -1557,7 +1562,7 @@ test("runs Fit Finder, renders grounded prose, and adds a school to the list", a
   );
   await expect(finder.getByTestId("fit-score-panel")).toBeVisible();
   await expect(finder.locator(".fit-radar svg")).toBeVisible();
-  await expect(finder.getByTestId("reach-ladder")).toBeVisible();
+  await expect(finder.locator(".rangebar-tiers").first()).toBeVisible();
   await expect(finder.getByTestId("climb-levers")).toContainText(
     "See how to move this range",
   );
@@ -1677,6 +1682,10 @@ test("renders Admit Intelligence for a US school when the flag is enabled", asyn
   const card = page.getByTestId("admit-card");
   await expect(card).toContainText("Admit Intelligence");
   await expect(card).toContainText("Reach at 3/100");
+  // The count-up metric settles on the real score from the data layer.
+  await expect(card.getByTestId("verdict-block").locator(".verdict-block-metric")).toHaveText(
+    "3/100",
+  );
   await expect(card).toContainText("Model certainty");
   await expect(card).toContainText("School selectivity");
   await expect(card.getByTestId("profile-studio")).toContainText(
@@ -2299,7 +2308,7 @@ test("renders an honest elite-school result and methodology disclosure", async (
     "Strong academic read, but a genuine reach.",
   );
   await expect(page.getByTestId("range-band")).toBeVisible();
-  await expect(page.getByTestId("reach-ladder")).toBeVisible();
+  await expect(page.locator(".rangebar-tiers").first()).toBeVisible();
   await expect(page.getByText("See how to move this range")).toBeVisible();
   await expect(page.getByTestId("cannot-see-panel")).toContainText("Interest");
   await expect(page.getByTestId("cannot-see-panel")).toContainText(
