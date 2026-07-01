@@ -317,6 +317,11 @@ export function buildMoneyPlan(input: {
     fallbackSourceUrl: costRow.source_url,
   });
   const meritValue = meritResult.amount.value ?? 0;
+  // A modeled merit prediction is only mixed into the derived figures when an
+  // automatic-merit rule actually matched and contributed a positive award.
+  // With no matched rule (merit = $0), true net equals the verified Scorecard
+  // net price and the downstream figures are arithmetic on verified inputs.
+  const meritApplied = meritResult.matched_rule !== null && meritValue > 0;
 
   const impliedAid = Math.max(0, stickerValue - baselineNetValue);
   const needAidValue = roundCurrency(Math.max(0, impliedAid - meritValue));
@@ -327,6 +332,16 @@ export function buildMoneyPlan(input: {
 
   const earningsSourceUrl = costRow.earnings_source_url ?? costRow.source_url;
   const earningsBasis = costRow.earnings_basis ?? costRow.basis;
+  // need aid / true net / four-year cost are verified when no modeled merit was
+  // applied (they reduce to the verified Scorecard net and arithmetic on it),
+  // and estimate once a predicted merit was subtracted.
+  const derivedNetBasis: MoneyBasis = meritApplied ? "estimate" : costRow.basis;
+  // payback and the earnings ratio additionally depend on verified earnings and
+  // a verified cost row; any estimate input makes them an estimate.
+  const roiBasis: MoneyBasis =
+    meritApplied || earningsBasis !== "verified" || costRow.basis !== "verified"
+      ? "estimate"
+      : "verified";
   const earningsValue =
     costRow.median_earnings_10yr === null || costRow.median_earnings_10yr === undefined
       ? null
@@ -360,7 +375,7 @@ export function buildMoneyPlan(input: {
     ),
     need_aid: figure(
       needAidValue,
-      "estimate",
+      derivedNetBasis,
       costRow.source_url,
       costRow.currency,
       "Need aid split",
@@ -368,14 +383,14 @@ export function buildMoneyPlan(input: {
     merit: meritResult.amount,
     true_net_price: figure(
       trueNetValue,
-      "estimate",
+      derivedNetBasis,
       costRow.source_url,
       costRow.currency,
       "True net price estimate",
     ),
     four_year_net_cost: figure(
       fourYearNetCost,
-      "estimate",
+      derivedNetBasis,
       costRow.source_url,
       costRow.currency,
       "Estimated four-year net cost",
@@ -389,14 +404,14 @@ export function buildMoneyPlan(input: {
     ),
     payback_years: figure(
       paybackValue,
-      "estimate",
+      roiBasis,
       earningsSourceUrl,
       undefined,
       "Gross payback years",
     ),
     earnings_to_cost_ratio: figure(
       ratioValue,
-      "estimate",
+      roiBasis,
       earningsSourceUrl,
       undefined,
       "Earnings to annual net cost ratio",

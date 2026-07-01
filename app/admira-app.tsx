@@ -3137,7 +3137,13 @@ function MoneyPlanView({ plan }: { plan: MoneyPlan }) {
       <div className="money-formula" aria-label="Net price formula">
         <MoneyFormulaRow label="Sticker" figure={figures.sticker_price} currency={plan.currency} />
         <MoneyFormulaRow label="Need aid" figure={figures.need_aid} currency={plan.currency} />
-        <MoneyFormulaRow label="Merit" figure={figures.merit} currency={plan.currency} testId="money-merit" />
+        <MoneyFormulaRow
+          label="Merit"
+          figure={figures.merit}
+          currency={plan.currency}
+          testId="money-merit"
+          noneLabel={plan.merit.matched ? undefined : "No automatic merit on file"}
+        />
         <MoneyFormulaRow label="Net" figure={figures.true_net_price} currency={plan.currency} />
       </div>
 
@@ -3202,17 +3208,25 @@ function MoneyFormulaRow({
   figure,
   currency,
   testId,
+  noneLabel,
 }: {
   label: string;
   figure: MoneyPlan["figures"]["true_net_price"];
   currency: "USD" | "CAD";
   testId?: string;
+  noneLabel?: string;
 }) {
   return (
     <div className="money-formula-row" data-testid={testId}>
       <span>{label}</span>
       <strong className="mono">{formatMoneyFigure(figure, currency)}</strong>
-      <MoneyBasisBadge figure={figure} />
+      {noneLabel ? (
+        <span className="money-basis" data-basis="none">
+          {noneLabel}
+        </span>
+      ) : (
+        <MoneyBasisBadge figure={figure} />
+      )}
     </div>
   );
 }
