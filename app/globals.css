@@ -1575,6 +1575,88 @@ button {
   margin-top: 18px;
 }
 
+/* Onboarding compression: progressive fields + contextual Canada + blur shake. */
+.profile-progressive-hint {
+  margin: 0;
+}
+
+.canada-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.canada-toggle input {
+  width: 17px;
+  height: 17px;
+  min-height: 0;
+  accent-color: var(--chance-primary);
+}
+
+.canada-fields,
+.profile-more-body {
+  animation: card-enter var(--motion-medium) var(--ease-out-quart) both;
+}
+
+.profile-more {
+  border-top: 1px solid var(--rule);
+  padding-top: 12px;
+}
+
+.profile-more > summary {
+  cursor: pointer;
+  list-style: none;
+  color: var(--chance-ink);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 4px 0;
+}
+
+.profile-more > summary::-webkit-details-marker {
+  display: none;
+}
+
+.profile-more > summary::before {
+  content: "+ ";
+  font-weight: 700;
+}
+
+.profile-more[open] > summary::before {
+  content: "− ";
+}
+
+.profile-more-body {
+  display: grid;
+  gap: 14px;
+  margin-top: 12px;
+}
+
+.text-control[data-shake="true"] {
+  animation: field-shake 320ms var(--ease-out-quart);
+}
+
+@keyframes field-shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20% {
+    transform: translateX(-4px);
+  }
+  40% {
+    transform: translateX(4px);
+  }
+  60% {
+    transform: translateX(-3px);
+  }
+  80% {
+    transform: translateX(2px);
+  }
+}
+
 .field-pair {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -1817,8 +1899,13 @@ button {
   border-bottom: 0;
 }
 
-.search-result:hover:not(:disabled) {
+.search-result:hover:not(:disabled),
+.search-result[data-active="true"]:not(:disabled) {
   background: var(--chance-wash);
+}
+
+.search-result[data-active="true"]:not(:disabled) {
+  box-shadow: inset 2px 0 0 var(--chance-primary);
 }
 
 .search-result:disabled {
@@ -2666,10 +2753,23 @@ button {
 .receipt-row {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: 8px;
+  margin-top: 12px;
+  border-top: 1px solid var(--rule);
+  padding-top: 12px;
 }
 
-.receipt-row span {
+.receipt-lead {
+  color: var(--faint);
+  font-family: var(--font-data), monospace;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.receipt-row .receipt-chip {
   min-width: 0;
   border-radius: 999px;
   background: var(--school-indigo-wash);
@@ -2678,7 +2778,34 @@ button {
   font-size: 12px;
   font-weight: 700;
   overflow-wrap: anywhere;
-  padding: 7px 10px;
+  padding: 6px 10px;
+}
+
+.copilot-prompts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.copilot-prompt-chip {
+  border: 0;
+  border-radius: 999px;
+  background: var(--chance-wash);
+  color: var(--chance-ink);
+  font-size: 12.5px;
+  font-weight: 600;
+  min-height: 32px;
+  padding: 7px 13px;
+  cursor: pointer;
+  transition:
+    background-color var(--motion-fast) var(--ease-out-quart),
+    transform var(--motion-fast) var(--ease-out-quart);
+}
+
+.copilot-prompt-chip:hover {
+  transform: translateY(-1px);
+  background: color-mix(in srgb, var(--chance-primary) 16%, var(--warm-card));
 }
 
 .copilot-answer,
@@ -3523,6 +3650,89 @@ button {
 .profile-spine-ready {
   font-size: 12px;
   color: var(--faint);
+}
+
+/* Interactive profile-spine chips: click to inline-edit (writes to the shared
+   profile context; no bounce to /start). */
+.profile-spine-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.spine-chip {
+  border: 0;
+  border-radius: 999px;
+  background: var(--control-bg);
+  color: var(--muted);
+  font-family: var(--font-data), monospace;
+  font-size: 12px;
+  min-height: 30px;
+  padding: 6px 11px;
+  cursor: pointer;
+  transition:
+    background-color var(--motion-fast) var(--ease-out-quart),
+    color var(--motion-fast) var(--ease-out-quart);
+}
+
+.spine-chip:hover {
+  background: var(--chance-wash);
+  color: var(--chance-ink);
+}
+
+.spine-chip:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--focus-ring);
+}
+
+.spine-chip-editor {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 999px;
+  background: var(--warm-card);
+  box-shadow: inset 0 0 0 1px var(--chance-primary);
+  padding: 3px 4px 3px 10px;
+}
+
+.spine-input {
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  font-family: var(--font-data), monospace;
+  font-size: 13px;
+  width: 9ch;
+  min-width: 0;
+  outline: none;
+}
+
+.spine-input:not(.mono) {
+  font-family: var(--font-body), system-ui, sans-serif;
+  width: 16ch;
+}
+
+.spine-segmented {
+  padding: 2px;
+}
+
+.spine-segmented button {
+  min-height: 26px;
+  padding: 3px 10px;
+  font-size: 12px;
+}
+
+.spine-chip-done {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  min-height: 0;
+  border: 0;
+  border-radius: 999px;
+  background: var(--chance-primary);
+  color: var(--sigil-on);
+  cursor: pointer;
 }
 
 @media (max-width: 620px) {
@@ -5453,12 +5663,134 @@ button {
   .skeleton-band,
   .copilot-scrim,
   .copilot-drawer,
-  .rangebar-fill {
+  .rangebar-fill,
+  .toast,
+  .text-control[data-shake="true"],
+  .canada-fields,
+  .profile-more-body {
     animation: none !important;
     transform: none !important;
     translate: none !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+/* ── Toasts + undo ─────────────────────────────────────────────────────────── */
+.toast-viewport {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  transform: translateX(-50%);
+  z-index: 60;
+  display: grid;
+  gap: 10px;
+  width: min(440px, calc(100vw - 32px));
+  pointer-events: none;
+}
+
+.toast {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-radius: var(--r-panel);
+  background: var(--rail-bg);
+  color: var(--sigil-on);
+  box-shadow: var(--rail-shadow);
+  padding: 12px 14px;
+  font-size: 14px;
+  pointer-events: auto;
+  animation: toast-in var(--motion-medium) var(--ease-out-quart) both;
+}
+
+.toast-message {
+  flex: 1;
+  min-width: 0;
+}
+
+.toast-action {
+  flex: none;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--rail-accent);
+  font-weight: 700;
+  font-size: 13px;
+  min-height: 32px;
+  padding: 6px 12px;
+  cursor: pointer;
+  transition: background-color var(--motion-fast) var(--ease-out-quart);
+}
+
+.toast-action:hover {
+  background: color-mix(in srgb, var(--sigil-on) 12%, transparent);
+}
+
+.toast-close {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  min-height: 0;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: color-mix(in srgb, var(--sigil-on) 64%, transparent);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.toast-close:hover {
+  color: var(--sigil-on);
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ── First-read spread (dashboard, from Smart List output) ─────────────────── */
+.first-read-list {
+  display: grid;
+  gap: 10px;
+  margin: 12px 0 14px;
+  padding: 0;
+  list-style: none;
+}
+
+.first-read-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-radius: var(--r-inner);
+  background: var(--surface-soft);
+  box-shadow: inset 0 0 0 1px var(--rule);
+  padding: 11px 13px;
+}
+
+.first-read-row-copy {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+
+.first-read-row-copy strong {
+  font-size: 14px;
+}
+
+.first-read-fit {
+  flex: none;
+  color: var(--fit-teal);
+  font-size: 12px;
+  font-weight: 700;
 }
 
 /* ── Signature data-viz: RangeBar · VerdictBlock · FitRadar ─────────────────── */

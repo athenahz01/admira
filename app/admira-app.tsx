@@ -28,7 +28,13 @@ import {
   Trash2,
   Upload,
 } from "lucide-react";
-import type { Dispatch, FormEvent, ReactNode, SetStateAction } from "react";
+import type {
+  Dispatch,
+  FormEvent,
+  KeyboardEvent,
+  ReactNode,
+  SetStateAction,
+} from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import { trackEvent } from "@/lib/analytics";
@@ -48,6 +54,7 @@ import {
   type RadarAxis,
   type VerdictDriver,
 } from "./signature";
+import { useToast } from "./toast";
 
 type BandLabel = "reach" | "target" | "likely";
 type AdmitTier = "Reach" | "Target" | "Likely" | "Safety";
@@ -1140,6 +1147,7 @@ export function AdmiraApp({ view = "dashboard" }: { view?: AdmiraView }) {
   const { theme, toggleTheme } = useTheme();
   const pathname = usePathname();
   const router = useRouter();
+  const toast = useToast();
   const { profile, setProfile } = useAdmiraProfile();
   const [schoolQuery, setSchoolQuery] = useState("");
   const [schoolResults, setSchoolResults] = useState<SchoolSearchRow[]>([]);
@@ -1550,9 +1558,26 @@ export function AdmiraApp({ view = "dashboard" }: { view?: AdmiraView }) {
   }
 
   function removeSchool(unitid: number) {
+    const removed = addedSchools.find((entry) => entry.school.unitid === unitid);
     setAddedSchools((current) =>
       current.filter((entry) => entry.school.unitid !== unitid),
     );
+    if (removed) {
+      toast.show(`Removed ${removed.school.name}`, {
+        label: "Undo",
+        onClick: () => {
+          // Undo restores through the existing add path — re-inserts the loading
+          // row and re-scores via the same fetchChance the add uses. It never
+          // introduces a new mutation/persistence path.
+          setAddedSchools((current) =>
+            current.some((entry) => entry.school.unitid === removed.school.unitid)
+              ? current
+              : [{ school: removed.school, status: "loading" }, ...current],
+          );
+          void fetchChance(removed.school);
+        },
+      });
+    }
   }
 
   const readyBalanceLabels = addedSchools
@@ -1943,7 +1968,7 @@ function RouteBody({
   if (view === "schools") {
     return (
       <div className="route-stack">
-        <ProfileSpine profile={profile} />
+        <ProfileSpine profile={profile} setProfile={setProfile} />
         <SchoolSearchPanel
           query={schoolQuery}
           setQuery={setSchoolQuery}
@@ -1970,7 +1995,7 @@ function RouteBody({
   if (view === "fit") {
     return fitFinderStatus === "enabled" ? (
       <div className="route-stack">
-        <ProfileSpine profile={profile} />
+        <ProfileSpine profile={profile} setProfile={setProfile} />
         <FitFinderPanel
           profile={profile}
           setProfile={setProfile}
@@ -2057,8 +2082,33 @@ function ProfileGateCard() {
   );
 }
 
-function ProfileSpine({ profile }: { profile: Profile }) {
+type SpineField = "gpa" | "test" | "round" | "major";
+
+function ProfileSpine({
+  profile,
+  setProfile,
+}: {
+  profile: Profile;
+  setProfile: Dispatch<SetStateAction<Profile>>;
+}) {
   const ready = profileReadiness(profile);
+  const [editing, setEditing] = useState<SpineField | null>(null);
+
+  // Inline edits write straight to the shared profile context; the context's
+  // own effect persists them (the same save path /start uses). No new endpoint.
+  function update(key: keyof Profile, value: string | boolean) {
+    setProfile((current) => ({ ...current, [key]: value }));
+  }
+
+  const testLabel = profile.notSubmittingTests
+    ? "Test-optional"
+    : [
+        profile.sat.trim() ? `SAT ${profile.sat.trim()}` : "",
+        profile.act.trim() ? `ACT ${profile.act.trim()}` : "",
+      ]
+        .filter(Boolean)
+        .join(" / ") || "No score";
+
   return (
     <section className="route-card profile-spine" data-testid="profile-spine">
       <div className="profile-avatar-mini" aria-hidden="true">
@@ -2066,19 +2116,150 @@ function ProfileSpine({ profile }: { profile: Profile }) {
       </div>
       <div className="profile-spine-copy">
         <span className="micro-label">Your profile</span>
-        <ul className="profile-chip-row" aria-label="Your profile">
-          {profileSummaryItems(profile).map((item) => (
-            <li key={item}>{item}</li>
-          ))}
-        </ul>
+        <div className="profile-spine-chips" aria-label="Your profile">
+          <SpineChip
+            field="gpa"
+            display={`GPA ${profile.gpa || "not set"}`}
+            open={editing === "gpa"}
+            onOpen={() => setEditing("gpa")}
+            onClose={() => setEditing(null)}
+          >
+            <input
+              className="spine-input mono"
+              aria-label="GPA"
+              inputMode="decimal"
+              autoFocus
+              value={profile.gpa}
+              onChange={(event) => update("gpa", event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" || event.key === "Escape") setEditing(null);
+              }}
+              onBlur={() => setEditing(null)}
+            />
+          </SpineChip>
+          <SpineChip
+            field="test"
+            display={testLabel}
+            open={editing === "test"}
+            onOpen={() => setEditing("test")}
+            onClose={() => setEditing(null)}
+          >
+            <input
+              className="spine-input mono"
+              aria-label="SAT"
+              inputMode="numeric"
+              autoFocus
+              disabled={profile.notSubmittingTests}
+              value={profile.sat}
+              onChange={(event) => update("sat", event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" || event.key === "Escape") setEditing(null);
+              }}
+              onBlur={() => setEditing(null)}
+            />
+          </SpineChip>
+          <SpineChip
+            field="round"
+            display={profile.applicationRound === "early" ? "Early round" : "Regular round"}
+            open={editing === "round"}
+            onOpen={() => setEditing("round")}
+            onClose={() => setEditing(null)}
+          >
+            <div className="segmented spine-segmented" role="group" aria-label="Application round">
+              <button
+                type="button"
+                data-active={profile.applicationRound === "regular"}
+                onClick={() => {
+                  update("applicationRound", "regular");
+                  setEditing(null);
+                }}
+              >
+                Regular
+              </button>
+              <button
+                type="button"
+                data-active={profile.applicationRound === "early"}
+                onClick={() => {
+                  update("applicationRound", "early");
+                  setEditing(null);
+                }}
+              >
+                Early
+              </button>
+            </div>
+          </SpineChip>
+          <SpineChip
+            field="major"
+            display={profile.intendedMajor.trim() || "Major undecided"}
+            open={editing === "major"}
+            onOpen={() => setEditing("major")}
+            onClose={() => setEditing(null)}
+          >
+            <input
+              className="spine-input"
+              aria-label="Intended major"
+              autoFocus
+              value={profile.intendedMajor}
+              onChange={(event) => update("intendedMajor", event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" || event.key === "Escape") setEditing(null);
+              }}
+              onBlur={() => setEditing(null)}
+            />
+          </SpineChip>
+        </div>
       </div>
       <div className="profile-spine-actions">
         <span className="mono profile-spine-ready">{ready}% ready</span>
         <Link className="profile-edit" href="/start">
-          Edit
+          Full editor
         </Link>
       </div>
     </section>
+  );
+}
+
+function SpineChip({
+  field,
+  display,
+  open,
+  onOpen,
+  onClose,
+  children,
+}: {
+  field: SpineField;
+  display: string;
+  open: boolean;
+  onOpen: () => void;
+  onClose: () => void;
+  children: ReactNode;
+}) {
+  if (open) {
+    return (
+      <div className="spine-chip-editor" data-field={field}>
+        {children}
+        <button
+          type="button"
+          className="spine-chip-done"
+          aria-label="Done"
+          onMouseDown={(event) => event.preventDefault()}
+          onClick={onClose}
+        >
+          <Check size={13} />
+        </button>
+      </div>
+    );
+  }
+  return (
+    <button
+      type="button"
+      className="spine-chip"
+      data-field={field}
+      data-testid={`spine-chip-${field}`}
+      onClick={onOpen}
+    >
+      {display}
+    </button>
   );
 }
 
@@ -2100,6 +2281,58 @@ function DashboardHome({
   };
 }) {
   const primary = addedSchools.find((entry) => entry.status === "ready") ?? null;
+  const [firstReadStatus, setFirstReadStatus] = useState<
+    "idle" | "loading" | "ready" | "error"
+  >("idle");
+  const [firstRead, setFirstRead] = useState<ListBuilderResponse | null>(null);
+  const [firstReadError, setFirstReadError] = useState("");
+  const canFirstRead =
+    !primary &&
+    statuses.listBuilder === "enabled" &&
+    profileReadiness(profile) >= 50;
+
+  // One-click first read: reuse the EXISTING Smart List endpoint for the saved
+  // profile. Every school + number rendered comes from this output — nothing is
+  // hardcoded. An empty result shows the honest empty state.
+  async function loadFirstRead() {
+    setFirstReadStatus("loading");
+    setFirstReadError("");
+    try {
+      const response = await fetch("/api/list/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          profile: {
+            sat_score: profile.notSubmittingTests
+              ? undefined
+              : numberOrUndefined(profile.sat),
+            act_score: profile.notSubmittingTests
+              ? undefined
+              : numberOrUndefined(profile.act),
+            gpa: numberOrUndefined(profile.gpa),
+            application_round: profile.applicationRound,
+          },
+          preferences: {
+            intended_major: profile.intendedMajor || undefined,
+            shape: initialShape,
+          },
+        }),
+      });
+      const payload = await response.json();
+      if (!response.ok) {
+        throw new Error(payload?.error ?? "Could not build your first read.");
+      }
+      setFirstRead(payload as ListBuilderResponse);
+      setFirstReadStatus("ready");
+    } catch (error) {
+      setFirstReadError(
+        error instanceof Error ? error.message : "Could not build your first read.",
+      );
+      setFirstReadStatus("error");
+    }
+  }
+
+  const firstReadPicks = firstRead ? pickFirstReadTriplet(firstRead.list) : [];
 
   return (
     <div className="dashboard-grid">
@@ -2127,6 +2360,33 @@ function DashboardHome({
                 View full read
               </Link>
             </>
+          ) : canFirstRead ? (
+            <>
+              <h3>Ready for your first read?</h3>
+              <p>
+                We&apos;ll build a starter reach / target / safety spread from your
+                profile in one tap.
+              </p>
+              <button
+                type="button"
+                className="add-button split-cta"
+                onClick={loadFirstRead}
+                disabled={firstReadStatus === "loading"}
+                data-testid="first-read-run"
+              >
+                {firstReadStatus === "loading" ? (
+                  <Loader2 className="spin" size={16} />
+                ) : (
+                  <Sparkles size={16} />
+                )}
+                See your first read
+              </button>
+              {firstReadStatus === "error" ? (
+                <p className="error-copy" role="alert">
+                  {firstReadError}
+                </p>
+              ) : null}
+            </>
           ) : (
             <>
               <h3>Add a school to see your chances.</h3>
@@ -2138,19 +2398,49 @@ function DashboardHome({
           )}
         </div>
         <div className="verdict-data-surface">
-          <div className="section-kicker">Your profile</div>
-          <h3 className="section-title">{profile.intendedMajor || "Major undecided"}</h3>
-          <ul className="profile-chip-row" aria-label="Your profile">
-            {profileSummaryItems(profile).map((item) => (
-              <li key={item}>{item}</li>
-            ))}
-          </ul>
-          {balanceLabels.length > 0 ? (
-            <BalancePanel labels={balanceLabels} />
+          {firstReadStatus === "ready" ? (
+            firstReadPicks.length > 0 ? (
+              <div data-testid="first-read">
+                <div className="section-kicker">Your first read</div>
+                <h3 className="section-title">A starter spread.</h3>
+                <ul className="first-read-list">
+                  {firstReadPicks.map((pick) => (
+                    <FirstReadRow key={pick.unitid} pick={pick} />
+                  ))}
+                </ul>
+                <Link className="method-link" href="/list">
+                  Open Smart List →
+                </Link>
+              </div>
+            ) : (
+              <div className="empty" data-testid="first-read-empty">
+                <div className="section-kicker">Your first read</div>
+                <p className="helper">
+                  No schools matched this profile yet. Add a school by name to get
+                  your first chance read.
+                </p>
+                <Link className="add-button route-card-action" href="/schools">
+                  Find schools
+                </Link>
+              </div>
+            )
           ) : (
-            <p className="helper">
-              Your list balance appears once at least one school has a chance read.
-            </p>
+            <>
+              <div className="section-kicker">Your profile</div>
+              <h3 className="section-title">{profile.intendedMajor || "Major undecided"}</h3>
+              <ul className="profile-chip-row" aria-label="Your profile">
+                {profileSummaryItems(profile).map((item) => (
+                  <li key={item}>{item}</li>
+                ))}
+              </ul>
+              {balanceLabels.length > 0 ? (
+                <BalancePanel labels={balanceLabels} />
+              ) : (
+                <p className="helper">
+                  Your list balance appears once at least one school has a chance read.
+                </p>
+              )}
+            </>
           )}
         </div>
       </section>
@@ -2186,6 +2476,41 @@ function DashboardHome({
         enabled={statuses.reports === "enabled"}
       />
     </div>
+  );
+}
+
+// Pick up to one school per bucket (reach → target → safety) from the Smart List
+// output for the first-read spread. Falls back to the first rows if the buckets
+// are lopsided. Never invents a school — only reorders the real list.
+function pickFirstReadTriplet(list: ListSchoolView[]): ListSchoolView[] {
+  const order: ListBucket[] = ["reach", "target", "safety"];
+  const picks: ListSchoolView[] = [];
+  for (const bucket of order) {
+    const match = list.find((school) => school.bucket === bucket);
+    if (match) {
+      picks.push(match);
+    }
+  }
+  if (picks.length === 0) {
+    return list.slice(0, 3);
+  }
+  return picks;
+}
+
+function FirstReadRow({ pick }: { pick: ListSchoolView }) {
+  return (
+    <li className="first-read-row">
+      <span className="label-pill tier-pill" data-tier={pick.bucket}>
+        {pick.bucket.charAt(0).toUpperCase() + pick.bucket.slice(1)}
+      </span>
+      <div className="first-read-row-copy">
+        <strong>{pick.name}</strong>
+        <span className="helper">{pick.rationale}</span>
+      </div>
+      {pick.fit !== null ? (
+        <span className="mono first-read-fit">FIT {pick.fit}</span>
+      ) : null}
+    </li>
   );
 }
 
@@ -2449,10 +2774,26 @@ function ProfilePanel({
   onSaved?: () => void;
 }) {
   const [isEditing, setIsEditing] = useState(false);
+  const [touched, setTouched] = useState<Set<string>>(new Set());
+  const [attemptedSave, setAttemptedSave] = useState(false);
+  // Canada fields stay hidden until the student opts in, so US-only applicants
+  // are not puzzled. (The profile keeps any Canadian values behind the toggle.)
+  const [applyingCanada, setApplyingCanada] = useState(false);
 
   function update(key: keyof Profile, value: string | boolean) {
     setIsEditing(true);
     setProfile((current) => ({ ...current, [key]: value }));
+  }
+
+  function markTouched(field: string) {
+    setTouched((current) => {
+      if (current.has(field)) {
+        return current;
+      }
+      const next = new Set(current);
+      next.add(field);
+      return next;
+    });
   }
 
   const readiness = profileReadiness(profile);
@@ -2461,7 +2802,18 @@ function ProfilePanel({
   const isComplete = readiness === 100 && errors.length === 0 && !hasFieldErrors;
   const showSummary = isComplete && !isEditing;
 
+  // Validation surfaces on blur (or after a save attempt), never on every
+  // keystroke; the entered value is always preserved.
+  function fieldErrorFor(field: string): string | undefined {
+    const message = (fieldErrors as Record<string, string>)[field];
+    if (!message) {
+      return undefined;
+    }
+    return touched.has(field) || attemptedSave ? message : undefined;
+  }
+
   function handleSave() {
+    setAttemptedSave(true);
     onSave();
     if (errors.length === 0 && !hasFieldErrors) {
       setIsEditing(false);
@@ -2522,72 +2874,30 @@ function ProfilePanel({
         ) : (
           <>
         <div className="profile-grid">
-          <div className="field-pair">
-            <label className="control">
-              <span className="field-label">GPA</span>
-              <input
-                className="text-control mono"
-                aria-label="GPA"
-                inputMode="decimal"
-                placeholder="3.85"
-                value={profile.gpa}
-                data-invalid={fieldErrors.gpa ? "true" : undefined}
-                aria-invalid={fieldErrors.gpa ? true : undefined}
-                onChange={(event) => update("gpa", event.target.value)}
-              />
-              {fieldErrors.gpa ? (
-                <FieldError text={fieldErrors.gpa} />
-              ) : (
-                <span className="helper">On a 0 to 5 scale.</span>
-              )}
-            </label>
-            <label className="control">
-              <span className="field-label">Home state</span>
-              <input
-                className="text-control"
-                placeholder="NY"
-                value={profile.homeState}
-                onChange={(event) => update("homeState", event.target.value)}
-              />
-              <span className="helper">Planning context.</span>
-            </label>
-          </div>
+          <p className="helper profile-progressive-hint">
+            Four quick fields get you a read. Add more below for a tighter one.
+          </p>
 
-          <div className="field-pair">
-            <label className="control">
-              <span className="field-label">Canadian average</span>
-              <input
-                className="text-control mono"
-                aria-label="Canadian average"
-                inputMode="decimal"
-                placeholder="92"
-                value={profile.canadianAverage}
-                data-invalid={fieldErrors.canadianAverage ? "true" : undefined}
-                aria-invalid={fieldErrors.canadianAverage ? true : undefined}
-                onChange={(event) =>
-                  update("canadianAverage", event.target.value)
-                }
-              />
-              {fieldErrors.canadianAverage ? (
-                <FieldError text={fieldErrors.canadianAverage} />
-              ) : (
-                <span className="helper">Percentage basis for CA cutoffs.</span>
-              )}
-            </label>
-            <label className="control">
-              <span className="field-label">Completed prerequisites</span>
-              <input
-                className="text-control"
-                aria-label="Completed prerequisites"
-                placeholder="ENG4U, MHF4U, MCV4U"
-                value={profile.completedPrerequisites}
-                onChange={(event) =>
-                  update("completedPrerequisites", event.target.value)
-                }
-              />
-              <span className="helper">Comma-separated course codes.</span>
-            </label>
-          </div>
+          <label className="control">
+            <span className="field-label">GPA</span>
+            <input
+              className="text-control mono"
+              aria-label="GPA"
+              inputMode="decimal"
+              placeholder="3.85"
+              value={profile.gpa}
+              data-invalid={fieldErrorFor("gpa") ? "true" : undefined}
+              data-shake={fieldErrorFor("gpa") ? "true" : undefined}
+              aria-invalid={fieldErrorFor("gpa") ? true : undefined}
+              onChange={(event) => update("gpa", event.target.value)}
+              onBlur={() => markTouched("gpa")}
+            />
+            {fieldErrorFor("gpa") ? (
+              <FieldError text={fieldErrorFor("gpa")!} />
+            ) : (
+              <span className="helper">On a 0 to 5 scale.</span>
+            )}
+          </label>
 
           <div className="control">
             <span className="field-label">Are you submitting test scores?</span>
@@ -2620,12 +2930,14 @@ function ProfilePanel({
                 inputMode="numeric"
                 placeholder="1480"
                 value={profile.sat}
-                data-invalid={fieldErrors.sat ? "true" : undefined}
-                aria-invalid={fieldErrors.sat ? true : undefined}
+                data-invalid={fieldErrorFor("sat") ? "true" : undefined}
+                data-shake={fieldErrorFor("sat") ? "true" : undefined}
+                aria-invalid={fieldErrorFor("sat") ? true : undefined}
                 onChange={(event) => update("sat", event.target.value)}
+                onBlur={() => markTouched("sat")}
               />
-              {fieldErrors.sat ? (
-                <FieldError text={fieldErrors.sat} />
+              {fieldErrorFor("sat") ? (
+                <FieldError text={fieldErrorFor("sat")!} />
               ) : (
                 <span className="helper">Out of 1600.</span>
               )}
@@ -2639,12 +2951,14 @@ function ProfilePanel({
                 inputMode="numeric"
                 placeholder="33"
                 value={profile.act}
-                data-invalid={fieldErrors.act ? "true" : undefined}
-                aria-invalid={fieldErrors.act ? true : undefined}
+                data-invalid={fieldErrorFor("act") ? "true" : undefined}
+                data-shake={fieldErrorFor("act") ? "true" : undefined}
+                aria-invalid={fieldErrorFor("act") ? true : undefined}
                 onChange={(event) => update("act", event.target.value)}
+                onBlur={() => markTouched("act")}
               />
-              {fieldErrors.act ? (
-                <FieldError text={fieldErrors.act} />
+              {fieldErrorFor("act") ? (
+                <FieldError text={fieldErrorFor("act")!} />
               ) : (
                 <span className="helper">Composite. Optional.</span>
               )}
@@ -2683,25 +2997,91 @@ function ProfilePanel({
             <span className="helper">Used for Fit Finder context.</span>
           </label>
 
-          <label className="control">
-            <span className="field-label field-label-row">
-              Activities and context
-              <span className="not-scored-tag">
-                {admitIntelligenceEnabled ? "Helps your fit" : "Not scored yet"}
-              </span>
-            </span>
-            <textarea
-              className="activity-control"
-              placeholder="Robotics captain, published research, part-time job..."
-              value={profile.activityNote}
-              onChange={(event) => update("activityNote", event.target.value)}
-            />
-            <span className="helper">
-              {admitIntelligenceEnabled
-                ? "Helps shape your fit. It doesn't change your chance number."
-                : "Helps with planning. It isn't part of your chance number."}
-            </span>
-          </label>
+          <div className="control">
+            <label className="canada-toggle">
+              <input
+                type="checkbox"
+                checked={applyingCanada}
+                onChange={(event) => setApplyingCanada(event.target.checked)}
+              />
+              <span>I&apos;m applying to Canadian schools</span>
+            </label>
+          </div>
+
+          {applyingCanada ? (
+            <div className="field-pair canada-fields">
+              <label className="control">
+                <span className="field-label">Canadian average</span>
+                <input
+                  className="text-control mono"
+                  aria-label="Canadian average"
+                  inputMode="decimal"
+                  placeholder="92"
+                  value={profile.canadianAverage}
+                  data-invalid={fieldErrorFor("canadianAverage") ? "true" : undefined}
+                  data-shake={fieldErrorFor("canadianAverage") ? "true" : undefined}
+                  aria-invalid={fieldErrorFor("canadianAverage") ? true : undefined}
+                  onChange={(event) => update("canadianAverage", event.target.value)}
+                  onBlur={() => markTouched("canadianAverage")}
+                />
+                {fieldErrorFor("canadianAverage") ? (
+                  <FieldError text={fieldErrorFor("canadianAverage")!} />
+                ) : (
+                  <span className="helper">Percentage basis for CA cutoffs.</span>
+                )}
+              </label>
+              <label className="control">
+                <span className="field-label">Completed prerequisites</span>
+                <input
+                  className="text-control"
+                  aria-label="Completed prerequisites"
+                  placeholder="ENG4U, MHF4U, MCV4U"
+                  value={profile.completedPrerequisites}
+                  onChange={(event) =>
+                    update("completedPrerequisites", event.target.value)
+                  }
+                />
+                <span className="helper">Comma-separated course codes.</span>
+              </label>
+            </div>
+          ) : null}
+
+          <details className="profile-more">
+            <summary>Add more for a tighter read (optional)</summary>
+            <div className="profile-more-body">
+              <label className="control">
+                <span className="field-label">Home state</span>
+                <input
+                  className="text-control"
+                  aria-label="Home state"
+                  placeholder="NY"
+                  value={profile.homeState}
+                  onChange={(event) => update("homeState", event.target.value)}
+                />
+                <span className="helper">Planning context.</span>
+              </label>
+              <label className="control">
+                <span className="field-label field-label-row">
+                  Activities and context
+                  <span className="not-scored-tag">
+                    {admitIntelligenceEnabled ? "Helps your fit" : "Not scored yet"}
+                  </span>
+                </span>
+                <textarea
+                  className="activity-control"
+                  aria-label="Activities and context"
+                  placeholder="Robotics captain, published research, part-time job..."
+                  value={profile.activityNote}
+                  onChange={(event) => update("activityNote", event.target.value)}
+                />
+                <span className="helper">
+                  {admitIntelligenceEnabled
+                    ? "Helps shape your fit. It doesn't change your chance number."
+                    : "Helps with planning. It isn't part of your chance number."}
+                </span>
+              </label>
+            </div>
+          </details>
         </div>
 
         <div className="sr-only" role="status" aria-live="polite">
@@ -3490,6 +3870,12 @@ function toolLabel(name: string) {
     .join(" ");
 }
 
+const COPILOT_PROMPTS = [
+  "What are my safeties?",
+  "What should I do next?",
+  "Where do I have the best odds?",
+];
+
 function CopilotPanel({
   profile,
   schools,
@@ -3637,6 +4023,20 @@ function CopilotPanel({
         </button>
       </form>
 
+      <div className="copilot-prompts" aria-label="Suggested prompts">
+        {COPILOT_PROMPTS.map((prompt) => (
+          <button
+            key={prompt}
+            type="button"
+            className="copilot-prompt-chip"
+            data-testid="copilot-prompt"
+            onClick={() => setMessage(prompt)}
+          >
+            {prompt}
+          </button>
+        ))}
+      </div>
+
       {readySchools.length === 0 ? (
         <div className="phase5-empty">
           <CircleHelp size={18} aria-hidden="true" />
@@ -3650,21 +4050,25 @@ function CopilotPanel({
         </p>
       ) : null}
 
-      {receipts.length > 0 ? (
-        <div className="receipt-row" aria-label="Copilot tool receipts">
-          {receipts.map((receipt, index) => (
-            <span key={`${receipt.name}-${index}`} data-testid="copilot-receipt">
-              {toolLabel(receipt.name)}
-            </span>
-          ))}
-        </div>
-      ) : null}
-
       {answer ? (
         <div className="copilot-answer" data-testid="copilot-answer">
           <span className="micro-label">Grounded answer</span>
           <p>{answer}</p>
           {modelText ? <p className="helper">{modelText}</p> : null}
+          {receipts.length > 0 ? (
+            <div className="receipt-row" aria-label="Copilot sources">
+              <span className="receipt-lead">Sources</span>
+              {receipts.map((receipt, index) => (
+                <span
+                  key={`${receipt.name}-${index}`}
+                  className="receipt-chip"
+                  data-testid="copilot-receipt"
+                >
+                  from: {toolLabel(receipt.name)}
+                </span>
+              ))}
+            </div>
+          ) : null}
         </div>
       ) : null}
     </section>
@@ -5545,6 +5949,35 @@ function SchoolSearchPanel({
   onAdd: (school: SchoolSearchRow) => void;
   addedUnitids: number[];
 }) {
+  const [activeIndex, setActiveIndex] = useState(-1);
+  const selectableResults = status === "ready" ? results : [];
+
+  // Reset the keyboard cursor whenever the result set changes.
+  useEffect(() => {
+    setActiveIndex(-1);
+  }, [query, status]);
+
+  function handleKeyDown(event: KeyboardEvent<HTMLInputElement>) {
+    if (selectableResults.length === 0) {
+      return;
+    }
+    if (event.key === "ArrowDown") {
+      event.preventDefault();
+      setActiveIndex((current) =>
+        Math.min(current + 1, selectableResults.length - 1),
+      );
+    } else if (event.key === "ArrowUp") {
+      event.preventDefault();
+      setActiveIndex((current) => Math.max(current - 1, 0));
+    } else if (event.key === "Enter" && activeIndex >= 0) {
+      event.preventDefault();
+      const school = selectableResults[activeIndex];
+      if (school && !addedUnitids.includes(school.unitid)) {
+        onAdd(school);
+      }
+    }
+  }
+
   return (
     <section className="search-panel">
       <div className="panel-inner">
@@ -5568,13 +6001,20 @@ function SchoolSearchPanel({
                 className="text-control pl-10"
                 placeholder="MIT, Michigan, Alabama..."
                 value={query}
+                role="combobox"
+                aria-expanded={status === "ready" && results.length > 0}
+                aria-controls="school-search-results"
+                aria-activedescendant={
+                  activeIndex >= 0 ? `school-option-${activeIndex}` : undefined
+                }
                 onChange={(event) => setQuery(event.target.value)}
+                onKeyDown={handleKeyDown}
               />
             </div>
           </label>
 
           {status !== "idle" ? (
-            <div className="search-results" role="listbox">
+            <div className="search-results" id="school-search-results" role="listbox">
               {status === "loading" ? (
                 <div className="search-loading">
                   <div className="search-results-head">Searching_</div>
@@ -5622,14 +6062,17 @@ function SchoolSearchPanel({
                   <div className="search-results-head">
                     {results.length} {results.length === 1 ? "school" : "schools"}
                   </div>
-                  {results.map((school) => {
+                  {results.map((school, index) => {
                     const alreadyAdded = addedUnitids.includes(school.unitid);
                     return (
                       <button
                         key={school.unitid}
+                        id={`school-option-${index}`}
                         className="search-result"
                         type="button"
+                        data-active={index === activeIndex ? "true" : undefined}
                         disabled={alreadyAdded}
+                        onMouseEnter={() => setActiveIndex(index)}
                         onClick={() => onAdd(school)}
                       >
                         <span className="search-sigil" aria-hidden="true">

@@ -642,6 +642,15 @@ async function mockReportsStatus(page: Page, enabled: boolean) {
   });
 }
 
+async function mockListStatus(page: Page, enabled: boolean) {
+  await page.route("**/api/list/status", async (route) => {
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify({ enabled }),
+    });
+  });
+}
+
 async function mockSupabaseAuth(page: Page) {
   const corsHeaders = {
     "access-control-allow-headers": "authorization, x-client-info, apikey, content-type",
@@ -767,6 +776,12 @@ type ProfileFields = {
 async function setProfileOnStart(page: Page, fields: ProfileFields) {
   await page.goto("/start");
   if (fields.gpa) await page.getByLabel("GPA").fill(fields.gpa);
+  // Canadian fields reveal behind the "applying to Canadian schools" toggle.
+  if (fields.canadianAverage || fields.prerequisites) {
+    await page
+      .getByRole("checkbox", { name: /applying to Canadian schools/i })
+      .check();
+  }
   if (fields.canadianAverage)
     await page.getByLabel("Canadian average").fill(fields.canadianAverage);
   if (fields.prerequisites)
@@ -775,8 +790,11 @@ async function setProfileOnStart(page: Page, fields: ProfileFields) {
   if (fields.act)
     await page.getByRole("textbox", { exact: true, name: "ACT" }).fill(fields.act);
   if (fields.major) await page.getByLabel("Intended major").fill(fields.major);
-  if (fields.activities)
+  // Activities live behind the optional "Add more" progressive-disclosure group.
+  if (fields.activities) {
+    await page.getByText("Add more for a tighter read (optional)").click();
     await page.getByLabel("Activities and context").fill(fields.activities);
+  }
   await page.getByRole("button", { name: "Save profile" }).click();
   await page.waitForURL(/\/dashboard$/);
 }
@@ -895,11 +913,11 @@ test("splits each route to one job with a profile spine everywhere but /start", 
   await page.goto("/schools");
   const spine = page.getByTestId("profile-spine");
   await expect(spine).toContainText("GPA 3.80");
-  await expect(spine.getByRole("link", { name: "Edit" })).toHaveAttribute(
+  await expect(spine.getByRole("link", { name: "Full editor" })).toHaveAttribute(
     "href",
     "/start",
   );
-  await expect(page.getByLabel("GPA")).toHaveCount(0);
+  // The full form does not render outside /start (spine chips are closed inputs).
   await expect(page.getByRole("button", { name: "Save profile" })).toHaveCount(0);
   await expect(page.getByTestId("fit-finder-panel")).toHaveCount(0);
   await expect(page.getByTestId("outcome-capture-flow")).toHaveCount(0);
@@ -2368,4 +2386,147 @@ test("renders an honest elite-school result and methodology disclosure", async (
   await expect(page.getByText("Calibration by selectivity tier")).toHaveCount(0);
   await expect(page.getByText("Real-data span compared with the Phase 2 prior")).toHaveCount(0);
   await expect(page.getByText("Change-course check")).toHaveCount(0);
+});
+
+test("one-click first read surfaces schools from the Smart List output, not a hardcoded list", async ({
+  page,
+}) => {
+  await mockOutcomeStatus(page, false);
+  await mockFitStatus(page, false);
+  await mockAdmitIntelligenceStatus(page, false);
+  await mockListStatus(page, true);
+
+  let listCalls = 0;
+  await page.route("**/api/list/generate", async (route) => {
+    listCalls += 1;
+    const body = JSON.parse(route.request().postData() ?? "{}");
+    expect(body.profile).toMatchObject({ gpa: 3.91 });
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify({
+        list: [
+          { unitid: 100, name: "Zephyr Institute of Tech", tier: "Reach", bucket: "reach", fit: 71, net_cost: null, affordable: null, rationale: "Strong fit, long odds." },
+          { unitid: 200, name: "Marigold State University", tier: "Target", bucket: "target", fit: 64, net_cost: null, affordable: null, rationale: "Even odds, good fit." },
+          { unitid: 300, name: "Brookhaven College", tier: "Safety", bucket: "safety", fit: 58, net_cost: null, affordable: null, rationale: "Comfortable safety." },
+        ],
+        overlooking: [],
+        objective: { weights: { fit: 0.7, cost: 0.3 } },
+      }),
+    });
+  });
+
+  await setProfileOnStart(page, { gpa: "3.91", sat: "1520", major: "Data science" });
+  await page.goto("/dashboard");
+  await page.getByTestId("first-read-run").click();
+
+  const firstRead = page.getByTestId("first-read");
+  await expect(firstRead).toContainText("Zephyr Institute of Tech");
+  await expect(firstRead).toContainText("Marigold State University");
+  await expect(firstRead).toContainText("Brookhaven College");
+  // Rendered schools are the module output, never a literal/hardcoded name.
+  await expect(firstRead).not.toContainText("Massachusetts Institute of Technology");
+  expect(listCalls).toBe(1);
+});
+
+test("profile-spine chips edit inline through the shared profile context, no new endpoint", async ({
+  page,
+}) => {
+  await mockOutcomeStatus(page, false);
+  await mockFitStatus(page, false);
+  await mockAdmitIntelligenceStatus(page, false);
+
+  // A profile write must never hit a network endpoint — abort (and count) if it does.
+  let profileWrites = 0;
+  await page.route(/\/api\/(outcomes\/profile|profile)$/, async (route) => {
+    profileWrites += 1;
+    await route.abort();
+  });
+
+  await setProfileOnStart(page, { gpa: "3.80", sat: "1450", major: "Biology" });
+  await page.goto("/schools");
+  const spine = page.getByTestId("profile-spine");
+  await expect(spine).toContainText("GPA 3.80");
+
+  await spine.getByTestId("spine-chip-gpa").click();
+  const gpaInput = spine.getByLabel("GPA");
+  await gpaInput.fill("3.92");
+  await gpaInput.press("Enter");
+
+  await expect(spine).toContainText("GPA 3.92");
+  // Persisted through the SAME context/localStorage save path — no new endpoint.
+  const stored = await page.evaluate(() =>
+    JSON.parse(localStorage.getItem("admira-profile") ?? "{}"),
+  );
+  expect(stored.gpa).toBe("3.92");
+  expect(profileWrites).toBe(0);
+});
+
+test("removing a school shows an undo toast that restores it via the existing add path", async ({
+  page,
+}) => {
+  await mockOutcomeStatus(page, false);
+  await mockFitStatus(page, false);
+  await mockAdmitIntelligenceStatus(page, false);
+
+  const resultCard = await addMitResult(page);
+  await resultCard
+    .getByRole("button", { name: /Remove Massachusetts Institute of Technology/ })
+    .click();
+  await expect(page.getByTestId("result-card")).toHaveCount(0);
+
+  const toast = page.getByTestId("toast");
+  await expect(toast).toContainText("Removed Massachusetts Institute of Technology");
+  await toast.getByRole("button", { name: "Undo" }).click();
+
+  // Undo re-adds through the existing add path (re-scored via /api/chance).
+  await expect(page.getByTestId("result-card")).toContainText(
+    "Massachusetts Institute of Technology",
+  );
+});
+
+test("onboarding validates on blur, preserves input, and reveals optional + Canada fields", async ({
+  page,
+}) => {
+  await mockOutcomeStatus(page, false);
+  await mockFitStatus(page, false);
+  await mockAdmitIntelligenceStatus(page, false);
+  await page.goto("/start");
+
+  // Optional + Canada fields are hidden until progressively revealed. Activities
+  // sits in a collapsed <details> (in the DOM but not visible); the Canada
+  // fields are not rendered until the toggle is checked.
+  await expect(page.getByLabel("Activities and context")).not.toBeVisible();
+  await expect(page.getByLabel("Canadian average")).toHaveCount(0);
+
+  // Invalid GPA flags only after blur, and the entered value is preserved.
+  const gpa = page.getByLabel("GPA");
+  await gpa.fill("9");
+  await expect(gpa).not.toHaveAttribute("data-invalid", "true");
+  await gpa.blur();
+  await expect(gpa).toHaveAttribute("data-invalid", "true");
+  await expect(gpa).toHaveValue("9");
+
+  // Progressive reveal of optional + contextual Canada fields.
+  await page.getByText("Add more for a tighter read (optional)").click();
+  await expect(page.getByLabel("Activities and context")).toBeVisible();
+  await page
+    .getByRole("checkbox", { name: /applying to Canadian schools/i })
+    .check();
+  await expect(page.getByLabel("Canadian average")).toBeVisible();
+});
+
+test("copilot shows suggested-prompt chips that prefill the input", async ({ page }) => {
+  await mockOutcomeStatus(page, false);
+  await mockFitStatus(page, false);
+  await mockAdmitIntelligenceStatus(page, false);
+  await mockCopilotStatus(page, true);
+
+  await page.goto("/dashboard");
+  await page.getByRole("button", { exact: true, name: "Copilot" }).click();
+  const panel = page.getByTestId("copilot-panel");
+  const chip = panel.getByTestId("copilot-prompt").first();
+  await expect(chip).toBeVisible();
+  const chipText = (await chip.innerText()).trim();
+  await chip.click();
+  await expect(panel.getByTestId("copilot-input")).toHaveValue(chipText);
 });

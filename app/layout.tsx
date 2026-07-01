@@ -6,6 +6,7 @@ import {
 } from "next/font/google";
 import "./globals.css";
 import { AdmiraProfileProvider } from "./admira-profile";
+import { ToastProvider } from "./toast";
 
 const bricolage = Bricolage_Grotesque({
   variable: "--font-display",
@@ -53,7 +54,9 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body className="antialiased">
-        <AdmiraProfileProvider>{children}</AdmiraProfileProvider>
+        <AdmiraProfileProvider>
+          <ToastProvider>{children}</ToastProvider>
+        </AdmiraProfileProvider>
       </body>
     </html>
   );
